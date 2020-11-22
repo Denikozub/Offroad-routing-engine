@@ -1,2 +1,1 @@
-# proj
-offroad navigation system
+# offroad navigation system
