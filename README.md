@@ -1,5 +1,4 @@
 # Off-road navigation system
-___
 - Super fast graph algorithm
 - o(n) two optimal _visibility nodes_ calculation
 - Hierarchical approach for graph building
