@@ -48,13 +48,14 @@ class Iterative:
             # plt.plot([y1 + self.curr[1], y2 + self.curr[1]], [x1 + self.curr[0], x2 + self.curr[0]], color='red')
         for i in range(self.angle_count):
             k_curr = math.tan((i * 360 / self.angle_count + self.decline)*math.pi/180)
-            # delta_angle = math.tan(math.pi/180)
             if x1 == x2:
-                k_segment = 1000
+                k_segment = 100000
             else:
                 k_segment = (y1 - y2) / (x1 - x2)
+            # delta_angle = math.tan(math.pi * 2 / self.angle_count)
             # if abs(k_segment - k_curr) < delta_angle:
-            # go there + check quarter
+            #    this means both points lay inside an angle
+            #    we should take x and y from the nearest point
             b_segment = y1 - k_segment * x1
             x = b_segment / (k_curr - k_segment)
             y = k_curr * x
@@ -99,7 +100,7 @@ class Iterative:
         else:
             plot_xy = None
         for i in range(polyline_count):
-            coord, type_line = parser.parse_mp(polyline)
+            coord, type_line = parser.parse_polyline(polyline)
             if coord == 0:
                 continue
             j = 2

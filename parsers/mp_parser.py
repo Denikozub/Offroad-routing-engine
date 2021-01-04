@@ -14,12 +14,12 @@ class MpParser:
         self.slazav_map = None
 
     def open_mp(self):
-        file_mp = 'maps/' + self.bbox + '.mp'
+        file_mp = '../maps/' + self.bbox + '.mp'
         self.slazav_map = open(file_mp, encoding="ISO-8859-1").read()
         polyline_count = self.slazav_map.count('[POLYLINE]')
         return polyline_count
 
-    def parse_mp(self, polyline):
+    def parse_polyline(self, polyline):
         polyline[0] = self.slazav_map.find('[POLYLINE]', polyline[0] + 1) + self.offset_to_type
         type_line = int(self.slazav_map[polyline[0]:self.slazav_map.find('\n', polyline[0])], 16)
         if not (type_line in self.polyline_good or type_line in self.polyline_bad):
