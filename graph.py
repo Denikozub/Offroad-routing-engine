@@ -37,8 +37,8 @@ def find_pair_cutoff(point, left_border, right_border, coord):
     n = len(coord) - 1
     begin = end = -1
     for i in range(n):
-        if not point_in_angle(point, coord[(i-1)%n], coord[i%n], coord[(i+1)%n]) and \
-                not point_in_angle(coord[i%n], left_border, point, right_border):
+        if not point_in_angle(point, coord[(i-1) % n], coord[i % n], coord[(i+1) % n]) and \
+                not point_in_angle(coord[i % n], left_border, point, right_border):
             if i == 0:
                 start_zero = True
             if begin == -1 and not start_zero:
@@ -53,10 +53,10 @@ def find_pair_cutoff(point, left_border, right_border, coord):
             if i == 0:
                 start_zero = False
             if begin != -1 and not start_zero:
-                end = (i-1)%n
+                end = (i-1) % n
                 return min(begin, end), max(begin, end)
             if start_zero and end == -1:
-                end = (i-1)%n
+                end = (i-1) % n
             if start_zero and i == n - 1:
                 begin = n
                 return min(begin, end), max(begin, end)
@@ -94,9 +94,10 @@ def add_points(point1, point2, point, view_angle_std, crosses, node1, node2):
             crosses[p] = [dist, None]
 
 
-def build_graph(polygons, multilinestrings, plot=False, view_angle=None, use_centroid=False):
+def build_graph(polygons, multilinestrings, line_step, pair_func=find_pair_array,
+                plot=False, view_angle=None, use_centroid=False, crs='EPSG:4326'):
     fig = plt.figure()
-    G = nx.MultiGraph(crs='EPSG:4326')
+    G = nx.MultiGraph(crs=crs)
     max_poly_len = 10000  # for graph indexing
     polygon_number = polygons.shape[0]
     multilinestring_number = multilinestrings.shape[0]
@@ -107,8 +108,8 @@ def build_graph(polygons, multilinestrings, plot=False, view_angle=None, use_cen
         n = len(coords_1) - 1
         for k in range(n):
             point = coords_1[k]
-            left_border = coords_1[(k-1)%n]
-            right_border = coords_1[(k+1)%n]
+            left_border = coords_1[(k-1) % n]
+            right_border = coords_1[(k+1) % n]
             G.add_node(i * max_poly_len + k, x=point[0], y=point[1])
             view_angle_std = 1 if view_angle is None or view_angle == 0 else view_angle
             angle_count = math.floor(360 / view_angle_std)
@@ -119,28 +120,28 @@ def build_graph(polygons, multilinestrings, plot=False, view_angle=None, use_cen
                     continue
                 m = len(line_coords) - 1
                 stay = False
-                for k in range(m):
+                for t in range(m):
                     if not stay:
-                        point1 = line_coords[k]
-                        point1_index = k
-                    point2 = line_coords[k + 1]
-#                     if (min(bbox_width, bbox_length) / mod(vec(point1, point2)) > bbox_comp):
-#                         stay = True
-#                         continue
+                        point1 = line_coords[t]
+                        point1_index = t
+                    point2 = line_coords[t + 1]
+                    if mod(vec(point1, point2)) < line_step:
+                        stay = True
+                        continue
                     if view_angle is not None:
                         delta_angle = view_angle * math.pi / 180
                         if angle(point1, point, point2) < delta_angle:
                             stay = True
                             continue
                     node1 = (j + 0.33) * max_poly_len + point1_index
-                    node2 = (j + 0.33) * max_poly_len + k + 1
+                    node2 = (j + 0.33) * max_poly_len + t + 1
                     G.add_node(node1, x=point1[0], y=point1[1])
                     G.add_node(node2, x=point2[0], y=point2[1])
                     G.add_edge(node1, node2)
                     add_points(point1, point2, point, view_angle_std, crosses, node1, node2)
             for j in range(polygon_number):
-                if j == i: # adding nodes inside a polygon
-                    for t in range (n):
+                if j == i:  # adding nodes inside a polygon
+                    for t in range(n):
                         if t == k:
                             continue
                         other_point = coords_1[t]
@@ -152,7 +153,7 @@ def build_graph(polygons, multilinestrings, plot=False, view_angle=None, use_cen
                 coords_2 = polygons.coords[j]
                 if coords_2 is None:
                     continue
-                pair = find_pair_array(point, left_border, right_border, coords_2)
+                pair = pair_func(point, left_border, right_border, coords_2)
                 if pair is None:
                     continue
                 left, right = pair
@@ -162,17 +163,18 @@ def build_graph(polygons, multilinestrings, plot=False, view_angle=None, use_cen
                     delta_angle = view_angle * math.pi / 180
                     if angle(left_coords, point, right_coords) < delta_angle:
                         if use_centroid:
+                            centroid = polygons.centroid[j]
                             node = (j + 0.66) * max_poly_len
-                            G.add_node(node, x=point2[0], y=point2[1])
+                            G.add_node(node, x=centroid.x, y=centroid.y)
                             G.add_edge(node, i * max_poly_len + k)
-                            add_point(polygons.centroid[j], point, view_angle_std, crosses, node)
+                            add_point([centroid.x, centroid.y], point, view_angle_std, crosses, node)
                         continue
                 add_points(left_coords, right_coords, point, view_angle_std, crosses,
                            j * max_poly_len + left, j * max_poly_len + right)
             for p in range(angle_count):
                 if crosses[p] is not None and crosses[p][1] is not None:
-                    G.add_node(crosses[p][1][2], x = crosses[p][1][0], y = crosses[p][1][1])
+                    G.add_node(crosses[p][1][2], x=crosses[p][1][0], y=crosses[p][1][1])
                     G.add_edge(crosses[p][1][2], i * max_poly_len + k)
                     if plot:
-                        plt.plot([point[0], crosses[p][1][0]], [point[1], crosses[p][1][1]]);
+                        plt.plot([point[0], crosses[p][1][0]], [point[1], crosses[p][1][1]])
     return G, fig
