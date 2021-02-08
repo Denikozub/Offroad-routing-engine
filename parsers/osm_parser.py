@@ -34,7 +34,6 @@ class OsmParser:
     def build_dataframe(self, epsilon, bbox_comp):
         self.polygons.geometry = self.polygons.geometry.convex_hull  # check for efficiency and rewrite if needed
         polygons = pd.DataFrame(self.polygons)
-        polygons['centroid'] = polygons.geometry.apply(self.get_centroid)
         polygons.geometry = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
         polygons = polygons.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
 
@@ -44,8 +43,7 @@ class OsmParser:
             for polygon in MultiPolygon(multipolygons.geometry.iloc[i]).geoms:
                 convex_polygon = polygon.convex_hull  # check for efficiency and rewrite if needed
                 polygons = polygons.append({'coords': self.get_coord(convex_polygon, epsilon, bbox_comp),
-                                            'natural': multi_natural,
-                                            'centroid': convex_polygon.centroid}, ignore_index=True)
+                                            'natural': multi_natural}, ignore_index=True)
 
         multilinestrings = pd.DataFrame(self.multilinestrings)
         multilinestrings.geometry = multilinestrings.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])

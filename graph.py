@@ -95,7 +95,7 @@ def add_points(point1, point2, point, view_angle_std, crosses, node1, node2):
 
 
 def build_graph(polygons, multilinestrings, line_step, pair_func=find_pair_array,
-                plot=False, view_angle=None, use_centroid=False, crs='EPSG:4326'):
+                plot=False, view_angle=None, point_approx=False, crs='EPSG:4326'):
     fig = plt.figure()
     G = nx.MultiGraph(crs=crs)
     max_poly_len = 10000  # for graph indexing
@@ -162,12 +162,11 @@ def build_graph(polygons, multilinestrings, line_step, pair_func=find_pair_array
                 if view_angle is not None:
                     delta_angle = view_angle * math.pi / 180
                     if angle(left_coords, point, right_coords) < delta_angle:
-                        if use_centroid:
-                            centroid = polygons.centroid[j]
+                        if point_approx:
                             node = (j + 0.66) * max_poly_len
-                            G.add_node(node, x=centroid.x, y=centroid.y)
+                            G.add_node(node, x=coords_2[0][0], y=coords_2[0][1])
                             G.add_edge(node, i * max_poly_len + k)
-                            add_point([centroid.x, centroid.y], point, view_angle_std, crosses, node)
+                            add_point(coords_2[0], point, view_angle_std, crosses, node)
                         continue
                 add_points(left_coords, right_coords, point, view_angle_std, crosses,
                            j * max_poly_len + left, j * max_poly_len + right)
