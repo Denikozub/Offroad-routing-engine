@@ -1,5 +1,6 @@
 from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon
+from geometry import mod, vec
 import pandas as pd
 import numpy as np
 import rdp
@@ -48,5 +49,19 @@ class OsmParser:
         multilinestrings = pd.DataFrame(self.multilinestrings)
         multilinestrings.geometry = multilinestrings.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
         multilinestrings = multilinestrings.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
+        for i in range(multilinestrings.shape[0]):
+            line_coords = multilinestrings.coords[i]
+            if line_coords is None:
+                continue
+            point1 = line_coords[0]
+            new_line = list()
+            new_line.append(point1)
+            for j in range(len(line_coords) - 1):
+                point2 = line_coords[j + 1]
+                if mod(vec(point1, point2)) < min(self.bbox[2] - self.bbox[0], self.bbox[3] - self.bbox[1]) / bbox_comp:
+                    continue
+                new_line.append(point2)
+                point1 = point2
+            multilinestrings.coords[i] = new_line
 
         return polygons, multilinestrings

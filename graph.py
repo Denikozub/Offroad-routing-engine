@@ -94,7 +94,7 @@ def add_points(point1, point2, point, view_angle_std, crosses, node1, node2):
             crosses[p] = [dist, None]
 
 
-def build_graph(polygons, multilinestrings, line_step, pair_func=find_pair_array,
+def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 plot=False, view_angle=None, point_approx=False, crs='EPSG:4326'):
     fig = plt.figure()
     G = nx.MultiGraph(crs=crs)
@@ -125,9 +125,6 @@ def build_graph(polygons, multilinestrings, line_step, pair_func=find_pair_array
                         point1 = line_coords[t]
                         point1_index = t
                     point2 = line_coords[t + 1]
-                    if mod(vec(point1, point2)) < line_step:
-                        stay = True
-                        continue
                     if view_angle is not None:
                         delta_angle = view_angle * math.pi / 180
                         if angle(point1, point, point2) < delta_angle:
