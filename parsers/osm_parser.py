@@ -1,6 +1,6 @@
 from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon
-from geometry import mod, vec
+from geometry import dist, box_width, box_length
 import pandas as pd
 import numpy as np
 import rdp
@@ -14,12 +14,15 @@ class OsmParser:
         self.polygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon']
         self.multipolygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon']
         self.multilinestrings = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiLineString']
-        self.bbox = bbox
+        self.bbox_width = box_width(bbox)
+        self.bbox_height = box_length(bbox)
+
+    def compare_bounds(self, bounds, bbox_comp):
+        return self.bbox_width / box_width(bounds) <= bbox_comp and self.bbox_height / box_length(bounds) <= bbox_comp
 
     def check_bounds(self, obj, bbox_comp):
         bounds = obj.bounds
-        return (self.bbox[2] - self.bbox[0]) / (bounds[2] - bounds[0]) <= bbox_comp and \
-               (self.bbox[3] - self.bbox[1]) / (bounds[3] - bounds[1]) <= bbox_comp
+        return self.compare_bounds(bounds, bbox_comp)
 
     def get_coord(self, obj, epsilon, bbox_comp):
         if bbox_comp is not None and not self.check_bounds(obj, bbox_comp):
@@ -28,23 +31,32 @@ class OsmParser:
             return np.array(mapping(obj)['coordinates'][0])
         return rdp.rdp(np.array(mapping(obj)['coordinates'][0]), epsilon=epsilon)
 
-    @staticmethod
-    def get_centroid(polygon):
-        return Polygon(polygon).centroid
+    def bounds(self, polygon, bbox_comp):
+        bounds = polygon.bounds
+        return bounds if not self.compare_bounds(bounds, bbox_comp) else None
 
-    def build_dataframe(self, epsilon, bbox_comp):
-        self.polygons.geometry = self.polygons.geometry.convex_hull  # check for efficiency and rewrite if needed
-        polygons = pd.DataFrame(self.polygons)
-        polygons.geometry = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
-        polygons = polygons.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
+    def build_dataframe(self, epsilon, bbox_comp, ellipse=False):
+        if ellipse:
+            polygons = pd.DataFrame(self.polygons)
+            polygons.geometry = polygons.geometry.apply(self.bounds, args=[bbox_comp])
+            polygons = polygons.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
+        else:
+            self.polygons.geometry = self.polygons.geometry.convex_hull  # check for efficiency and rewrite if needed
+            polygons = pd.DataFrame(self.polygons)
+            polygons.geometry = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
+            polygons = polygons.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
 
         multipolygons = pd.DataFrame(self.multipolygons)
         for i in range(multipolygons.shape[0]):
             multi_natural = multipolygons.natural.iloc[i]
             for polygon in MultiPolygon(multipolygons.geometry.iloc[i]).geoms:
-                convex_polygon = polygon.convex_hull  # check for efficiency and rewrite if needed
-                polygons = polygons.append({'coords': self.get_coord(convex_polygon, epsilon, bbox_comp),
-                                            'natural': multi_natural}, ignore_index=True)
+                if ellipse:
+                    polygons = polygons.append({'coords': self.bounds(polygon, bbox_comp),
+                                                'natural': multi_natural}, ignore_index=True)
+                else:
+                    convex_polygon = polygon.convex_hull  # check for efficiency and rewrite if needed
+                    polygons = polygons.append({'coords': self.get_coord(convex_polygon, epsilon, bbox_comp),
+                                                'natural': multi_natural}, ignore_index=True)
 
         multilinestrings = pd.DataFrame(self.multilinestrings)
         multilinestrings.geometry = multilinestrings.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
@@ -58,7 +70,7 @@ class OsmParser:
             new_line.append(point1)
             for j in range(len(line_coords) - 1):
                 point2 = line_coords[j + 1]
-                if mod(vec(point1, point2)) < min(self.bbox[2] - self.bbox[0], self.bbox[3] - self.bbox[1]) / bbox_comp:
+                if dist(point1, point2) < min(self.bbox_width, self.bbox_height) / bbox_comp:
                     continue
                 new_line.append(point2)
                 point1 = point2

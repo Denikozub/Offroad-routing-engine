@@ -63,35 +63,65 @@ def find_pair_cutoff(point, left_border, right_border, coord):
     return None
 
 
+def quad_equation(a, b, c):
+    if a == 0:
+        return -c / b
+    d = b**2 - 4 * a * c
+    if d < 0:
+        return None
+    elif d == 0:
+        return -b / (2 * a), -b / (2 * a)
+    return (-b + math.sqrt(d)) / (2 * a), (-b - math.sqrt(d)) / (2 * a)
+
+
+def find_pair_ellipse(point, left_border, right_border, coord):
+    k = box_length(coord) / box_width(coord)
+    a = k * (coord[2] - coord[0]) / 2
+    b = (coord[3] - coord[1]) / 2
+    xc = (coord[0] + coord[2]) / 2
+    yc = (coord[1] + coord[3]) / 2
+    x0 = k * (point[0] - xc)
+    y0 = (point[1] - yc)
+    y = quad_equation(b**2 + y0**2 * a**2 / x0**2, -2 * y0 * b**2 * a**2 / x0**2, -b**4 + a**2 * b**2 / x0**2)
+    if y is None:
+        return None
+    x1 = (1 - y0 * y[0] / b**2) * a**2 / x0 / k
+    x2 = (1 - y0 * y[1] / b**2) * a**2 / x0 / k
+    point1 = ((x1 + xc), y[0] + yc)
+    point2 = ((x2 + xc), y[1] + yc)
+    if left_border is None and right_border is None:
+        return point1, point2
+    if not point_in_angle(point1, left_border, point, right_border):
+        if not point_in_angle(point2, left_border, point, right_border):
+            return None
+        return point2, point2
+    if not point_in_angle(point2, left_border, point, right_border):
+        return point1, point1
+    return point1, point2
+
+
 def add_point(new_point, point, view_angle_std, crosses, node):
-    x = new_point[0]
-    y = new_point[1]
-    x_rel = x - point[0]
-    y_rel = y - point[1]
-    dist = mod((x_rel, y_rel))
-    k1 = math.ceil(math.atan2(y_rel, x_rel) * 180 / math.pi / view_angle_std)
-    if crosses[k1] is None or crosses[k1][0] > dist:
-        crosses[k1] = [dist, [x, y, node]]
-    return x, y, x_rel, y_rel, k1
+    dist_point = dist(point, new_point)
+    k1 = math.ceil(angle_horizontal(point, new_point) * 180 / math.pi / view_angle_std)
+    if crosses[k1] is None or crosses[k1][0] > dist_point:
+        crosses[k1] = [dist_point, [new_point[0], new_point[1], node]]
+    return k1
 
 
 def add_points(point1, point2, point, view_angle_std, crosses, node1, node2):
-    x1, y1, x1_rel, y1_rel, k1 = add_point(point1, point, view_angle_std, crosses, node1)
-    x2, y2, x2_rel, y2_rel, k2 = add_point(point2, point, view_angle_std, crosses, node2)
+    k1 = add_point(point1, point, view_angle_std, crosses, node1)
+    k2 = add_point(point2, point, view_angle_std, crosses, node2)
+    x1, y1 = vec(point, point1)
+    x2, y2 = vec(point, point2)
+    k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
+    b12 = y1 - k12 * x1
     for p in range(min(k1, k2) + 1, max(k1, k2)):
-        k_curr = math.tan((p * view_angle_std + 0.00001)*math.pi/180)
-        if x1_rel == x2_rel:
-            k_segment = 100000
-        else:
-            k_segment = (y1_rel - y2_rel) / (x1_rel - x2_rel)
-        b_segment = y1_rel - k_segment * x1_rel
-        x = b_segment / (k_curr - k_segment)
+        k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
+        x = b12 / (k_curr - k12)
         y = k_curr * x
-        if not point_in_angle((x, y), (x1_rel, y1_rel), (0, 0), (x2_rel, y2_rel)):
-            continue
-        dist = mod((x, y))
-        if crosses[p] is None or crosses[p][0] > dist:
-            crosses[p] = [dist, None]
+        dist_point = mod((x, y))
+        if crosses[p] is None or crosses[p][0] > dist_point:
+            crosses[p] = [dist_point, None]
 
 
 def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
