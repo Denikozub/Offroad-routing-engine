@@ -1,6 +1,4 @@
-import numpy as np
 import networkx as nx
-import math
 import matplotlib.pyplot as plt
 from geometry import *
 
@@ -75,22 +73,15 @@ def quad_equation(a, b, c):
 
 
 def find_pair_ellipse(point, left_border, right_border, coord):
-    k = box_length(coord) / box_width(coord)
-    a = k * (coord[2] - coord[0]) / 2
-    b = (coord[3] - coord[1]) / 2
-    xc = (coord[0] + coord[2]) / 2
-    yc = (coord[1] + coord[3]) / 2
-    x0 = k * (point[0] - xc)
-    y0 = (point[1] - yc)
+    multipl = 10000000
+    a, b = (coord[2][0] - coord[1][0]) / 2 * multipl, (coord[1][1] - coord[0][1]) / 2 * multipl
+    xc, yc = (coord[2][0] + coord[1][0]) / 2 * multipl, (coord[1][1] + coord[0][1]) / 2 * multipl
+    x0, y0 = point[0] * multipl - xc, point[1] * multipl - yc
     y = quad_equation(b**2 + y0**2 * a**2 / x0**2, -2 * y0 * b**2 * a**2 / x0**2, -b**4 + a**2 * b**2 / x0**2)
     if y is None:
         return None
-    x1 = (1 - y0 * y[0] / b**2) * a**2 / x0 / k
-    x2 = (1 - y0 * y[1] / b**2) * a**2 / x0 / k
-    point1 = ((x1 + xc), y[0] + yc)
-    point2 = ((x2 + xc), y[1] + yc)
-    if left_border is None and right_border is None:
-        return point1, point2
+    x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
+    point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
     if not point_in_angle(point1, left_border, point, right_border):
         if not point_in_angle(point2, left_border, point, right_border):
             return None
@@ -124,58 +115,65 @@ def add_points(point1, point2, point, view_angle_std, crosses, node1, node2):
             crosses[p] = [dist_point, None]
 
 
+def add_inside_poly(G, k, point, i, polygon, n, max_poly_len, plot):
+    for t in range(n):
+        if t == k or not inner_diag(k, t, polygon, n):
+            continue
+        other_point = polygon[t]
+        G.add_node(i * max_poly_len + t, x=other_point[0], y=other_point[1])
+        G.add_edge(i * max_poly_len + t, i * max_poly_len + k)
+        if plot:
+            plt.plot([point[0], other_point[0]], [point[1], other_point[1]])
+
+
 def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 plot=False, view_angle=None, point_approx=False, crs='EPSG:4326'):
     fig = plt.figure()
     G = nx.MultiGraph(crs=crs)
     max_poly_len = 10000  # for graph indexing
     polygon_number = polygons.shape[0]
-    multilinestring_number = multilinestrings.shape[0]
+    multilinestring_number = multilinestrings.shape[0] if multilinestrings is not None else 0
+
+    # all polygons cycle
     for i in range(polygon_number):
         coords_1 = polygons.coords[i]
         if coords_1 is None:
             continue
         n = len(coords_1) - 1
+
+        # all points of polygon cycle
         for k in range(n):
-            point = coords_1[k]
-            left_border = coords_1[(k-1) % n]
-            right_border = coords_1[(k+1) % n]
+            point, left_border, right_border = coords_1[k], coords_1[(k-1) % n], coords_1[(k+1) % n]
             G.add_node(i * max_poly_len + k, x=point[0], y=point[1])
             view_angle_std = 1 if view_angle is None or view_angle == 0 else view_angle
             angle_count = math.floor(360 / view_angle_std)
             crosses = [None for p in range(angle_count)]
+
+            # adding linestrings
             for j in range(multilinestring_number):
                 line_coords = multilinestrings.coords[j]
                 if line_coords is None:
                     continue
-                m = len(line_coords) - 1
-                stay = False
-                for t in range(m):
-                    if not stay:
-                        point1 = line_coords[t]
-                        point1_index = t
+                point1, point1_index = line_coords[0], 0
+                add_point(point1, point, view_angle_std, crosses, (j + 0.33) * max_poly_len)
+                for t in range(len(line_coords) - 1):
                     point2 = line_coords[t + 1]
                     if view_angle is not None:
                         delta_angle = view_angle * math.pi / 180
                         if angle(point1, point, point2) < delta_angle:
-                            stay = True
                             continue
                     node1 = (j + 0.33) * max_poly_len + point1_index
                     node2 = (j + 0.33) * max_poly_len + t + 1
                     G.add_node(node1, x=point1[0], y=point1[1])
                     G.add_node(node2, x=point2[0], y=point2[1])
                     G.add_edge(node1, node2)
-                    add_points(point1, point2, point, view_angle_std, crosses, node1, node2)
+                    add_point(point2, point, view_angle_std, crosses, node2)
+                    point1 = point2
+
+            # adding polygons
             for j in range(polygon_number):
-                if j == i:  # adding nodes inside a polygon
-                    for t in range(n):
-                        if t == k:
-                            continue
-                        other_point = coords_1[t]
-                        G.add_node(i * max_poly_len + t, x=other_point[0], y=other_point[1])
-                        G.add_edge(i * max_poly_len + t, i * max_poly_len + k)
-                        if plot:
-                            plt.plot([point[0], other_point[0]], [point[1], other_point[1]])
+                if j == i:
+                    add_inside_poly(G, k, point, i, polygons.geometry[i], n, max_poly_len, plot)
                     continue
                 coords_2 = polygons.coords[j]
                 if coords_2 is None:
@@ -184,8 +182,10 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if pair is None:
                     continue
                 left, right = pair
-                left_coords = coords_2[left]
-                right_coords = coords_2[right]
+                if type(left) == (tuple or list):
+                    left_coords, right_coords, left, right = left, right, 1, 2
+                else:
+                    left_coords, right_coords = coords_2[left], coords_2[right]
                 if view_angle is not None:
                     delta_angle = view_angle * math.pi / 180
                     if angle(left_coords, point, right_coords) < delta_angle:
@@ -197,6 +197,7 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                         continue
                 add_points(left_coords, right_coords, point, view_angle_std, crosses,
                            j * max_poly_len + left, j * max_poly_len + right)
+
             for p in range(angle_count):
                 if crosses[p] is not None and crosses[p][1] is not None:
                     G.add_node(crosses[p][1][2], x=crosses[p][1][0], y=crosses[p][1][1])

@@ -48,3 +48,29 @@ def point_in_angle(i, l, p, r):
     else:
         return turn(p, r, i) < 0 < turn(p, l, i)
 
+
+def inner_diag(i, j, polygon, n):
+    pi = polygon[i]
+    pj = polygon[j]
+    pi_l = polygon[(i - 1) % n]
+    pi_r = polygon[(i + 1) % n]
+    if turn(pi_l, pi, pi_r) < 0:
+        if turn(pi, pj, pi_l) > 0 or turn(pi, pi_r, pj) > 0:
+            return False
+        for k in range(n):
+            pk = polygon[k]
+            if (k > i or k < j) and turn(pi, pk, pj) > 0:
+                return False
+            if j < k < i and turn(pi, pj, pk) > 0:
+                return False
+        return True
+    else:
+        if turn(pi, pj, pi_r) < 0 or turn(pi, pi_l, pj) < 0:
+            return False
+        for k in range(n):
+            pk = polygon[k]
+            if (k > i or k < j) and turn(pi, pj, pk) < 0:
+                return False
+            if j < k < i and turn(pi, pk, pj) < 0:
+                return False
+        return True
