@@ -3,10 +3,14 @@ import math
 from geopy.distance import geodesic
 
 
+def dist(a, b):
+    return geodesic((a[1], a[0]), (b[1], b[0])).km
+
+
 def vec(a, b):
     x_sign = 1 if b[0] - a[0] >= 0 else -1
     y_sign = 1 if b[1] - a[1] >= 0 else -1
-    return np.array([x_sign * geodesic(a, (a[0], b[1])).km, y_sign * geodesic((a[0], b[1]), b).km])
+    return np.array([x_sign * dist(a, (a[0], b[1])), y_sign * dist((a[0], b[1]), b)])
 
 
 def mod(v):
@@ -19,10 +23,6 @@ def box_width(box):
 
 def box_length(box):
     return dist([box[1], box[0]], [box[3], box[0]])
-
-
-def dist(a, b):
-    return geodesic(a, b).km
 
 
 def angle(a, b, c):
@@ -39,13 +39,29 @@ def angle_horizontal(a, b):
     v = vec(a, b)
     x = v[0]
     y = v[1]
+    delta = 0.000001
+    if math.fabs(x) < delta:
+        if y > delta:
+            return math.pi / 2
+        if y < -delta:
+            return 3 * math.pi / 2
+        return 0
+    if math.fabs(y) < delta:
+        if x > delta:
+            return 0
+        return math.pi
     if x >= 0 and y >= 0:
         delta = 0
     elif x * y <= 0:
         delta = math.pi
     else:
         delta = 2 * math.pi
-    return math.atan2(y, x) + delta
+    angle = math.pi / 2 - math.atan2(y, x) + delta
+    if angle < 0:
+        angle += math.pi * 2
+    if angle >= 2 * math.pi:
+        angle -= math.pi * 2
+    return angle
 
 
 def turn(a, b, c):
@@ -59,6 +75,8 @@ def point_in_angle(i, l, p, r):
 
 
 def inner_diag(i, j, polygon, n):
+    if math.fabs(i - j) <= 1:
+        return True
     pi = polygon[i]
     pj = polygon[j]
     pi_l = polygon[(i - 1) % n]

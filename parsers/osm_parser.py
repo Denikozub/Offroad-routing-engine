@@ -11,8 +11,8 @@ class OsmParser:
     def __init__(self, filename, bbox):
         osm = OSM(filename, bounding_box=bbox)
         natural = osm.get_natural(extra_attributes=['nodes'])  # Additional attributes: natural.tags.unique()
-        self.polygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon'].head(3)
-        self.multipolygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon'].head(0)
+        self.polygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon'].head(5)
+        self.multipolygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon'].head(1)
         self.multilinestrings = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiLineString']
         self.bbox_width = box_width(bbox)
         self.bbox_height = box_length(bbox)

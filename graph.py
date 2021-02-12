@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from geometry import *
 
 
-def find_pair_array(point, left_border, right_border, coord):
+def find_pair_array(point, left_border, right_border, coord, reverse=False):
     n = len(coord) - 1
     b = [1 for i in range(n)]
     count = 0
@@ -31,10 +31,13 @@ def find_pair_array(point, left_border, right_border, coord):
             end = b.index(0, start + 1)
     start_in_angle = point_in_angle(coord[start], left_border, point, right_border) if left_border is not None else False
     end_in_angle = point_in_angle(coord[end], left_border, point, right_border) if left_border is not None else False
+    if left_border is not None and reverse:
+        start_in_angle = not start_in_angle
+        end_in_angle = not end_in_angle
     return {'point': start, 'in_angle': start_in_angle}, {'point': end, 'in_angle': end_in_angle}
 
 
-def find_pair_cutoff(point, left_border, right_border, coord):
+def find_pair_cutoff(point, left_border, right_border, coord, reverse=False):
     n = len(coord) - 1
     begin = end = -1
     found = False
@@ -71,6 +74,9 @@ def find_pair_cutoff(point, left_border, right_border, coord):
     max_right = max(begin, end)
     left_in_angle = point_in_angle(coord[min_left], left_border, point, right_border) if left_border is not None else False
     right_in_angle = point_in_angle(coord[max_right], left_border, point, right_border) if left_border is not None else False
+    if left_border is not None and reverse:
+        left_in_angle = not left_in_angle
+        right_in_angle = not right_in_angle
     return {'point': min_left, 'in_angle': left_in_angle}, {'point': max_right, 'in_angle': right_in_angle}
 
 
@@ -85,7 +91,7 @@ def quad_equation(a, b, c):
     return (-b + math.sqrt(d)) / (2 * a), (-b - math.sqrt(d)) / (2 * a)
 
 
-def find_pair_ellipse(point, left_border, right_border, coord):
+def find_pair_ellipse(point, left_border, right_border, coord, reverse=False):
     multipl = 10000000
     a, b = (coord[2][0] - coord[1][0]) / 2 * multipl, (coord[1][1] - coord[0][1]) / 2 * multipl
     xc, yc = (coord[2][0] + coord[1][0]) / 2 * multipl, (coord[1][1] + coord[0][1]) / 2 * multipl
@@ -97,10 +103,13 @@ def find_pair_ellipse(point, left_border, right_border, coord):
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
     left_in_angle = point_in_angle(point1, left_border, point, right_border) if left_border is not None else False
     right_in_angle = point_in_angle(point2, left_border, point, right_border) if left_border is not None else False
+    if left_border is not None and reverse:
+        left_in_angle = not left_in_angle
+        right_in_angle = not right_in_angle
     return {'point': point1, 'in_angle': left_in_angle}, {'point': point2, 'in_angle': right_in_angle}
 
 
-def find_pair_non_convex(point, left_border, right_border, coord):
+def find_pair_non_convex(point, left_border, right_border, coord, reverse=False):
     n = len(coord) - 1
     left, right = None, None
     for i in range(n):
@@ -135,12 +144,17 @@ def find_pair_non_convex(point, left_border, right_border, coord):
                     break
                 else:
                     continue
-    if left is None or right is None:
+    if left is None:
         return 'inside'
+    if right is None:
+        right = left
     min_left = min(left, right)
     max_right = max(left, right)
     left_in_angle = point_in_angle(coord[min_left], left_border, point, right_border) if left_border is not None else False
     right_in_angle = point_in_angle(coord[max_right], left_border, point, right_border) if left_border is not None else False
+    if left_border is not None and reverse:
+        left_in_angle = not left_in_angle
+        right_in_angle = not right_in_angle
     return {'point': min_left, 'in_angle': left_in_angle}, {'point': max_right, 'in_angle': right_in_angle}
 
 
@@ -166,7 +180,7 @@ def add_points(point1_info, point2_info, point, view_angle_std, crosses, node1=N
     k_max = max(k1, k2)
     if k_max - k_min < 180:
         for p in range(k_min + 1, k_max):
-            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
@@ -174,14 +188,14 @@ def add_points(point1_info, point2_info, point, view_angle_std, crosses, node1=N
                 crosses[p] = [dist_point, None]
     else:
         for p in range(0, k_min):
-            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
             if crosses[p] is None or crosses[p][0] > dist_point:
                 crosses[p] = [dist_point, None]
         for p in range(k_max + 1, len(crosses)):
-            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
@@ -365,12 +379,23 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
 
         # all points of polygon cycle
         for k in range(n):
-            point, left_border, right_border = coords_1[k], coords_1[(k - 1) % n], coords_1[(k + 1) % n]
-            # point = coords_1[k]
-            # pair = find_pair_non_convex(point, None, None, coords_1)
-            # if pair is None or type(pair) == str:
-            #     continue
-            # left_border, right_border = pair[0]['point'], pair[1]['point']
+            point = coords_1[k]
+            reverse = False
+            if n <= 2:
+                left_border, right_border = None, None
+            if n == 3:
+                left_border, right_border = coords_1[(k - 1) % n], coords_1[(k + 1) % n]
+            else:
+                pair = find_pair_non_convex(point, None, None, coords_1)
+                if pair is None or type(pair) == str:
+                    continue
+                left, right = pair[0]['point'], pair[1]['point']
+                left_border, right_border = coords_1[left], coords_1[right]
+                for j in range(n):
+                    if j != k and j != left and j != right:
+                        different_point = j
+                        break
+                reverse = not point_in_angle(coords_1[different_point], left_border, point, right_border)
             G.add_node(i * max_poly_len + k, x=point[0], y=point[1])
             view_angle_std = 1 if view_angle is None or view_angle < 1 else view_angle
             angle_count = math.floor(360 / view_angle_std)
@@ -382,7 +407,6 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if line_coords is None:
                     continue
                 point1, point1_index = line_coords[0], 0
-                add_point((point1, False), point, view_angle_std, crosses, (j + 0.5) * max_poly_len)
                 for t in range(len(line_coords) - 1):
                     point2 = line_coords[t + 1]
                     if view_angle is not None:
@@ -405,9 +429,10 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if j == i:
                     add_inside_poly(G, point, i, coords_1, k, max_poly_len, plot)
                     continue
-                pair = pair_func(point, left_border, right_border, coords_2)
+                pair = pair_func(point, left_border, right_border, coords_2, reverse)
                 if pair is None or type(pair) == str:
-                    continue
+                    crosses = [None for p in range(angle_count)]
+                    break
                 left, right = pair
                 if type(left['point']) == (tuple or list):
                     left_coords, right_coords, left, right, left_in_angle, right_in_angle = \
