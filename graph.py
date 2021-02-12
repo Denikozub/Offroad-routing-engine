@@ -8,8 +8,7 @@ def find_pair_array(point, left_border, right_border, coord):
     b = [1 for i in range(n)]
     count = 0
     for i in range(n):
-        if not point_in_angle(point, coord[(i-1) % n], coord[i % n], coord[(i+1) % n]) and \
-                (left_border is None or not point_in_angle(coord[i % n], left_border, point, right_border)):
+        if not point_in_angle(point, coord[(i-1) % n], coord[i % n], coord[(i+1) % n]):
             b[i] = 0
             count += 1
     if count == 0:
@@ -30,37 +29,49 @@ def find_pair_array(point, left_border, right_border, coord):
             end = n
         else:
             end = b.index(0, start + 1)
-    return start, end
+    start_in_angle = point_in_angle(coord[start], left_border, point, right_border) if left_border is not None else False
+    end_in_angle = point_in_angle(coord[end], left_border, point, right_border) if left_border is not None else False
+    return {'point': start, 'in_angle': start_in_angle}, {'point': end, 'in_angle': end_in_angle}
 
 
 def find_pair_cutoff(point, left_border, right_border, coord):
     n = len(coord) - 1
     begin = end = -1
+    found = False
     for i in range(n):
-        if not point_in_angle(point, coord[(i-1) % n], coord[i % n], coord[(i+1) % n]) and \
-                (left_border is None or not point_in_angle(coord[i % n], left_border, point, right_border)):
+        if not point_in_angle(point, coord[(i-1) % n], coord[i % n], coord[(i+1) % n]):
             if i == 0:
                 start_zero = True
             if begin == -1 and not start_zero:
                 begin = i
             if start_zero and end != -1:
                 begin = i
-                return min(begin, end), max(begin, end)
+                found = True
+                break
             if not start_zero and i == n - 1:
                 end = n - 1
-                return min(begin, end), max(begin, end)
+                found = True
+                break
         else:
             if i == 0:
                 start_zero = False
             if begin != -1 and not start_zero:
                 end = (i-1) % n
-                return min(begin, end), max(begin, end)
+                found = True
+                break
             if start_zero and end == -1:
                 end = (i-1) % n
             if start_zero and i == n - 1:
                 begin = n
-                return min(begin, end), max(begin, end)
-    return None
+                found = True
+                break
+    if not found:
+        return None
+    min_left = min(begin, end)
+    max_right = max(begin, end)
+    left_in_angle = point_in_angle(coord[min_left], left_border, point, right_border) if left_border is not None else False
+    right_in_angle = point_in_angle(coord[max_right], left_border, point, right_border) if left_border is not None else False
+    return {'point': min_left, 'in_angle': left_in_angle}, {'point': max_right, 'in_angle': right_in_angle}
 
 
 def quad_equation(a, b, c):
@@ -84,60 +95,118 @@ def find_pair_ellipse(point, left_border, right_border, coord):
         return None
     x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
-    if left_border is None:
-        return point1, point2
-    if not point_in_angle(point1, left_border, point, right_border):
-        if not point_in_angle(point2, left_border, point, right_border):
-            return None
-        return point2, point2
-    if not point_in_angle(point2, left_border, point, right_border):
-        return point1, point1
-    return point1, point2
+    left_in_angle = point_in_angle(point1, left_border, point, right_border) if left_border is not None else False
+    right_in_angle = point_in_angle(point2, left_border, point, right_border) if left_border is not None else False
+    return {'point': point1, 'in_angle': left_in_angle}, {'point': point2, 'in_angle': right_in_angle}
 
 
-def add_point(new_point, point, view_angle_std, crosses, node=None):
-    dist_point = dist(point, new_point)
-    k1 = math.ceil(angle_horizontal(point, new_point) * 180 / math.pi / view_angle_std)
-    if crosses[k1] is None or crosses[k1][0] > dist_point:
-        crosses[k1] = [dist_point, [new_point[0], new_point[1], node]]
+def find_pair_non_convex(point, left_border, right_border, coord):
+    n = len(coord) - 1
+    left, right = None, None
+    for i in range(n):
+        pi = coord[i]
+        if left is None:
+            left_found = True
+            for j in range(n):
+                if j == i:
+                    continue
+                if turn(point, pi, coord[j]) > 0:
+                    left_found = False
+                    break
+            if left_found:
+                left = i
+                if right is not None:
+                    break
+                else:
+                    continue
+        if right is None:
+            right_found = True
+            for j in range(n):
+                if j == i:
+                    continue
+                if turn(point, pi, coord[j]) < 0:
+                    right_found = False
+                    break
+            if right_found:
+                right = i
+                if left is not None:
+                    break
+                else:
+                    continue
+    if left is None or right is None:
+        return 'inside'
+    min_left = min(left, right)
+    max_right = max(left, right)
+    left_in_angle = point_in_angle(coord[min_left], left_border, point, right_border) if left_border is not None else False
+    right_in_angle = point_in_angle(coord[max_right], left_border, point, right_border) if left_border is not None else False
+    return {'point': min_left, 'in_angle': left_in_angle}, {'point': max_right, 'in_angle': right_in_angle}
+
+
+def add_point(new_point_info, point, view_angle_std, crosses, node=None):
+    new_point = new_point_info[0]
+    k1 = math.floor(angle_horizontal(point, new_point) * 180 / math.pi / view_angle_std)
+    if not new_point_info[1]:
+        dist_point = dist(point, new_point)
+        if crosses[k1] is None or crosses[k1][0] > dist_point:
+            crosses[k1] = [dist_point, [new_point[0], new_point[1], node]]
     return k1
 
 
-def add_points(point1, point2, point, view_angle_std, crosses, node1=None, node2=None):
-    k1 = add_point(point1, point, view_angle_std, crosses, node1)
-    k2 = add_point(point2, point, view_angle_std, crosses, node2)
+def add_points(point1_info, point2_info, point, view_angle_std, crosses, node1=None, node2=None):
+    point1, point2 = point1_info[0], point2_info[0]
+    k1 = add_point(point1_info, point, view_angle_std, crosses, node1)
+    k2 = add_point(point2_info, point, view_angle_std, crosses, node2)
     x1, y1 = vec(point, point1)
     x2, y2 = vec(point, point2)
     k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
     b12 = y1 - k12 * x1
-    for p in range(min(k1, k2) + 1, max(k1, k2)):
-        k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
-        x = b12 / (k_curr - k12)
-        y = k_curr * x
-        dist_point = mod((x, y))
-        if crosses[p] is None or crosses[p][0] > dist_point:
-            crosses[p] = [dist_point, None]
+    k_min = min(k1, k2)
+    k_max = max(k1, k2)
+    if k_max - k_min < 180:
+        for p in range(k_min + 1, k_max):
+            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            x = b12 / (k_curr - k12)
+            y = k_curr * x
+            dist_point = mod((x, y))
+            if crosses[p] is None or crosses[p][0] > dist_point:
+                crosses[p] = [dist_point, None]
+    else:
+        for p in range(0, k_min):
+            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            x = b12 / (k_curr - k12)
+            y = k_curr * x
+            dist_point = mod((x, y))
+            if crosses[p] is None or crosses[p][0] > dist_point:
+                crosses[p] = [dist_point, None]
+        for p in range(k_max + 1, len(crosses)):
+            k_curr = math.tan((90 - p * view_angle_std + 0.0000001) * math.pi / 180)
+            x = b12 / (k_curr - k12)
+            y = k_curr * x
+            dist_point = mod((x, y))
+            if crosses[p] is None or crosses[p][0] > dist_point:
+                crosses[p] = [dist_point, None]
 
 
 def first_point(point, polygons, multilinestrings, view_angle=None, point_approx=False, pair_func=find_pair_array):
-    view_angle_std = 1 if view_angle is None or view_angle == 0 else view_angle
+    view_angle_std = 1 if view_angle is None or view_angle < 1 else view_angle
     angle_count = math.floor(360 / view_angle_std)
     crosses = [None for p in range(angle_count)]
 
     # adding linestrings
-    for j in range(multilinestrings.shape[0]):
+    multilinestring_number = multilinestrings.shape[0] if multilinestrings is not None else 0
+    for j in range(multilinestring_number):
         line_coords = multilinestrings.coords[j]
         if line_coords is None:
             continue
         point1, point1_index = line_coords[0], 0
-        add_point(point1, point, view_angle_std, crosses, {'polygon': None, 'line': [j, 0]})
+        add_point((point1, False), point, view_angle_std, crosses, {'polygon': None, 'line': [j, 0]})
         for t in range(len(line_coords) - 1):
             point2 = line_coords[t + 1]
             if view_angle is not None:
                 delta_angle = view_angle * math.pi / 180
                 if angle(point1, point, point2) < delta_angle:
                     continue
-            add_point(point2, point, view_angle_std, crosses, {'polygon': None, 'line': [j, t + 1]})
+            add_point((point2, False), point, view_angle_std, crosses, {'polygon': None, 'line': [j, t + 1]})
             point1 = point2
 
     # adding polygons
@@ -149,18 +218,25 @@ def first_point(point, polygons, multilinestrings, view_angle=None, point_approx
         if pair is None:
             continue
         if type(pair) == str:
-            for t in range(len(polygon) - 1):
-                add_point(polygon[t], point, view_angle_std, crosses, {'polygon': [j, t], 'line': None})
+            for t in range(len(polygon) - 2):
+                add_points((polygon[t], False), (polygon[t + 1], False), point, view_angle_std, crosses,
+                           {'polygon': [j, t], 'line': None}, {'polygon': [j, t + 1], 'line': None})
             break
         left, right = pair
-        left_coords, right_coords = (left, right) if type(left) == (tuple or list) else (polygon[left], polygon[right])
+        if type(left['point']) == (tuple or list):
+            left_coords, right_coords, left, right, left_in_angle, right_in_angle = \
+                left['point'], right['point'], 1, 2, False, False
+        else:
+            left_in_angle, right_in_angle = left['in_angle'], right['in_angle']
+            left, right = left['point'], right['point']
+            left_coords, right_coords = polygon[left], polygon[right]
         if view_angle is not None:
             delta_angle = view_angle * math.pi / 180
-            if angle(left_coords, point, right_coords) < delta_angle:
+            if not left_in_angle and not right_in_angle and angle(left_coords, point, right_coords) < delta_angle:
                 if point_approx:
-                    add_point(polygon[0], point, view_angle_std, crosses, {'polygon': [j, -1], 'line': None})
+                    add_point((polygon[0], False), point, view_angle_std, crosses, {'polygon': [j, 0], 'line': None})
                 continue
-        add_points(left_coords, right_coords, point, view_angle_std, crosses,
+        add_points((left_coords, left_in_angle), (right_coords, right_in_angle), point, view_angle_std, crosses,
                    {'polygon': [j, left], 'line': None}, {'polygon': [j, right], 'line': None})
 
     points = list()
@@ -180,7 +256,7 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
         if point_polygon_point == -1:
             return first_point(point, polygons, multilinestrings,
                                view_angle=view_angle, point_approx=point_approx, pair_func=pair_func)
-    view_angle_std = 1 if view_angle is None or view_angle == 0 else view_angle
+    view_angle_std = 1 if view_angle is None or view_angle < 1 else view_angle
     angle_count = math.floor(360 / view_angle_std)
     crosses = [None for p in range(angle_count)]
 
@@ -190,28 +266,28 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
         point_line = None
     else:
         point_line, point_line_point = point_line_info[0], point_line_info[1]
-    multilinestring_number = multilinestrings.shape[0]
+    multilinestring_number = multilinestrings.shape[0] if multilinestrings is not None else 0
     for j in range(multilinestring_number):
         line_coords = multilinestrings.coords[j]
         if line_coords is None:
             continue
         if point_line is not None and j == point_line:
             if point_line_point > 0:
-                add_point(line_coords[point_line_point - 1], point, view_angle_std, crosses,
+                add_point((line_coords[point_line_point - 1], False), point, view_angle_std, crosses,
                           {'polygon': None, 'line': [j, point_line_point - 1]})
             if point_line_point < len(line_coords) - 1:
-                add_point(line_coords[point_line_point + 1], point, view_angle_std, crosses,
+                add_point((line_coords[point_line_point + 1], False), point, view_angle_std, crosses,
                           {'polygon': None, 'line': [j, point_line_point + 1]})
             continue
         point1, point1_index = line_coords[0], 0
-        add_point(point1, point, view_angle_std, crosses, {'polygon': None, 'line': [j, 0]})
+        add_point((point1, False), point, view_angle_std, crosses, {'polygon': None, 'line': [j, 0]})
         for t in range(len(line_coords) - 1):
             point2 = line_coords[t + 1]
             if view_angle is not None:
                 delta_angle = view_angle * math.pi / 180
                 if angle(point1, point, point2) < delta_angle:
                     continue
-            add_point(point2, point, view_angle_std, crosses, {'polygon': None, 'line': [j, t + 1]})
+            add_point((point2, False), point, view_angle_std, crosses, {'polygon': None, 'line': [j, t + 1]})
             point1 = point2
 
     # adding polygons
@@ -221,38 +297,34 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
     left_border, right_border = (None, None) if point_polygon is None else \
         (point_polygon_coords[(point_polygon_point - 1) % n],
          point_polygon_coords[(point_polygon_point + 1) % n])
-    print(left_border, right_border)
     for j in range(polygon_number):
         polygon = polygons.coords[j]
         if polygon is None:
             continue
         if point_polygon is not None and j == point_polygon:
-            non_convex = polygons.geometry[j]
-            m = len(non_convex) - 1
-            k = -1
-            for t in range(n):
-                if tuple(polygon[t]) == tuple(point):
-                    k = t
-                    break
-            if k == -1:
-                continue
-            for t in range(m):
-                if t == k or not inner_diag(point_polygon_point, t, non_convex, m):
+            for t in range(len(polygon) - 1):
+                if t == point_polygon_point:  # or not inner_diag(point_polygon_point, t, non_convex, m):
                     continue
-                add_point(non_convex[t], point, view_angle_std, crosses, {'polygon': [j, t], 'line': None})
+                add_point((polygon[t], False), point, view_angle_std, crosses, {'polygon': [j, t], 'line': None})
             continue
         pair = pair_func(point, left_border, right_border, polygon)
         if pair is None or type(pair) == str:
             continue
         left, right = pair
-        left_coords, right_coords = (left, right) if type(left) == (tuple or list) else (polygon[left], polygon[right])
+        if type(left['point']) == (tuple or list):
+            left_coords, right_coords, left, right, left_in_angle, right_in_angle = \
+                left['point'], right['point'], 1, 2, False, False
+        else:
+            left_in_angle, right_in_angle = left['in_angle'], right['in_angle']
+            left, right = left['point'], right['point']
+            left_coords, right_coords = polygon[left], polygon[right]
         if view_angle is not None:
             delta_angle = view_angle * math.pi / 180
-            if angle(left_coords, point, right_coords) < delta_angle:
+            if not left_in_angle and not right_in_angle and angle(left_coords, point, right_coords) < delta_angle:
                 if point_approx:
-                    add_point(polygon[0], point, view_angle_std, crosses, {'polygon': [j, -1], 'line': None})
+                    add_point((polygon[0], False), point, view_angle_std, crosses, {'polygon': [j, 0], 'line': None})
                 continue
-        add_points(left_coords, right_coords, point, view_angle_std, crosses,
+        add_points((left_coords, left_in_angle), (right_coords, right_in_angle), point, view_angle_std, crosses,
                    {'polygon': [j, left], 'line': None}, {'polygon': [j, right], 'line': None})
 
     points = list()
@@ -262,17 +334,9 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
     return tuple(points)
 
 
-def add_inside_poly(G, point, i, polygon, max_poly_len, plot):
-    n = len(polygon) - 1
-    k = -1
-    for t in range(n):
-        if tuple(polygon[t]) == tuple(point):
-            k = t
-            break
-    if k == -1:
-        return
-    for t in range(n):
-        if t == k or not inner_diag(k, t, polygon, n):
+def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot):
+    for t in range(len(polygon) - 1):
+        if t == k:  # or not inner_diag(k, t, convex_polygon, n):
             continue
         other_point = polygon[t]
         G.add_node(i * max_poly_len + t, x=other_point[0], y=other_point[1])
@@ -300,7 +364,7 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
         for k in range(n):
             point, left_border, right_border = coords_1[k], coords_1[(k - 1) % n], coords_1[(k + 1) % n]
             G.add_node(i * max_poly_len + k, x=point[0], y=point[1])
-            view_angle_std = 1 if view_angle is None or view_angle == 0 else view_angle
+            view_angle_std = 1 if view_angle is None or view_angle < 1 else view_angle
             angle_count = math.floor(360 / view_angle_std)
             crosses = [None for p in range(angle_count)]
 
@@ -310,19 +374,19 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if line_coords is None:
                     continue
                 point1, point1_index = line_coords[0], 0
-                add_point(point1, point, view_angle_std, crosses, (j + 0.33) * max_poly_len)
+                add_point((point1, False), point, view_angle_std, crosses, (j + 0.5) * max_poly_len)
                 for t in range(len(line_coords) - 1):
                     point2 = line_coords[t + 1]
                     if view_angle is not None:
                         delta_angle = view_angle * math.pi / 180
                         if angle(point1, point, point2) < delta_angle:
                             continue
-                    node1 = (j + 0.33) * max_poly_len + point1_index
-                    node2 = (j + 0.33) * max_poly_len + t + 1
+                    node1 = (j + 0.5) * max_poly_len + point1_index
+                    node2 = (j + 0.5) * max_poly_len + t + 1
                     G.add_node(node1, x=point1[0], y=point1[1])
                     G.add_node(node2, x=point2[0], y=point2[1])
                     G.add_edge(node1, node2)
-                    add_point(point2, point, view_angle_std, crosses, node2)
+                    add_point((point2, False), point, view_angle_std, crosses, node2)
                     point1 = point2
 
             # adding polygons
@@ -331,27 +395,30 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if coords_2 is None:
                     continue
                 if j == i:
-                    add_inside_poly(G, point, i, polygons.geometry[i], max_poly_len, plot)
+                    add_inside_poly(G, point, i, coords_1, k, max_poly_len, plot)
                     continue
                 pair = pair_func(point, left_border, right_border, coords_2)
                 if pair is None or type(pair) == str:
                     continue
                 left, right = pair
-                if type(left) == (tuple or list):
-                    left_coords, right_coords, left, right = left, right, 1, 2
+                if type(left['point']) == (tuple or list):
+                    left_coords, right_coords, left, right, left_in_angle, right_in_angle = \
+                        left['point'], right['point'], 1, 2, False, False
                 else:
+                    left_in_angle, right_in_angle = left['in_angle'], right['in_angle']
+                    left, right = left['point'], right['point']
                     left_coords, right_coords = coords_2[left], coords_2[right]
                 if view_angle is not None:
                     delta_angle = view_angle * math.pi / 180
-                    if angle(left_coords, point, right_coords) < delta_angle:
+                    if not left_in_angle and not right_in_angle and angle(left_coords, point, right_coords) < delta_angle:
                         if point_approx:
-                            node = (j + 0.66) * max_poly_len
+                            node = j * max_poly_len
                             G.add_node(node, x=coords_2[0][0], y=coords_2[0][1])
                             G.add_edge(node, i * max_poly_len + k)
-                            add_point(coords_2[0], point, view_angle_std, crosses, node)
+                            add_point((coords_2[0], False), point, view_angle_std, crosses, node)
                         continue
-                add_points(left_coords, right_coords, point, view_angle_std, crosses,
-                           j * max_poly_len + left, j * max_poly_len + right)
+                add_points((left_coords, left_in_angle), (right_coords, right_in_angle), point, view_angle_std,
+                           crosses, j * max_poly_len + left, j * max_poly_len + right)
 
             for p in range(angle_count):
                 if crosses[p] is not None and crosses[p][1] is not None:

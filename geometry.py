@@ -4,7 +4,9 @@ from geopy.distance import geodesic
 
 
 def vec(a, b):
-    return np.array([geodesic(a, (a[0], b[1])).km, geodesic((a[0], b[1]), b).km])
+    x_sign = 1 if b[0] - a[0] >= 0 else -1
+    y_sign = 1 if b[1] - a[1] >= 0 else -1
+    return np.array([x_sign * geodesic(a, (a[0], b[1])).km, y_sign * geodesic((a[0], b[1]), b).km])
 
 
 def mod(v):
@@ -35,7 +37,15 @@ def angle(a, b, c):
 
 def angle_horizontal(a, b):
     v = vec(a, b)
-    return math.atan2(v[1], v[0])
+    x = v[0]
+    y = v[1]
+    if x >= 0 and y >= 0:
+        delta = 0
+    elif x * y <= 0:
+        delta = math.pi
+    else:
+        delta = 2 * math.pi
+    return math.atan2(y, x) + delta
 
 
 def turn(a, b, c):
@@ -43,10 +53,10 @@ def turn(a, b, c):
 
 
 def point_in_angle(i, l, p, r):
-    if turn(l, p, r) > 0:
-        return turn(p, l, i) < 0 < turn(p, r, i)
-    else:
-        return turn(p, r, i) < 0 < turn(p, l, i)
+    # WARNING: CURRENTLY ONLY CLOCK-WISE POLYGONS
+    # if turn(l, p, r) > 0:
+        # return turn(p, l, i) < 0 < turn(p, r, i)
+    return turn(p, r, i) < 0 < turn(p, l, i)
 
 
 def inner_diag(i, j, polygon, n):

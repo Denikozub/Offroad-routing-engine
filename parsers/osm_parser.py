@@ -11,8 +11,8 @@ class OsmParser:
     def __init__(self, filename, bbox):
         osm = OSM(filename, bounding_box=bbox)
         natural = osm.get_natural(extra_attributes=['nodes'])  # Additional attributes: natural.tags.unique()
-        self.polygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon'].head(3)
-        self.multipolygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon'].head(1)
+        self.polygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon']
+        self.multipolygons = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon']
         self.multilinestrings = natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiLineString']
         self.bbox_width = box_width(bbox)
         self.bbox_height = box_length(bbox)
@@ -37,16 +37,20 @@ class OsmParser:
         return ((bounds[0], bounds[1]), (bounds[0], bounds[3]), (bounds[2], bounds[3]), (bounds[2], bounds[1])) if \
             self.compare_bounds(bounds, bbox_comp) else None
 
-    def build_dataframe(self, epsilon, bbox_comp, ellipse=False):
+    def build_dataframe(self, epsilon, bbox_comp, ellipse=False, cv=False):
         if ellipse:
             polygons = pd.DataFrame(self.polygons)
             polygons.geometry = polygons.geometry.apply(self.bounds, args=[bbox_comp])
             polygons = polygons.reset_index().rename(columns={'geometry': 'coords'}).drop(columns='index')
         else:
-            self.polygons['coords'] = self.polygons.geometry.convex_hull  # check for efficiency and rewrite if needed
+            if cv:
+                self.polygons['coords'] = self.polygons.geometry.convex_hull  # check efficiency and rewrite if needed
             polygons = pd.DataFrame(self.polygons)
-            polygons.geometry = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
-            polygons.coords = polygons.coords.apply(self.get_coord, args=[epsilon, bbox_comp])
+            if cv:
+                polygons.geometry = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
+                polygons.coords = polygons.coords.apply(self.get_coord, args=[epsilon, bbox_comp])
+            else:
+                polygons['coords'] = polygons.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
             polygons = polygons.reset_index().drop(columns='index')
 
         multipolygons = pd.DataFrame(self.multipolygons)
@@ -57,10 +61,14 @@ class OsmParser:
                     polygons = polygons.append({'coords': self.bounds(polygon, bbox_comp),
                                                 'natural': multi_natural}, ignore_index=True)
                 else:
-                    convex_polygon = polygon.convex_hull  # check for efficiency and rewrite if needed
-                    polygons = polygons.append({'geometry': self.get_coord(polygon, epsilon, bbox_comp),
-                                                'coords': self.get_coord(convex_polygon, epsilon, bbox_comp),
-                                                'natural': multi_natural}, ignore_index=True)
+                    if cv:
+                        convex_polygon = polygon.convex_hull  # check for efficiency and rewrite if needed
+                        polygons = polygons.append({'geometry': self.get_coord(polygon, epsilon, bbox_comp),
+                                                    'coords': self.get_coord(convex_polygon, epsilon, bbox_comp),
+                                                    'natural': multi_natural}, ignore_index=True)
+                    else:
+                        polygons = polygons.append({'coords': self.get_coord(polygon, epsilon, bbox_comp),
+                                                    'natural': multi_natural}, ignore_index=True)
 
         multilinestrings = pd.DataFrame(self.multilinestrings)
         multilinestrings.geometry = multilinestrings.geometry.apply(self.get_coord, args=[epsilon, bbox_comp])
