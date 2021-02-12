@@ -105,6 +105,8 @@ def find_pair_non_convex(point, left_border, right_border, coord):
     left, right = None, None
     for i in range(n):
         pi = coord[i]
+        if tuple(pi) == tuple(point):
+            continue
         if left is None:
             left_found = True
             for j in range(n):
@@ -335,8 +337,9 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
 
 
 def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot):
-    for t in range(len(polygon) - 1):
-        if t == k:  # or not inner_diag(k, t, convex_polygon, n):
+    n = len(polygon) - 1
+    for t in range(n):
+        if t == k or not inner_diag(k, t, polygon, n):
             continue
         other_point = polygon[t]
         G.add_node(i * max_poly_len + t, x=other_point[0], y=other_point[1])
@@ -363,6 +366,11 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
         # all points of polygon cycle
         for k in range(n):
             point, left_border, right_border = coords_1[k], coords_1[(k - 1) % n], coords_1[(k + 1) % n]
+            # point = coords_1[k]
+            # pair = find_pair_non_convex(point, None, None, coords_1)
+            # if pair is None or type(pair) == str:
+            #     continue
+            # left_border, right_border = pair[0]['point'], pair[1]['point']
             G.add_node(i * max_poly_len + k, x=point[0], y=point[1])
             view_angle_std = 1 if view_angle is None or view_angle < 1 else view_angle
             angle_count = math.floor(360 / view_angle_std)
@@ -386,7 +394,7 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                     G.add_node(node1, x=point1[0], y=point1[1])
                     G.add_node(node2, x=point2[0], y=point2[1])
                     G.add_edge(node1, node2)
-                    add_point((point2, False), point, view_angle_std, crosses, node2)
+                    add_points((point1, False), (point2, False), point, view_angle_std, crosses, node1, node2)
                     point1 = point2
 
             # adding polygons

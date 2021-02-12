@@ -53,9 +53,8 @@ def turn(a, b, c):
 
 
 def point_in_angle(i, l, p, r):
-    # WARNING: CURRENTLY ONLY CLOCK-WISE POLYGONS
-    # if turn(l, p, r) > 0:
-        # return turn(p, l, i) < 0 < turn(p, r, i)
+    if turn(l, p, r) > 0:
+        return turn(p, l, i) < 0 < turn(p, r, i)
     return turn(p, r, i) < 0 < turn(p, l, i)
 
 
