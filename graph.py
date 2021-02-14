@@ -178,9 +178,9 @@ def add_points(point1_info, point2_info, point, view_angle_std, crosses, node1=N
     b12 = y1 - k12 * x1
     k_min = min(k1, k2)
     k_max = max(k1, k2)
-    if k_max - k_min < 180:
+    if k_max - k_min < 180 / view_angle_std:  # !!!!!!!!! FIX !!!!!!!!!
         for p in range(k_min + 1, k_max):
-            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std * math.pi + 0.0000001) / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
@@ -188,14 +188,14 @@ def add_points(point1_info, point2_info, point, view_angle_std, crosses, node1=N
                 crosses[p] = [dist_point, None]
     else:
         for p in range(0, k_min):
-            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std * math.pi + 0.0000001) / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
             if crosses[p] is None or crosses[p][0] > dist_point:
                 crosses[p] = [dist_point, None]
         for p in range(k_max + 1, len(crosses)):
-            k_curr = math.tan((p * view_angle_std + 0.0000001) * math.pi / 180)
+            k_curr = math.tan((p * view_angle_std * math.pi + 0.0000001) / 180)
             x = b12 / (k_curr - k12)
             y = k_curr * x
             dist_point = mod((x, y))
@@ -350,10 +350,10 @@ def find_points(point_data, polygons, multilinestrings, view_angle=None, point_a
     return tuple(points)
 
 
-def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot):
+def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot, cv):
     n = len(polygon) - 1
     for t in range(n):
-        if t == k or not inner_diag(k, t, polygon, n):
+        if t == k or (not cv and not inner_diag(k, t, polygon, n)):
             continue
         other_point = polygon[t]
         G.add_node(i * max_poly_len + t, x=other_point[0], y=other_point[1])
@@ -362,8 +362,54 @@ def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot):
             plt.plot([point[0], other_point[0]], [point[1], other_point[1]])
 
 
-def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
+def intersects(a0, b0, c0, d0):
+    a = np.array(a0)
+    b = np.array(b0) - a
+    c = np.array(c0) - a
+    d = np.array(d0) - a
+    x1, y1 = c
+    x2, y2 = d
+    delta = 0.000001
+    k12 = 10 ** 10 if math.fabs(x1 - x2) < delta else (y1 - y2) / (x1 - x2)
+    b12 = y1 - k12 * x1
+    k = 10 ** 10 if math.fabs(b[0]) < delta else b[1] / b[0]
+    if math.fabs(k - k12) < delta:
+        return math.fabs(b12) < delta
+    x = b12 / (k - k12)
+    y = k * x
+    x_min, x_max, y_min, y_max = min(x1, x2), max(x1, x2), min(y1, y2), max(y1, y2)
+    if x < x_min + delta or x > x_max - delta or y < y_min + delta or y > y_max - delta:
+        return False
+    return np.dot(np.array([x, y]), b) > 0
+
+
+def find_borders(k, point, polygon):
+    n = len(polygon) - 1
+    result = list()
+    for i in range(n):
+        pi = polygon[i]
+        if i == k:
+            continue
+        found = True
+        for j in range(n - 1):
+            if j == i or j + 1 == i or j == k or j + 1 == k:
+                continue
+            pl = polygon[j]
+            pr = polygon[j + 1]
+            if intersects(point, pi, pl, pr):
+                found = False
+                break
+        if found:
+            result.append(i)
+            if len(result) == 2:
+                return result
+    return result if len(result) == 2 else None
+
+
+def build_graph(polygons, multilinestrings, pair_func=find_pair_non_convex, cv=False,
                 plot=False, view_angle=None, point_approx=False, crs='EPSG:4326'):
+    if not cv:
+        pair_func=find_pair_non_convex
     fig = plt.figure()
     G = nx.MultiGraph(crs=crs)
     max_poly_len = 10000  # for graph indexing
@@ -383,13 +429,15 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
             reverse = False
             if n <= 2:
                 left_border, right_border = None, None
-            if n == 3:
+            elif cv or n == 3:
                 left_border, right_border = coords_1[(k - 1) % n], coords_1[(k + 1) % n]
             else:
-                pair = find_pair_non_convex(point, None, None, coords_1)
-                if pair is None or type(pair) == str:
+                # pair = find_pair_non_convex(point, None, None, coords_1)
+                pair = find_borders(k, point, coords_1)
+                if pair is None:  # or type(pair) == str:
                     continue
-                left, right = pair[0]['point'], pair[1]['point']
+                # left, right = pair[0]['point'], pair[1]['point']
+                left, right = pair[0], pair[1]
                 left_border, right_border = coords_1[left], coords_1[right]
                 for j in range(n):
                     if j != k and j != left and j != right:
@@ -427,12 +475,15 @@ def build_graph(polygons, multilinestrings, pair_func=find_pair_array,
                 if coords_2 is None:
                     continue
                 if j == i:
-                    add_inside_poly(G, point, i, coords_1, k, max_poly_len, plot)
+                    add_inside_poly(G, point, i, coords_1, k, max_poly_len, plot, cv)
                     continue
                 pair = pair_func(point, left_border, right_border, coords_2, reverse)
                 if pair is None or type(pair) == str:
-                    crosses = [None for p in range(angle_count)]
-                    break
+                    if not cv:
+                        crosses = [None for p in range(angle_count)]
+                        break
+                    else:
+                        continue
                 left, right = pair
                 if type(left['point']) == (tuple or list):
                     left_coords, right_coords, left, right, left_in_angle, right_in_angle = \
