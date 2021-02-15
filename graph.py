@@ -362,27 +362,6 @@ def add_inside_poly(G, point, i, polygon, k, max_poly_len, plot, cv):
             plt.plot([point[0], other_point[0]], [point[1], other_point[1]])
 
 
-def intersects(a0, b0, c0, d0):
-    a = np.array(a0)
-    b = np.array(b0) - a
-    c = np.array(c0) - a
-    d = np.array(d0) - a
-    x1, y1 = c
-    x2, y2 = d
-    delta = 0.000001
-    k12 = 10 ** 10 if math.fabs(x1 - x2) < delta else (y1 - y2) / (x1 - x2)
-    b12 = y1 - k12 * x1
-    k = 10 ** 10 if math.fabs(b[0]) < delta else b[1] / b[0]
-    if math.fabs(k - k12) < delta:
-        return math.fabs(b12) < delta
-    x = b12 / (k - k12)
-    y = k * x
-    x_min, x_max, y_min, y_max = min(x1, x2), max(x1, x2), min(y1, y2), max(y1, y2)
-    if x < x_min + delta or x > x_max - delta or y < y_min + delta or y > y_max - delta:
-        return False
-    return np.dot(np.array([x, y]), b) > 0
-
-
 def find_borders(k, point, polygon):
     n = len(polygon) - 1
     result = list()

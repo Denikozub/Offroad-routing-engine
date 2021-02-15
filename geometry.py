@@ -50,6 +50,25 @@ def point_in_angle(i, l, p, r):
     return turn(p, r, i) < 0 < turn(p, l, i)
 
 
+def intersects(a0, b0, c0, d0):
+    a = np.array(a0)
+    b = np.array(b0) - a
+    c = np.array(c0) - a
+    d = np.array(d0) - a
+    x1, y1 = c
+    x2, y2 = d
+    k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
+    b12 = y1 - k12 * x1
+    k = 10 ** 10 if math.fabs(b[0]) < delta else b[1] / b[0]
+    if k == k12:
+        return False  # overlap not an intersection
+    x = b12 / (k - k12)
+    y = k * x
+    if x < min(x1, x2) or x > max(x1, x2) or y < min(y1, y2) or y > max(y1, y2):
+        return False  # end of segment not an intersection
+    return np.dot(np.array([x, y]), b) > 0
+
+
 def inner_diag(i, j, polygon, n):
     if math.fabs(i - j) <= 1:
         return True
