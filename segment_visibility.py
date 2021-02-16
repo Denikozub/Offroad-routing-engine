@@ -1,9 +1,11 @@
-from geometry import intersects
+from geometry import intersects, point_in_angle
 
 
 class SegmentVisibility:
 
     segments = list()
+    restriction_pair = None
+    restriction_point = None
     
     def add_pair(self, pair):
         self.segments.append(pair)
@@ -18,7 +20,14 @@ class SegmentVisibility:
         for i in range(segment_number):
             a, b = self.segments[i]
             a_point, b_point = a[0], a[0]
-            intersects_a, intersects_b = False, False
+            if self.restriction_pair is not None and self.restriction_point is not None:
+                l_point, r_point = self.restriction_pair
+                intersects_a = not point_in_angle(a_point, l_point, self.restriction_point, r_point)
+                intersects_b = not point_in_angle(b_point, l_point, self.restriction_point, r_point)
+                if intersects_a and intersects_b:
+                    continue
+            else:
+                intersects_a, intersects_b = False, False
             for j in range(segment_number):
                 if j == i:
                     continue

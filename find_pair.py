@@ -108,8 +108,7 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
         return None
     point1, point2 = result
     if polygon_point_number is not None:
-        point_data = (point, polygon_number, polygon_point_number)
-        return ((polygon[point1], polygon_number, point1), point_data, (polygon[point2], polygon_number, point2))
+        return (polygon[point1], polygon[point2])
     line = list()
     for i in range(point1, point2 + 1):
         line.append((polygon[i], polygon_number, i))

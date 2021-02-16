@@ -43,12 +43,15 @@ class VisibilityGraph:
         return coordinates if epsilon is None or epsilon <= 0 else rdp.rdp(coordinates, epsilon=epsilon)
     
     @staticmethod
+    def __convex_hull_points(polygon):
+        return polygon if len(polygon) <= 4 else ConvexHull(polygon).vertices
+    
+    @staticmethod
     def __convex_hull(polygon):
         if len(polygon) <= 4:
             return polygon
         ch = ConvexHull(polygon)
         return ch.points[ch.vertices]
-        # return mapping(Polygon(polygon).convex_hull)['coordinates'][0] if len(polygon) >= 5 else polygon
 
     def build_dataframe(self, epsilon=None, bbox_comp=None, ellipse=False):
         if ellipse:
@@ -69,6 +72,7 @@ class VisibilityGraph:
         self.polygons = self.polygons.reset_index().drop(columns='index')
         if not ellipse:
             self.polygons['convex_hull'] = self.polygons.geometry.apply(self.__convex_hull)
+            self.polygons['convex_hull_points'] = self.polygons.geometry.apply(self.__convex_hull_points)
 
         self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, 'multilinestring'])
         self.multilinestrings.dropna(inplace=True)
@@ -107,10 +111,20 @@ class VisibilityGraph:
         for i in range(polygon_count):
             polygon = self.polygons.iloc[i]
             if point_polygon_number is not None and i == point_polygon_number:
-                line = line_func(point, polygon.geometry, i, point_polygon_point_number)
-                if line is not None:
-                    visible_vertices.add_line(line)
                 # edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
+                convex_hull_point_count = len(polygon.convex_hull) - 1
+                if convex_hull_point_count <= 2:
+                    continue
+                if point_polygon_point_number in polygon.convex_hull_points:
+                    left = (point_polygon_point_number - 1) % convex_hull_point_count
+                    right = (point_polygon_point_number + 1) % convex_hull_point_count
+                    pair = ((polygon.convex_hull[left], i, left), (polygon.convex_hull[right], i, right))
+                    visible_vertices.add_pair(pair)
+                else:
+                    restriction_pair = line_func(point, polygon.geometry, i, point_polygon_point_number)
+                    if restriction_pair is not None:
+                        visible_vertices.restriction_pair = restriction_pair
+                        visible_vertices.restriction_point = point
             elif not point_in_ch(point, polygon.convex_hull):
                 pair = pair_func(point, polygon.convex_hull, i)
                 if pair is not None:
