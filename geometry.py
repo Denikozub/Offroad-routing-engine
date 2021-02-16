@@ -50,7 +50,7 @@ def point_in_angle(i, l, p, r):
     return turn(p, r, i) < 0 < turn(p, l, i)
 
 
-def intersects(a0, b0, c0, d0):
+def intersects(a0, b0, c0, d0, segment=False):
     a = np.array(a0)
     b = np.array(b0) - a
     c = np.array(c0) - a
@@ -59,40 +59,38 @@ def intersects(a0, b0, c0, d0):
     x2, y2 = d
     k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
     b12 = y1 - k12 * x1
+    delta = 0.00001
     k = 10 ** 10 if math.fabs(b[0]) < delta else b[1] / b[0]
-    if k == k12:
+    if math.fabs(k - k12) < delta:
         return False  # overlap not an intersection
     x = b12 / (k - k12)
     y = k * x
-    if x < min(x1, x2) or x > max(x1, x2) or y < min(y1, y2) or y > max(y1, y2):
+    if x < min(x1, x2) + delta or x > max(x1, x2) - delta or y < min(y1, y2) + delta or y > max(y1, y2) - delta:
         return False  # end of segment not an intersection
-    return np.dot(np.array([x, y]), b) > 0
+    return np.dot(np.array([x, y]), b) > 0 if not segment else delta < x < (b[0] - delta) and delta < y < (b[1] - delta)
 
 
-def inner_diag(i, j, polygon, n):
-    if math.fabs(i - j) <= 1:
-        return True
-    pi = polygon[i]
-    pj = polygon[j]
-    pi_l = polygon[(i - 1) % n]
-    pi_r = polygon[(i + 1) % n]
-    if turn(pi_l, pi, pi_r) < 0:
-        if turn(pi, pj, pi_l) > 0 or turn(pi, pi_r, pj) > 0:
+def point_in_ch(point, polygon):
+    n = len(polygon) - 1
+    if n <= 2:
+        return False
+    polygon_turn = turn(polygon[0], polygon[1], polygon[2])
+    for i in range(n):
+        if turn(polygon[i], polygon[i + 1], point) * polygon_turn < 0:
             return False
-        for k in range(n):
-            pk = polygon[k]
-            if (k > i or k < j) and turn(pi, pk, pj) > 0:
-                return False
-            if j < k < i and turn(pi, pj, pk) > 0:
-                return False
+    return True
+
+
+def inner_diag(p1, p2, polygon, n):
+    if math.fabs(p1 - p2) in (0, 1, n):
         return True
-    else:
-        if turn(pi, pj, pi_r) < 0 or turn(pi, pi_l, pj) < 0:
+    point1 = polygon[p1]
+    point2 = polygon[p2]
+    n = len(polygon) - 1
+    for i in range(n):
+        if i in (p1, p1 - 1, p2, p2 - 1):
+            continue
+        if intersects(point1, point2, polygon[i], polygon[i + 1], segment=True):
             return False
-        for k in range(n):
-            pk = polygon[k]
-            if (k > i or k < j) and turn(pi, pj, pk) < 0:
-                return False
-            if j < k < i and turn(pi, pk, pj) < 0:
-                return False
-        return True
+    return True
+
