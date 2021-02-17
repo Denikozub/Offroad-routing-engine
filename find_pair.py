@@ -1,4 +1,4 @@
-from geometry import point_in_angle, intersects
+from geometry import point_in_angle, intersects, turn
 
 
 def find_pair_array(point, polygon, polygon_number):
@@ -92,6 +92,8 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
     for i in range(n):
         pi = polygon[i]
         if polygon_point_number is not None and i == polygon_point_number:
+            continue
+        if turn(point, pi, polygon[(i - 1) % n]) * turn(point, pi, polygon[(i + 1) % n]) < 0:
             continue
         found = True
         for j in range(n):

@@ -44,14 +44,22 @@ class VisibilityGraph:
     
     @staticmethod
     def __convex_hull_points(polygon):
-        return polygon if len(polygon) <= 4 else ConvexHull(polygon).vertices
+        if len(polygon) <= 4:
+            points = [i for i in range(len(polygon) - 1)]
+            points.append(0)
+            return points
+        points = list(ConvexHull(polygon).vertices)
+        points.append(points[0])
+        return points
     
     @staticmethod
     def __convex_hull(polygon):
         if len(polygon) <= 4:
             return polygon
         ch = ConvexHull(polygon)
-        return ch.points[ch.vertices]
+        vertices = list(ch.points[ch.vertices])
+        vertices.append(vertices[0])
+        return vertices
 
     def build_dataframe(self, epsilon=None, bbox_comp=None, ellipse=False):
         if ellipse:
@@ -111,20 +119,25 @@ class VisibilityGraph:
         for i in range(polygon_count):
             polygon = self.polygons.iloc[i]
             if point_polygon_number is not None and i == point_polygon_number:
-                # edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
+                edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
                     continue
                 if point_polygon_point_number in polygon.convex_hull_points:
-                    left = (point_polygon_point_number - 1) % convex_hull_point_count
-                    right = (point_polygon_point_number + 1) % convex_hull_point_count
-                    pair = ((polygon.convex_hull[left], i, left), (polygon.convex_hull[right], i, right))
-                    visible_vertices.add_pair(pair)
+                    position = polygon.convex_hull_points.index(point_polygon_point_number)
+                    left = polygon.convex_hull_points[(position - 1) % convex_hull_point_count]
+                    right = polygon.convex_hull_points[(position + 1) % convex_hull_point_count]
+                    # pair = ((polygon.convex_hull[left], i, left), (polygon.convex_hull[right], i, right))
+                    # visible_vertices.add_pair(pair)
+                    restriction_pair = (polygon.geometry[left], polygon.geometry[right])
+                    reverse_angle = True
                 else:
                     restriction_pair = line_func(point, polygon.geometry, i, point_polygon_point_number)
-                    if restriction_pair is not None:
-                        visible_vertices.restriction_pair = restriction_pair
-                        visible_vertices.restriction_point = point
+                    reverse_angle = False
+                if restriction_pair is not None:
+                    visible_vertices.restriction_pair = restriction_pair
+                    visible_vertices.restriction_point = point
+                    visible_vertices.reverse_angle = reverse_angle
             elif not point_in_ch(point, polygon.convex_hull):
                 pair = pair_func(point, polygon.convex_hull, i)
                 if pair is not None:
@@ -137,8 +150,8 @@ class VisibilityGraph:
         for i in range(multilinestring_count):
             visible_vertices.add_line(self.multilinestrings.geometry[i])
         visible_edges = visible_vertices.get_edges(point)
-        # if point_polygon_number is not None:
-            # visible_edges.extend(edges_inside)
+        if point_polygon_number is not None:
+            visible_edges.extend(edges_inside)
         return visible_edges 
 
     def build_graph(self, plot=False, crs='EPSG:4326'):

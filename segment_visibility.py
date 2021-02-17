@@ -3,9 +3,11 @@ from geometry import intersects, point_in_angle
 
 class SegmentVisibility:
 
-    segments = list()
-    restriction_pair = None
-    restriction_point = None
+    def __init__(self):
+        self.segments = list()
+        self.restriction_pair = None
+        self.restriction_point = None
+        self.reverse_angle = None
     
     def add_pair(self, pair):
         self.segments.append(pair)
@@ -19,11 +21,14 @@ class SegmentVisibility:
         visible_edges = list()
         for i in range(segment_number):
             a, b = self.segments[i]
-            a_point, b_point = a[0], a[0]
-            if self.restriction_pair is not None and self.restriction_point is not None:
+            a_point, b_point = a[0], b[0]
+            if self.restriction_pair is not None and self.restriction_point is not None: # and self.reverse_angle is not None:
                 l_point, r_point = self.restriction_pair
-                intersects_a = not point_in_angle(a_point, l_point, self.restriction_point, r_point)
-                intersects_b = not point_in_angle(b_point, l_point, self.restriction_point, r_point)
+                intersects_a = not point_in_angle(a_point, l_point, self.restriction_point, r_point) # != self.reverse_angle
+                intersects_b = not point_in_angle(b_point, l_point, self.restriction_point, r_point) # != self.reverse_angle
+                if self.reverse_angle:
+                    intersects_a = not intersects_a
+                    intersects_b = not intersects_b
                 if intersects_a and intersects_b:
                     continue
             else:
