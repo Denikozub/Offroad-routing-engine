@@ -25,7 +25,7 @@ def find_pair_array(point, polygon, polygon_number):
             end = n
         else:
             end = b.index(0, start + 1)
-    return ((polygon[start], polygon_number, start), (polygon[end], polygon_number, end))
+    return ((polygon[start], polygon_number, start, None, None), (polygon[end], polygon_number, end, None, None))
 
 
 def find_pair_cutoff(point, polygon, polygon_number):
@@ -59,7 +59,7 @@ def find_pair_cutoff(point, polygon, polygon_number):
                 begin = n
                 found = True
                 break
-    return None if not found else ((polygon[begin], polygon_number, begin), (polygon[end], polygon_number, end))
+    return None if not found else ((polygon[begin], polygon_number, begin, None, None), (polygon[end], polygon_number, end, None, None))
 
 
 def quad_equation(a, b, c):
@@ -83,7 +83,7 @@ def find_pair_ellipse(point, polygon, polygon_number):
         return None
     x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
-    return ((point1, None, None), (point2, None, None))
+    return ((point1, None, None, None, None), (point2, None, None, None, None))
 
 
 def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
@@ -113,6 +113,6 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
         return (polygon[point1], polygon[point2])
     line = list()
     for i in range(point1, point2 + 1):
-        line.append((polygon[i], polygon_number, i))
+        line.append((polygon[i], polygon_number, i, None, None))
     return line
     

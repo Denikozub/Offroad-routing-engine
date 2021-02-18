@@ -18,7 +18,7 @@ class VisibilityGraph:
         natural = osm.get_natural(extra_attributes=['nodes'])  # Additional attributes: natural.tags.unique()
         self.polygons = pd.DataFrame(natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'Polygon'])
         self.multipolygons = pd.DataFrame(natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiPolygon'])
-        self.multilinestrings = pd.DataFrame(natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiLineString']).head(0)
+        self.multilinestrings = pd.DataFrame(natural.loc[:, ['natural', 'geometry']].loc[natural.geometry.type == 'MultiLineString'])
         self.bbox_width = box_width(bbox)
         self.bbox_height = box_length(bbox)
 
@@ -39,27 +39,19 @@ class VisibilityGraph:
     def __get_coord(self, obj, epsilon, bbox_comp, type_obj):
         if not self.__check_bounds(obj, bbox_comp, type_obj):
             return None
-        coordinates = mapping(obj)['coordinates'][0]
+        coordinates = np.array(mapping(obj)['coordinates'][0])
         return coordinates if epsilon is None or epsilon <= 0 else rdp.rdp(coordinates, epsilon=epsilon)
     
     @staticmethod
-    def __convex_hull_points(polygon):
+    def __convex_hull(polygon_df):
+        polygon = polygon_df[0]
         if len(polygon) <= 4:
-            points = [i for i in range(len(polygon) - 1)]
-            points.append(0)
-            return points
-        points = list(ConvexHull(polygon).vertices)
-        points.append(points[0])
-        return points
-    
-    @staticmethod
-    def __convex_hull(polygon):
-        if len(polygon) <= 4:
-            return polygon
+            return polygon, [i for i in range(len(polygon))]
         ch = ConvexHull(polygon)
-        vertices = list(ch.points[ch.vertices])
-        vertices.append(vertices[0])
-        return vertices
+        points = list(ch.vertices)
+        points.append(points[0])
+        vertices = ch.points[points]
+        return vertices, points
 
     def build_dataframe(self, epsilon=None, bbox_comp=None, ellipse=False):
         if ellipse:
@@ -79,8 +71,8 @@ class VisibilityGraph:
         self.polygons.dropna(inplace=True)
         self.polygons = self.polygons.reset_index().drop(columns='index')
         if not ellipse:
-            self.polygons['convex_hull'] = self.polygons.geometry.apply(self.__convex_hull)
-            self.polygons['convex_hull_points'] = self.polygons.geometry.apply(self.__convex_hull_points)
+            self.polygons = self.polygons.join(pd.DataFrame(self.polygons.geometry).apply(self.__convex_hull, axis=1, \
+                    result_type='expand').rename(columns={0:'convex_hull', 1:'convex_hull_points'}))
 
         self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, 'multilinestring'])
         self.multilinestrings.dropna(inplace=True)
@@ -107,19 +99,21 @@ class VisibilityGraph:
         for i in range(n):
             if i == point_number or not inner_diag(point_number, i, polygon, n):
                 continue
-            edges_inside.append((polygon[i], polygon_number, i))
+            edges_inside.append((polygon[i], polygon_number, i, None, None))
         return edges_inside
     
     def incident_vertices(self, point_data, pair_func=find_pair_array, line_func=find_line_brute_force):
         point = point_data[0]
         point_polygon_number = point_data[1]
         point_polygon_point_number = point_data[2]
+        point_linestring_number = point_data[3]
+        point_linestring_point_number = point_data[4]
         visible_vertices = SegmentVisibility()
         polygon_count = self.polygons.shape[0]
         for i in range(polygon_count):
             polygon = self.polygons.iloc[i]
             if point_polygon_number is not None and i == point_polygon_number:
-                edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
+                # edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
                     continue
@@ -127,57 +121,75 @@ class VisibilityGraph:
                     position = polygon.convex_hull_points.index(point_polygon_point_number)
                     left = polygon.convex_hull_points[(position - 1) % convex_hull_point_count]
                     right = polygon.convex_hull_points[(position + 1) % convex_hull_point_count]
-                    # pair = ((polygon.convex_hull[left], i, left), (polygon.convex_hull[right], i, right))
-                    # visible_vertices.add_pair(pair)
                     restriction_pair = (polygon.geometry[left], polygon.geometry[right])
-                    reverse_angle = True
+                    visible_vertices.set_restriction_angle(restriction_pair, point, True)
                 else:
                     restriction_pair = line_func(point, polygon.geometry, i, point_polygon_point_number)
-                    reverse_angle = False
-                if restriction_pair is not None:
-                    visible_vertices.restriction_pair = restriction_pair
-                    visible_vertices.restriction_point = point
-                    visible_vertices.reverse_angle = reverse_angle
+                    visible_vertices.set_restriction_angle(restriction_pair, point, False)
             elif not point_in_ch(point, polygon.convex_hull):
                 pair = pair_func(point, polygon.convex_hull, i)
-                if pair is not None:
-                    visible_vertices.add_pair(pair)
+                visible_vertices.add_pair(pair)
             else:
                 line = line_func(point, polygon.geometry, i)
-                if line is not None:
-                    visible_vertices.add_line(line)
+                visible_vertices.add_line(line)
         multilinestring_count = self.multilinestrings.shape[0]
         for i in range(multilinestring_count):
-            visible_vertices.add_line(self.multilinestrings.geometry[i])
+            linestring = self.multilinestrings.geometry[i]
+            linestring_point_count = len(linestring)
+            if point_linestring_number is not None and i == point_linestring_number:
+                edges_inside = list()
+                if point_linestring_point_number > 0:
+                    previous = point_linestring_point_number - 1
+                    edges_inside.append((linestring[previous], None, None, i, previous))
+                if point_linestring_point_number + 1 < linestring_point_count:
+                    following = point_linestring_point_number + 1
+                    edges_inside.append((linestring[following], None, None, i, following))
+            for j in range(linestring_point_count):
+                line = list()
+                line.append((linestring[j], None, None, i, j))
+            visible_vertices.add_line(line)
         visible_edges = visible_vertices.get_edges(point)
-        if point_polygon_number is not None:
+        if point_linestring_number is not None:
             visible_edges.extend(edges_inside)
         return visible_edges 
 
-    def build_graph(self, plot=False, crs='EPSG:4326'):
-        G = nx.Graph(crs=crs)
-        max_poly_len = 10000  # for graph indexing
-        if plot:
-            fig = plt.figure()
-        polygon_count = self.polygons.shape[0]
-        for i in range(polygon_count):
-            polygon = self.polygons.geometry[i]
-            point_count = len(polygon) - 1
+    def __process_points_of_objects(self, obj_type, G, plot):
+        max_poly_len = 10000                    # for graph indexing
+        object_count = self.polygons.shape[0] if obj_type == 'polygon' else self.multilinestrings.shape[0]
+        for i in range(object_count):
+            obj = self.polygons.geometry[i] if obj_type == 'polygon' else self.multilinestrings.geometry[i]
+            point_count = len(obj) - 1 if obj_type == 'polygon' else len(obj)
             for j in range(point_count):
-                point = polygon[j]
+                point = obj[j]
                 px, py = point
-                point_data = (point, i, j)
-                point_index = i * max_poly_len + j
+                # point_data is a list where:
+                #     0 element: point coordinates
+                #     1 element: number of polygon where point belongs
+                #     2 element: number of point in polygon
+                #     3 element: number of linestring where point belongs
+                #     4 element: number of point in linestring
+                point_data = (point, i, j, None, None) if obj_type == 'polygon' else (point, None, None, i, j)
+                point_index = i * max_poly_len + j  if obj_type == 'polygon' else (i + 0.5) * max_poly_len + j
                 G.add_node(point_index, x=px, y=py)
                 vertices = self.incident_vertices(point_data)
                 if vertices is None:
                     continue
                 for vertice in vertices:
-                    vx, vy = vertice[0]
-                    vertex_index = vertice[1] * max_poly_len + vertice[2]
+                    vx, vy = vertice[0]         # x and y coordinates of vertice
+                    if vertice[1] is not None:  # vertex belongs to a polygon
+                        vertex_index = vertice[1] * max_poly_len + vertice[2]
+                    else:                       # vertex belongs to a linestring
+                        vertex_index = (vertice[3] + 0.5) * max_poly_len + vertice[4]
                     G.add_node(vertex_index, x=vx, y=vy)
                     G.add_edge(point_index, vertex_index)
                     if plot:
                         plt.plot([px, vx], [py, vy])
+
+    def build_graph(self, plot=False, crs='EPSG:4326'):
+        G = nx.Graph(crs=crs)
+        if plot:
+            fig = plt.figure()
+        self.__process_points_of_objects('polygon', G, plot)
+        self.__process_points_of_objects('multilinestring', G, plot)
         return G, fig if plot else G
 
