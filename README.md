@@ -1,10 +1,9 @@
 # Off-road navigation system
-- On-line _visibility graph_ algorithm
+- Innovative O(nh log nh) on-line _reduced visibility graph_ algorithm (h-number of polygons)
 - A* pathfinding _without_ graph precomputing
 - Dynamic edge weights
 - Huge database of hiking and country roads
 - Super fast pathfinding on large areas
-- O(h) _visibility polygon_ calculation (h - number of obstacles)
 - _Hierarchical approach_ for graph building
 - OSM maps data
 - Minimized stored and precomputed data
