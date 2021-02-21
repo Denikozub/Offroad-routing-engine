@@ -1,13 +1,23 @@
 from geometry import intersects, point_in_angle
 
+"""
+class that builds visibility graph for line segments
+currently used algorithm is brute force
+in the future 2 more algorithms will be added:
+1) O(n log n) rotating sweep line
+2) O(n) angle approximation (see first_version.graph)
+"""
+
 
 class SegmentVisibility:
 
     def __init__(self):
         self.__segments = list()
+
+        # information about view restrictions from own polygon
         self.__restriction_pair = None
         self.__restriction_point = None
-        self.__reverse_angle = None
+        self.__reverse_angle = None  # should be False if restriction angle > pi (point not a part of CH)
     
     def add_pair(self, pair):
         if pair is None:
@@ -33,9 +43,10 @@ class SegmentVisibility:
             a_point, b_point = a[0], b[0]
             if self.__restriction_pair is not None and self.__restriction_point is not None and self.__reverse_angle is not None:
                 l_point, r_point = self.__restriction_pair
+                # if a point is inside a restriction angle, it will not be returned
                 intersects_a = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
                 intersects_b = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                if intersects_a and intersects_b:
+                if intersects_a and intersects_b:  # if both in restriction angle
                     continue
             else:
                 intersects_a, intersects_b = False, False

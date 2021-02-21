@@ -3,10 +3,12 @@ import math
 from geopy.distance import geodesic
 
 
+# points a and b given in format (lon, lat)
 def dist(a, b):
     return geodesic((a[1], a[0]), (b[1], b[0])).km
 
 
+# geographical to cartesian coordinates
 def vec(a, b):
     x_sign = 1 if b[0] - a[0] >= 0 else -1
     y_sign = 1 if b[1] - a[1] >= 0 else -1
@@ -25,6 +27,7 @@ def box_length(box):
     return dist([box[1], box[0]], [box[3], box[0]])
 
 
+# angle (abc)
 def angle(a, b, c):
     mods = mod(vec(b, a)) * mod(vec(b, c))
     if mods == 0:
@@ -35,21 +38,25 @@ def angle(a, b, c):
     return math.acos(cos)
 
 
+# angle in polar coordinates
 def angle_horizontal(a, b):
     v = vec(a, b)
     return math.atan2(v[1], v[0])
 
 
+# [ab, bc]
 def turn(a, b, c):
     return np.cross(np.array(b) - np.array(a), np.array(c) - np.array(b))
 
 
+# check if point i is in angle (lpr)
 def point_in_angle(i, l, p, r):
     if turn(l, p, r) > 0:
         return turn(p, l, i) < 0 < turn(p, r, i)
     return turn(p, r, i) < 0 < turn(p, l, i)
 
 
+# find intersection point, then check if it belongs to a ray(segment) and a segment
 def intersects(a0, b0, c0, d0, segment=False):
     a = np.array(a0)
     b = np.array(b0) - a
@@ -72,6 +79,8 @@ def intersects(a0, b0, c0, d0, segment=False):
     return x > min(0, b[0]) + delta and x < max(0, b[0]) - delta and y > min(0, b[1]) + delta and y < max(0, b[1]) - delta
 
 
+# O(n) algorithm
+# O(log n) implementation in the future
 def point_in_ch(point, polygon):
     n = len(polygon) - 1
     if n <= 2:
@@ -83,6 +92,7 @@ def point_in_ch(point, polygon):
     return True
 
 
+# check if p1p2 is an inner diagonal for a polygon
 def inner_diag(p1, p2, polygon, n):
     if math.fabs(p1 - p2) in (0, 1, n):
         return True
