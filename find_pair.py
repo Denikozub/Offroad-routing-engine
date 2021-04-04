@@ -1,6 +1,9 @@
 from geometry import point_in_angle, intersects, turn
 
 
+# find a pair of supporting points from point to a convex polygon
+# O(n) use of array implementation
+# O(log n) algorithm found, will be implemented in the future
 def find_pair_array(point, polygon, polygon_number):
     n = len(polygon) - 1
     b = [1 for i in range(n)]
@@ -25,9 +28,11 @@ def find_pair_array(point, polygon, polygon_number):
             end = n
         else:
             end = b.index(0, start + 1)
-    return ((polygon[start], polygon_number, start, None, None), (polygon[end], polygon_number, end, None, None))
+    return (polygon[start], polygon_number, start, None, None), (polygon[end], polygon_number, end, None, None)
 
 
+# find a pair of supporting points from point to a convex polygon
+# O(n) NO use of array implementation
 def find_pair_cutoff(point, polygon, polygon_number):
     n = len(polygon) - 1
     begin = end = -1
@@ -73,7 +78,8 @@ def quad_equation(a, b, c):
     return (-b + math.sqrt(d)) / (2 * a), (-b - math.sqrt(d)) / (2 * a)
 
 
-def find_pair_ellipse(point, polygon, polygon_number):
+# find a pair of supporting points from point to an ellipse formed by its bounding box
+def find_pair_ellipse(point, polygon, polygon_number=None):
     multipl = 10000000
     a, b = (polygon[2][0] - polygon[1][0]) / 2 * multipl, (polygon[1][1] - polygon[0][1]) / 2 * multipl
     xc, yc = (polygon[2][0] + polygon[1][0]) / 2 * multipl, (polygon[1][1] + polygon[0][1]) / 2 * multipl
@@ -83,9 +89,11 @@ def find_pair_ellipse(point, polygon, polygon_number):
         return None
     x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
-    return ((point1, None, None, None, None), (point2, None, None, None, None))
+    return (point1, None, None, None, None), (point2, None, None, None, None)
 
 
+# find a pair of supporting points from point to a non-convex polygon
+# O(n^2) brute force implementation
 def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
     n = len(polygon) - 1
     result = list()
@@ -110,9 +118,8 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
         return None
     point1, point2 = result
     if polygon_point_number is not None:
-        return (polygon[point1], polygon[point2])
+        return polygon[point1], polygon[point2]
     line = list()
     for i in range(point1, point2 + 1):
         line.append((polygon[i], polygon_number, i, None, None))
     return line
-    
