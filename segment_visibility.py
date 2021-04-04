@@ -57,12 +57,17 @@ class SegmentVisibility:
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
                 if not intersects_a and intersects(point, a_point, check_a, check_b, segment=True):
                     intersects_a = True
+                    break # delete maybe
                 if not intersects_b and intersects(point, b_point, check_a, check_b, segment=True):
                     intersects_b = True
-                if intersects_a and intersects_b:
-                    break
-            if not intersects_a:
+                    break # delete maybe
+                # if intersects_a and intersects_b:
+                #     break
+            # if not intersects_a:
+            #     visible_edges.append(a)
+            # if not intersects_b:
+            #     visible_edges.append(b)
+            if not intersects_a and not intersects_b:
                 visible_edges.append(a)
-            if not intersects_b:
                 visible_edges.append(b)
         return visible_edges

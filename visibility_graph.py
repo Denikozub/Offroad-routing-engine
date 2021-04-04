@@ -125,6 +125,7 @@ class VisibilityGraph:
         point_linestring_point_number = point_data[4]
         visible_vertices = SegmentVisibility()
         polygon_count = self.polygons.shape[0]
+        edges_inside = list()
         for i in range(polygon_count):
             polygon = self.polygons.iloc[i]
             if point_polygon_number is not None and i == point_polygon_number:
@@ -152,7 +153,6 @@ class VisibilityGraph:
             linestring = self.multilinestrings.geometry[i]
             linestring_point_count = len(linestring)
             if point_linestring_number is not None and i == point_linestring_number:
-                edges_inside = list()
                 if point_linestring_point_number > 0:
                     previous = point_linestring_point_number - 1
                     edges_inside.append((linestring[previous], None, None, i, previous))
@@ -164,8 +164,7 @@ class VisibilityGraph:
                 line.append((linestring[j], None, None, i, j))
             visible_vertices.add_line(line)
         visible_edges = visible_vertices.get_edges(point)
-        if point_linestring_number is not None and point_polygon_number is not None:
-            visible_edges.extend(edges_inside)
+        visible_edges.extend(edges_inside)
         return visible_edges 
 
     def __process_points_of_objects(self, obj_type, G, plot):
