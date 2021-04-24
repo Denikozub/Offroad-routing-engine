@@ -67,3 +67,4 @@ class SegmentVisibility:
             if not intersects_b:
                 visible_edges.append(b)
         return visible_edges
+

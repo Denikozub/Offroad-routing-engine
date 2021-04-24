@@ -3,9 +3,11 @@ from math import sqrt
 import random
 
 
+# O(log n) algorithm found, will be implemented in the future
+
+
 # find a pair of supporting points from point to a convex polygon
 # O(n) use of array implementation
-# O(log n) algorithm found, will be implemented in the future
 def find_pair_array(point, polygon, polygon_number):
     n = len(polygon) - 1
     b = [1 for i in range(n)]
@@ -97,7 +99,7 @@ def find_pair_ellipse(point, polygon, polygon_number=None):
 
 # find a pair of supporting points from point to a non-convex polygon
 # O(n^2) brute force implementation
-def find_pair_brute_force(point, polygon, polygon_number, polygon_point_number=None):
+def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
     n = len(polygon) - 1
     result = list()
     for i in range(n):
@@ -124,3 +126,4 @@ def find_pair_brute_force(point, polygon, polygon_number, polygon_point_number=N
     for i in range(point1, point2 + 1):
         line.append((polygon[i], polygon_number, i, None, None))
     return line
+

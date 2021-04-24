@@ -52,5 +52,4 @@ def point_in_ch(point, polygon):
         if turn(polygon[i], polygon[i + 1], point) * polygon_turn < 0:
             return False
     return True
-    # return Polygon(polygon.convex_hull).contains(Point(point)) - which is faster?
 

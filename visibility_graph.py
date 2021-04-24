@@ -4,6 +4,7 @@ from geometry import point_in_ch
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
 from math import fabs
+from find_pair import find_line_brute_force
 from numpy import array, arange
 from numpy.random import choice
 from networkx import Graph
@@ -121,7 +122,7 @@ class VisibilityGraph:
         3 element: number of linestring where point belongs
         4 element: number of point in linestring
     """
-    def incident_vertices(self, point_data, pair_func, line_func, add_edges_inside=True, inside_percent=1):
+    def incident_vertices(self, point_data, pair_func, add_edges_inside=True, inside_percent=1):
         point = point_data[0]
         point_polygon_number = point_data[1]
         point_polygon_point_number = point_data[2]
@@ -145,7 +146,7 @@ class VisibilityGraph:
                     restriction_pair = (polygon.geometry[left], polygon.geometry[right])
                     visible_vertices.set_restriction_angle(restriction_pair, point, True)
                 else:
-                    restriction_pair = line_func(point, polygon.geometry, i, point_polygon_point_number)
+                    restriction_pair = find_line_brute_force(point, polygon.geometry, i, point_polygon_point_number)
                     if restriction_pair is None:
                         return None
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
@@ -153,7 +154,7 @@ class VisibilityGraph:
                 pair = pair_func(point, polygon.convex_hull, i)
                 visible_vertices.add_pair(pair)
             else:
-                line = line_func(point, polygon.geometry, i)
+                line = find_line_brute_force(point, polygon.geometry, i)
                 visible_vertices.add_line(line)
         multilinestring_count = self.multilinestrings.shape[0]
         for i in range(multilinestring_count):
@@ -174,7 +175,7 @@ class VisibilityGraph:
         visible_edges.extend(edges_inside)
         return visible_edges 
 
-    def __process_points_of_objects(self, obj_type, G, plot, pair_func, line_func, add_edges_inside, inside_percent):
+    def __process_points_of_objects(self, obj_type, G, plot, pair_func, add_edges_inside, inside_percent):
         max_poly_len = 10000                    # for graph indexing
         object_count = self.polygons.shape[0] if obj_type == 'polygon' else self.multilinestrings.shape[0]
         for i in range(object_count):
@@ -186,7 +187,7 @@ class VisibilityGraph:
                 point_data = (point, i, j, None, None) if obj_type == 'polygon' else (point, None, None, i, j)
                 point_index = i * max_poly_len + j if obj_type == 'polygon' else (i + 0.5) * max_poly_len + j
                 G.add_node(point_index, x=px, y=py)
-                vertices = self.incident_vertices(point_data, pair_func, line_func, add_edges_inside, inside_percent)
+                vertices = self.incident_vertices(point_data, pair_func, add_edges_inside, inside_percent)
                 if vertices is None:
                     continue
                 for vertex in vertices:
@@ -200,13 +201,14 @@ class VisibilityGraph:
                     if plot:
                         plt.plot([px, vx], [py, vy])
 
-    def build_graph(self, pair_func, line_func, add_edges_inside=True, inside_percent=1, plot=False, crs='EPSG:4326'):
+    def build_graph(self, pair_func, add_edges_inside=True, inside_percent=1, plot=False, crs='EPSG:4326'):
         G = Graph(crs=crs)
         if plot:
             fig = plt.figure()
             for p in self.polygons.geometry:
                 x, y = zip(*list(p))
                 plt.fill(x, y, "r");
-        self.__process_points_of_objects('polygon', G, plot, pair_func, line_func, add_edges_inside, inside_percent)
-        self.__process_points_of_objects('multilinestring', G, plot, pair_func, line_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects('polygon', G, plot, pair_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects('multilinestring', G, plot, pair_func, add_edges_inside, inside_percent)
         return G, fig if plot else G
+

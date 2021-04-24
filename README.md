@@ -6,6 +6,7 @@
 - Super fast pathfinding on large areas
 - _Hierarchical approach_ for graph building
 - OSM maps data
+- No projected crs -> more accuracy
 - Minimized stored and precomputed data
 
 This is how Google routing engine (and all others) currently [01.02.2021] work. I am ready to change this.
