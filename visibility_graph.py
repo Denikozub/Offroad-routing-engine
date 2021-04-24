@@ -4,7 +4,8 @@ from geometry import point_in_ch
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
 from math import fabs
-from numpy import array
+from numpy import array, arange
+from numpy.random import choice
 from networkx import Graph
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -103,12 +104,13 @@ class VisibilityGraph:
             self.multilinestrings.geometry[i] = new_line
     
     @staticmethod
-    def __add_inside_poly(point_number, polygon, polygon_number):
+    def __add_inside_poly(point_number, polygon, polygon_number, inside_percent):
         n = len(polygon) - 1
         edges_inside = list()
         for i in range(n):
             if i != point_number and (fabs(point_number - i) in (0, 1, n-1) or Polygon(polygon).contains(LineString([polygon[point_number], polygon[i]]))):
-                edges_inside.append((polygon[i], polygon_number, i, None, None))
+                if inside_percent == 1 or choice(arange(0, 2), p=[1-inside_percent, inside_percent]) == 1:
+                    edges_inside.append((polygon[i], polygon_number, i, None, None))
         return edges_inside
 
     """
@@ -119,7 +121,7 @@ class VisibilityGraph:
         3 element: number of linestring where point belongs
         4 element: number of point in linestring
     """
-    def incident_vertices(self, point_data, pair_func, line_func, edges_inside=True):
+    def incident_vertices(self, point_data, pair_func, line_func, add_edges_inside=True, inside_percent=1):
         point = point_data[0]
         point_polygon_number = point_data[1]
         point_polygon_point_number = point_data[2]
@@ -131,8 +133,8 @@ class VisibilityGraph:
         for i in range(polygon_count):
             polygon = self.polygons.iloc[i]
             if point_polygon_number is not None and i == point_polygon_number:
-                if edges_inside:
-                    edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i)
+                if add_edges_inside:
+                    edges_inside = self.__add_inside_poly(point_polygon_point_number, polygon.geometry, i, inside_percent)
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
                     continue
@@ -172,7 +174,7 @@ class VisibilityGraph:
         visible_edges.extend(edges_inside)
         return visible_edges 
 
-    def __process_points_of_objects(self, obj_type, G, plot, pair_func, line_func, edges_inside):
+    def __process_points_of_objects(self, obj_type, G, plot, pair_func, line_func, add_edges_inside, inside_percent):
         max_poly_len = 10000                    # for graph indexing
         object_count = self.polygons.shape[0] if obj_type == 'polygon' else self.multilinestrings.shape[0]
         for i in range(object_count):
@@ -184,7 +186,7 @@ class VisibilityGraph:
                 point_data = (point, i, j, None, None) if obj_type == 'polygon' else (point, None, None, i, j)
                 point_index = i * max_poly_len + j if obj_type == 'polygon' else (i + 0.5) * max_poly_len + j
                 G.add_node(point_index, x=px, y=py)
-                vertices = self.incident_vertices(point_data, pair_func, line_func, edges_inside)
+                vertices = self.incident_vertices(point_data, pair_func, line_func, add_edges_inside, inside_percent)
                 if vertices is None:
                     continue
                 for vertex in vertices:
@@ -198,13 +200,13 @@ class VisibilityGraph:
                     if plot:
                         plt.plot([px, vx], [py, vy])
 
-    def build_graph(self, pair_func, line_func, edges_inside=True, plot=False, crs='EPSG:4326'):
+    def build_graph(self, pair_func, line_func, add_edges_inside=True, inside_percent=1, plot=False, crs='EPSG:4326'):
         G = Graph(crs=crs)
         if plot:
             fig = plt.figure()
             for p in self.polygons.geometry:
                 x, y = zip(*list(p))
                 plt.fill(x, y, "r");
-        self.__process_points_of_objects('polygon', G, plot, pair_func, line_func, edges_inside)
-        self.__process_points_of_objects('multilinestring', G, plot, pair_func, line_func, edges_inside)
+        self.__process_points_of_objects('polygon', G, plot, pair_func, line_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects('multilinestring', G, plot, pair_func, line_func, add_edges_inside, inside_percent)
         return G, fig if plot else G
