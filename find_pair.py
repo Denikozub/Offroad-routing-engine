@@ -1,4 +1,6 @@
-from geometry import point_in_angle, intersects, turn
+from geometry import point_in_angle, ray_intersects_segment, turn
+from math import sqrt
+import random
 
 
 # find a pair of supporting points from point to a convex polygon
@@ -75,7 +77,7 @@ def quad_equation(a, b, c):
         return None
     elif d == 0:
         return -b / (2 * a), -b / (2 * a)
-    return (-b + math.sqrt(d)) / (2 * a), (-b - math.sqrt(d)) / (2 * a)
+    return (-b + sqrt(d)) / (2 * a), (-b - sqrt(d)) / (2 * a)
 
 
 # find a pair of supporting points from point to an ellipse formed by its bounding box
@@ -89,12 +91,13 @@ def find_pair_ellipse(point, polygon, polygon_number=None):
         return None
     x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
-    return (point1, None, None, None, None), (point2, None, None, None, None)
+    random.seed(1)
+    return (point1, polygon_number, random.randint(5000, 9999), None, None), (point2, polygon_number, random.randint(5000, 9999), None, None)
 
 
 # find a pair of supporting points from point to a non-convex polygon
 # O(n^2) brute force implementation
-def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
+def find_pair_brute_force(point, polygon, polygon_number, polygon_point_number=None):
     n = len(polygon) - 1
     result = list()
     for i in range(n):
@@ -107,13 +110,11 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
         for j in range(n):
             if j in (i - 1, i) or (polygon_point_number is not None and j in (polygon_point_number - 1, polygon_point_number)):
                 continue
-            if intersects(point, pi, polygon[j], polygon[j + 1]):
+            if ray_intersects_segment(point, pi, polygon[j], polygon[j + 1]):
                 found = False
                 break
         if found:
             result.append(i)
-            if len(result) == 2:
-                break
     if len(result) != 2:
         return None
     point1, point2 = result

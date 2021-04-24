@@ -1,4 +1,5 @@
-from geometry import intersects, point_in_angle
+from shapely.geometry import LineString
+from geometry import point_in_angle
 
 """
 class that builds visibility graph for line segments
@@ -55,9 +56,9 @@ class SegmentVisibility:
                     continue
                 check_pair = self.__segments[j]
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
-                if not intersects_a and intersects(point, a_point, check_a, check_b, segment=True):
+                if not intersects_a and LineString([point, a_point]).crosses(LineString([check_a, check_b])):
                     intersects_a = True
-                if not intersects_b and intersects(point, b_point, check_a, check_b, segment=True):
+                if not intersects_b and LineString([point, b_point]).crosses(LineString([check_a, check_b])):
                     intersects_b = True
                 if intersects_a and intersects_b:
                     break
