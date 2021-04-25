@@ -107,6 +107,20 @@ def find_pair_ellipse(point, left_border, right_border, coord, reverse=False):
         left_in_angle = not left_in_angle
         right_in_angle = not right_in_angle
     return {'point': point1, 'in_angle': left_in_angle}, {'point': point2, 'in_angle': right_in_angle}
+    
+    # find a pair of supporting points from point to an ellipse formed by its bounding box
+def find_pair_ellipse(point, polygon, polygon_number=None):
+    multipl = 10000000
+    a, b = (polygon[2][0] - polygon[1][0]) / 2 * multipl, (polygon[1][1] - polygon[0][1]) / 2 * multipl
+    xc, yc = (polygon[2][0] + polygon[1][0]) / 2 * multipl, (polygon[1][1] + polygon[0][1]) / 2 * multipl
+    x0, y0 = point[0] * multipl - xc, point[1] * multipl - yc
+    y = quad_equation(b**2 + y0**2 * a**2 / x0**2, -2 * y0 * b**2 * a**2 / x0**2, -b**4 + a**2 * b**2 / x0**2)
+    if y is None:
+        return None
+    x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
+    point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
+    random.seed(1)
+    return (point1, polygon_number, random.randint(5000, 9999), None, None), (point2, polygon_number, random.randint(5000, 9999), None, None)
 
 
 def find_pair_non_convex(point, left_border, right_border, coord, reverse=False):
