@@ -180,24 +180,30 @@ class VisibilityGraph:
             point_count = len(obj) - 1 if is_polygon else len(obj)
             for j in range(point_count):
                 point = obj[j]
-                px, py = point
                 point_data = (point, i, j, is_polygon, None)
-                point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
-                G.add_node(point_index, x=px, y=py)
+                if G is not None:
+                    px, py = point
+                    point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
+                    G.add_node(point_index, x=px, y=py)
                 vertices = self.incident_vertices(point_data, pair_func, add_edges_inside, inside_percent)
                 if vertices is None:
                     continue
+                if G is None and plot is None:
+                    continue
                 for vertex in vertices:
                     vx, vy = vertex[0]         # x and y coordinates of vertex
-                    vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
-                            else (vertex[1] + 0.5) * max_poly_len + vertex[2]
-                    G.add_node(vertex_index, x=vx, y=vy)
-                    G.add_edge(point_index, vertex_index)
+                    if G is not None:
+                        vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
+                                else (vertex[1] + 0.5) * max_poly_len + vertex[2]
+                        G.add_node(vertex_index, x=vx, y=vy)
+                        G.add_edge(point_index, vertex_index)
                     if plot is not None:
+                        px, py = point
                         plt.plot([px, vx], [py, vy], color=plot[1][vertex[4]])
 
-    def build_graph(self, pair_func, add_edges_inside=True, inside_percent=1, plot=None, crs='EPSG:4326'):
-        G = Graph(crs=crs)
+    def build_graph(self, pair_func, add_edges_inside=True, inside_percent=1, graph=False, plot=None, crs='EPSG:4326'):
+        G = Graph(crs=crs) if graph else None  # MultiGraph
+        fig = None
         if plot is not None:
             fig = plt.figure()
             for p in self.polygons.geometry:
@@ -205,5 +211,5 @@ class VisibilityGraph:
                 plt.fill(x, y, color=plot[0]);
         self.__process_points_of_objects(True, G, plot, pair_func, add_edges_inside, inside_percent)
         self.__process_points_of_objects(False, G, plot, pair_func, add_edges_inside, inside_percent)
-        return G, fig if plot is not None else G
+        return G, fig
 
