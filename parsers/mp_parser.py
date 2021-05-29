@@ -1,5 +1,12 @@
 import re
 
+"""
+parser = mpp.MpParser(bbox)
+polyline_count = parser.open_mp()
+for i in range(polyline_count):
+    coord, type_line = parser.parse_polyline(polyline)
+"""
+
 
 class MpParser:
 

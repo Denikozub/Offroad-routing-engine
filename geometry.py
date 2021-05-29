@@ -21,7 +21,7 @@ def point_in_angle(i, l, p, r):
 
 
 # find intersection point, then check if it belongs to a ray and a segment
-def ray_intersects_segment(a0, b0, c0, d0):
+def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
     a = array(a0)
     b = array(b0) - a
     c = array(c0) - a
@@ -30,19 +30,23 @@ def ray_intersects_segment(a0, b0, c0, d0):
     x2, y2 = d
     k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
     b12 = y1 - k12 * x1
-    delta = 0.00000000001
+    delta = 10 ** -7
     k = 10 ** 10 if fabs(b[0]) < delta else b[1] / b[0]
     if fabs(k - k12) < delta:
         return False  # overlap not an intersection
     x = b12 / (k - k12)
     y = k * x
-    if x < min(x1, x2) + delta or x > max(x1, x2) - delta or y < min(y1, y2) + delta or y > max(y1, y2) - delta:
-        return False  # end of segment not an intersection
+    if end_intersection:
+        if x < min(x1, x2) - delta or x > max(x1, x2) + delta or y < min(y1, y2) - delta or y > max(y1, y2) + delta:
+            return False  # end of segment is an intersection
+    else:
+        if x < min(x1, x2) + delta or x > max(x1, x2) - delta or y < min(y1, y2) + delta or y > max(y1, y2) - delta:
+            return False  # end of segment is NOT an intersection
     return dot(array([x, y]), b) > 0
 
 
 def compare_points(p1, p2, delta):
-    return p1[0] - p2[0] < delta and p1[1] - p2[1] < delta
+    return fabs(p1[0] - p2[0]) < delta and fabs(p1[1] - p2[1]) < delta
 
 
 # O(n) algorithm

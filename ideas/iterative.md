@@ -1,6 +1,6 @@
 ## Iterative algorithm
 ___
-Experimental. Slow (complexity currently not calculated). High precision. Development currently delayed  
+Experimental. Slow (complexity currently not calculated). High precision. Development currently stopped  
 Main points:
 - We are given point A and point B
 - There is a fixed _step length_ that can depend either on map scale or on the route distance (hierarchical approach)
@@ -17,7 +17,7 @@ Main points:
   - Angle between last step (0 to 180)
   This is used to prevent stepping from foot to foot in front of the river because the algorithm would not want to cross it. Now we would either walk across a bank and then cross it or cross it immediately
 - Currently the class only builds first 4 features
-- For better accuracy while routing around Moscow [Slazav maps](http://slazav.xyz/maps/) are used. They are made for sports hiking and are much more accurate. Currently only a parser for polylines exists (see parsers.mp_parser)
+- For better accuracy while routing around Moscow [Slazav maps](http://slazav.xyz/maps/) are used. They are made for sports hiking and are much more accurate. Currently only a parser for polylines exists (see parsers/mp_parser)
 - GPX tracks database is used for training. A parser (see parsers.gpx_parser) is used to create a dataframe and then (currently not written) calculate all features and a chosen class (from next track point)  
 
 Problems:
