@@ -11,18 +11,26 @@ import random
 # O(n) use of array implementation
 def find_pair_array(point, polygon, polygon_number):
     n = len(polygon) - 1
+
+    # if a polygon is a segment or a point
     if n == 2:
         start = 0
         end = 1
     else:
         b = [1 for i in range(n)]
         count = 0
+
+        # fill an array of semi-planes containing (1) or not containing (0) point (2 subsets)
         for i in range(n):
             if not point_in_angle(point, polygon[(i-1) % n], polygon[i % n], polygon[(i+1) % n]):
                 b[i] = 0
                 count += 1
+
+        # point inside a polygon
         if count in (0, n):
             return None
+
+        # find points separating 2 subsets - supporting points
         if b[0] == 1:
             start = b.index(0, 1)
             if b[n-1] == 0:
@@ -45,11 +53,15 @@ def find_pair_array(point, polygon, polygon_number):
 # O(n) NO use of array implementation
 def find_pair_cutoff(point, polygon, polygon_number):
     n = len(polygon) - 1
+
+    # if a polygon is a segment or a point
     if n == 2:
         begin = 0
         end = 1
         found = True
     else:
+
+        # find points separating 2 subsets - supporting points
         begin = end = -1
         found = False
         for i in range(n):
@@ -88,13 +100,21 @@ def find_pair_cutoff(point, polygon, polygon_number):
 def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
     n = len(polygon) - 1
     result = list()
+
+    # loop over all points of a polygon
     for i in range(n):
         pi = polygon[i]
+
+        # point equals current point
         if polygon_point_number is not None and i == polygon_point_number:
             continue
+
+        # cannot be supporting point
         if turn(point, pi, polygon[(i - 1) % n]) * turn(point, pi, polygon[(i + 1) % n]) < 0:
             continue
         found = True
+
+        # check intersection with all other points
         for j in range(n):
             if j in (i - 1, i) or (polygon_point_number is not None and j in (polygon_point_number - 1, polygon_point_number)):
                 continue
@@ -103,17 +123,19 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
                 break
         if found:
             result.append(i)
+
+    # did not find 2 supporting points
     if len(result) != 2:
         return None
+
+    # return restriction pair if point is part of polygon
     point1, point2 = result
     if polygon_point_number is not None:
         return polygon[point1], polygon[point2]
+
+    # add shortest line from one point to another
     line = list()
-    outter = True
-    for i in range(point1 + 1, point2):
-        if not LineString([point, polygon[i]]).crosses(Polygon(polygon)):
-            outter = False
-    if outter:
+    if point2 - point1 > (n - 1) / 2:
         for i in range(point2, n + 1):
             line.append((polygon[i], polygon_number, i, True, 0))
         for i in range(0, point1 + 1):

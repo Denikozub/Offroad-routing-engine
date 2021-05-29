@@ -18,35 +18,35 @@ class SegmentVisibility:
         # information about view restrictions from own polygon
         self.__restriction_pair = None
         self.__restriction_point = None
-        
+
         # should be False if restriction angle > pi (point not a part of CH)
         self.__reverse_angle = None
-    
+
     def add_pair(self, pair):
         if pair is None:
             return
         self.__segments.append(pair)
-    
+
     def add_line(self, line):
         if line is None:
             return
         for i in range(len(line) - 1):
             self.add_pair((line[i], line[i + 1]))
-    
+
     def set_restriction_angle(self, restriction_pair, restriction_point, reverse_angle):
         self.__restriction_pair = restriction_pair
         self.__restriction_point = restriction_point
         self.__reverse_angle = reverse_angle
-    
+
     def get_edges_brute(self, point):
         segment_number = len(self.__segments)
         visible_edges = list()
-        
+
         # check 2 points (of a segment) at a time
         for i in range(segment_number):
             a, b = self.__segments[i]
             a_point, b_point = a[0], b[0]
-            
+
             # if a point is inside a restriction angle, it will not be returned
             if self.__restriction_pair is not None and self.__restriction_point is not None and self.__reverse_angle is not None:
                 l_point, r_point = self.__restriction_pair
@@ -54,11 +54,11 @@ class SegmentVisibility:
                 intersects_b = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
                 if intersects_a and intersects_b:  # if both in restriction angle
                     continue
-            
+
             # restriction angle not used
             else:
                 intersects_a, intersects_b = False, False
-            
+
             # for each of 2 points check intersection with all other segments
             for j in range(segment_number):
                 if j == i:
@@ -71,16 +71,16 @@ class SegmentVisibility:
                     intersects_b = True
                 if intersects_a and intersects_b:
                     break
-            
+
             # if only one of the points is visible it will be added
             if not intersects_a:
                 visible_edges.append(a)
             if not intersects_b:
                 visible_edges.append(b)
         return visible_edges
-    
+
     def get_edges_sweepline(self, point):
-    
+
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:
@@ -92,44 +92,48 @@ class SegmentVisibility:
         intersected = list()
         for edge in self.__segments:
             if ray_intersects_segment(point, (point[0] - 1, point[1]), edge[0][0], edge[1][0], True):
-                intersected.append((edge[0][0], edge[1][0]))
+                # intersected[edge[0][0]] = edge[1][0]
+                intersected.insert(0, (edge[0][0], edge[1][0]))
 
         # sweep line algorithm
         visible_edges = list()
         for p in points:
-            
+
             # check if any of the segments in intersected list crosses current segment
             good = True
             for segment in intersected:
+                # if LineString([point, p[0][0]]).crosses(LineString([segment, intersected[segment]])):
                 if LineString([point, p[0][0]]).crosses(LineString([segment[0], segment[1]])):
                     good = False
                     break
-            
+
             # update intersected list
             if turn(point, p[0][0], p[1][0]) > 0:
-                intersected.append((p[0][0], p[1][0]))
+                # intersected[p[0][0]] = p[1][0]
+                intersected.insert(0, (p[0][0], p[1][0]))
             else:
                 try:
+                    # intersected.pop(p[0][0])
                     intersected.remove((p[0][0], p[1][0]))
                 except ValueError: pass
-            
+
             # add suitable points
             if good:
-            
+
                 # if a point is inside a restriction angle, it will not be returned
                 if self.__restriction_pair is not None and self.__restriction_point is not None and self.__reverse_angle is not None:
                     l_point, r_point = self.__restriction_pair
                     if not point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle:
                         continue
-                
+
                 # do not add same points
                 try:
                     visible_edges.remove(p[0])
                 except ValueError: pass
                 visible_edges.append(p[0])
-            
+
         return visible_edges
-    
+
     """
     Angle approximation O(n) algorithm
     - only parameter is view_angle=1, it shows the calculation error
