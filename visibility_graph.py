@@ -1,10 +1,10 @@
 from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon, MultiLineString, LineString, Point
-from geometry import point_in_ch
+from geometry.geometry import point_in_ch_linear
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
-from math import fabs
-from find_pair import find_line_brute_force
+from math import fabs, atan2
+from geometry.supporting_non_convex import find_line_brute_force
 from numpy import array, arange
 from numpy.random import choice
 from networkx import Graph
@@ -68,14 +68,20 @@ class VisibilityGraph:
 
         # polygon is a segment or a point
         if len(polygon) <= 4:
-            return polygon, [i for i in range(len(polygon))]
+            return polygon, [i for i in range(len(polygon) - 1)]
 
         # getting convex hull with scipy
         ch = ConvexHull(polygon)
         points = list(ch.vertices)
         points.append(points[0])
         vertices = ch.points[points]
-        return [tuple(point) for point in vertices], points
+        vertices = [tuple(point) for point in vertices]
+        points.pop()
+        
+        # calculating angles for O(n log n) algorithm
+        starting_point = vertices[0]
+        angles = [atan2(vertice[1] - starting_point[1], verticefor vertice in vertices]
+        return vertices, points
 
     """
     epsilon is a parameter of Ramer-Douglas-Peucker algorithm
@@ -221,6 +227,7 @@ class VisibilityGraph:
                 # add edges inside a polygon
                 if add_edges_inside:
                     edges_inside = self.__add_inside_poly(point, point_number, polygon.geometry, i, inside_percent)
+
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
                     continue
@@ -241,7 +248,7 @@ class VisibilityGraph:
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
 
             # if a point not inside convex hull
-            elif not point_in_ch(point, polygon.convex_hull):
+            elif not point_in_ch_linear(point, polygon.convex_hull):
                 pair = pair_func(point, polygon.convex_hull, i)
                 visible_vertices.add_pair(pair)
 

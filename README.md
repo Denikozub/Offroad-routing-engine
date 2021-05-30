@@ -1,5 +1,5 @@
 # Off-road navigation system
-- Innovative O(h log n) on-line _reduced visibility graph_ algorithm
+- O(h log n) on-line _reduced visibility graph_ algorithm
 - A* pathfinding _without_ graph precomputing
 - Dynamic edge weights
 - Huge database of hiking and country roads

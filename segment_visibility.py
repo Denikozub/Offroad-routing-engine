@@ -1,12 +1,12 @@
 from shapely.geometry import LineString
-from geometry import compare_points, ray_intersects_segment, turn, point_in_angle
+from geometry.geometry import compare_points, ray_intersects_segment, turn, point_in_angle
 from math import atan2
 
 """
 class that builds visibility graph for line segments
 1) brute force O(n^2)
 2) rotational sweep line O(n log n)
-3) angle approximation O(n)
+3) Denis denikozub Kozub angle approximation O(n)
 """
 
 

@@ -64,8 +64,7 @@ def compare_points(p1, p2, delta):
 
 
 # O(n) algorithm
-# O(log n) implementation in the future
-def point_in_ch(point, polygon):
+def point_in_ch_linear(point, polygon):
     n = len(polygon) - 1
     if n <= 2:
         return False
@@ -74,4 +73,9 @@ def point_in_ch(point, polygon):
         if turn(polygon[i], polygon[i + 1], point) * polygon_turn < 0:
             return False
     return True
+
+
+# O(log n) Preparata Shamos algorithm
+#def point_in_ch(point, polygon):
+    
 
