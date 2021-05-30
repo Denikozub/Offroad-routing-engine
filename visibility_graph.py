@@ -83,6 +83,15 @@ class VisibilityGraph:
     length_comp is a scale linestring comparison parameter
     """
     def build_dataframe(self, epsilon=None, bbox_comp=None, length_comp=None):
+    
+        for param in {epsilon, bbox_comp, length_comp}:
+            if param is not None:
+            
+                if type(param) not in {float, int}:
+                    raise TypeError("wrong ", str(param), " type")
+                
+                if param < 0:
+                    raise ValueError("wrong ", str(param), " value")
 
         # polygon coordinates
         self.polygons.geometry = self.polygons.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, True])
@@ -162,7 +171,31 @@ class VisibilityGraph:
     add_edges_inside is a bool parameter which indicates whether inside edges should be added
     inside_percent is a float parameter setting the probability of an inner edge to be added (from 0 to 1)
     """
-    def incident_vertices(self, point_data, pair_func, seg_func, add_edges_inside=True, inside_percent=1):
+    def incident_vertices(self, point_data, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1):
+        
+        iter(point_data)
+        
+        if len(point_data) != 5:
+            raise ValueError("wrong point_data length")
+        
+        if not callable(pair_func):
+            raise ValueError("pair_func is not callable")
+        
+        if type(seg_func) != str:
+            raise TypeError("wrong seg_func type")
+        
+        if seg_func not in {"brute", "sweep"}:
+            raise ValueError("wrong seg_func value")
+        
+        if type(add_edges_inside) != bool:
+            raise TypeError("wrong add_edges_inside type")
+        
+        if type(inside_percent) not in {float, int}:
+            raise TypeError("wrong inside_percent type")
+        
+        if 0 < inside_percent > 1:
+            raise ValueError("wrong inside_percent value")
+        
         point = point_data[0]
         obj_number = point_data[1]
         point_number = point_data[2]
@@ -245,7 +278,6 @@ class VisibilityGraph:
             visible_edges = visible_vertices.get_edges_sweepline(point)
         if seg_func=="brute":
             visible_edges = visible_vertices.get_edges_brute(point)
-        # else:
         visible_edges.extend(edges_inside)
         return visible_edges
 
@@ -295,6 +327,34 @@ class VisibilityGraph:
                         plt.plot([px, vx], [py, vy], color=plot[1][vertex[4]])
 
     def build_graph(self, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1, graph=False, plot=None, crs='EPSG:4326'):
+    
+        if not callable(pair_func):
+            raise ValueError("pair_func is not callable")
+        
+        if type(seg_func) != str:
+            raise TypeError("wrong seg_func type")
+        
+        if seg_func not in {"brute", "sweep"}:
+            raise ValueError("wrong seg_func value")
+        
+        if type(add_edges_inside) != bool:
+            raise TypeError("wrong add_edges_inside type")
+        
+        if type(inside_percent) not in {float, int}:
+            raise TypeError("wrong inside_percent type")
+        
+        if 0 < inside_percent > 1:
+            raise ValueError("wrong inside_percent value")
+    
+        if type(graph) != bool:
+            raise TypeError("wrong graph type")
+        
+        if plot is not None:
+            iter(plot)
+        
+        if type(crs) != str:
+            raise TypeError("wrong crs type")
+        
         G = Graph(crs=crs) if graph else None  # MultiGraph
         fig = None
 

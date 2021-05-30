@@ -1,12 +1,12 @@
 # Off-road navigation system
-- Innovative O(nh log nh) on-line _reduced visibility graph_ algorithm (h-number of polygons)
+- Innovative O(h log n) on-line _reduced visibility graph_ algorithm
 - A* pathfinding _without_ graph precomputing
 - Dynamic edge weights
 - Huge database of hiking and country roads
 - Super fast pathfinding on large areas
 - _Hierarchical approach_ for graph building
 - OSM maps data
-- No projected crs -> more accuracy
+- No projected crs -> more accuracy and speed
 - Minimized stored and precomputed data
 
 This is how Google routing engine (and all others) currently [01.02.2021] work. I am ready to change this.
