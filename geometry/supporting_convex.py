@@ -4,13 +4,17 @@ from geometry.geometry import point_in_angle
 # if supporting points were not found return None
 # returns a tuple of point_data tuples of 2 supporting points
 
+# all algorithms work with quality of convex polygon in respect to a point
+# angles of polygon and semi-planes forming the polygon are sorted by the fact of containing the point
+# therefore 2 subsets are formed, point dividing them are supporting points
 
-# O(log n) Denis denikozub Kozub binary search algorithm
+
+# O(log n) Denis denikozub Kozub binary search through semi-planes algorithm
 #def find_pair(point, polygon, polygon_number):
     
 
 
-# O(n) Denis denikozub Kozub use of array implementation
+# O(n) Denis denikozub Kozub use of array of angles implementation
 def find_pair_array(point, polygon, polygon_number):
     n = len(polygon) - 1
 
@@ -22,7 +26,7 @@ def find_pair_array(point, polygon, polygon_number):
         b = [1 for i in range(n)]
         count = 0
 
-        # fill an array of semi-planes containing (1) or not containing (0) point (2 subsets)
+        # fill an array of angles containing (1) or not containing (0) point (2 subsets)
         for i in range(n):
             if not point_in_angle(point, polygon[(i-1) % n], polygon[i % n], polygon[(i+1) % n]):
                 b[i] = 0
@@ -32,7 +36,7 @@ def find_pair_array(point, polygon, polygon_number):
         if count in (0, n):
             return None
 
-        # find points separating 2 subsets - supporting points
+        # find points separating 2 subsets of 0 and 1 in array - supporting points
         if b[0] == 1:
             start = b.index(0, 1)
             if b[n-1] == 0:
@@ -47,11 +51,12 @@ def find_pair_array(point, polygon, polygon_number):
                 end = n
             else:
                 end = b.index(0, start + 1)
+                
     return (polygon[start], polygon_number, start, True, 0), \
            (polygon[end], polygon_number, end, True, 0)
 
 
-# O(n) Denis denikozub Kozub NO use of array implementation
+# O(n) Denis denikozub Kozub NO use of array of angles implementation
 def find_pair_cutoff(point, polygon, polygon_number):
     n = len(polygon) - 1
 
@@ -62,10 +67,13 @@ def find_pair_cutoff(point, polygon, polygon_number):
         found = True
     else:
 
-        # find points separating 2 subsets - supporting points
+        # loop over all angles containing or not containing point (2 subsets)
+        # find points separating 2 subsets - supporting points without storing them in array
         begin = end = -1
         found = False
         for i in range(n):
+            
+            # angle contains point
             if not point_in_angle(point, polygon[(i-1) % n], polygon[i % n], polygon[(i+1) % n]):
                 if i == 0:
                     start_zero = True
@@ -79,6 +87,8 @@ def find_pair_cutoff(point, polygon, polygon_number):
                     end = n - 1
                     found = True
                     break
+            
+            # angle does not contain point
             else:
                 if i == 0:
                     start_zero = False
@@ -92,6 +102,7 @@ def find_pair_cutoff(point, polygon, polygon_number):
                     begin = n
                     found = True
                     break
+                    
     return None if not found else ((polygon[begin], polygon_number, begin, True, 0), \
            (polygon[end], polygon_number, end, True, 0))
 
