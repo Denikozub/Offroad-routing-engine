@@ -1,9 +1,9 @@
 from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon, MultiLineString, LineString, Point
-from geometry.geometry import point_in_ch_linear
+from geometry.geometry import point_in_ch, angle
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
-from math import fabs, atan2
+from math import fabs
 from geometry.supporting_non_convex import find_line_brute_force
 from numpy import array, arange
 from numpy.random import choice
@@ -68,7 +68,11 @@ class VisibilityGraph:
 
         # polygon is a segment or a point
         if len(polygon) <= 4:
-            return polygon, [i for i in range(len(polygon) - 1)]
+            starting_point = polygon[0]
+            angles = [angle(starting_point, vertice) for vertice in polygon]
+            angles.pop(0)
+            angles.pop()
+            return polygon, [i for i in range(len(polygon) - 1)], angles
 
         # getting convex hull with scipy
         ch = ConvexHull(polygon)
@@ -80,8 +84,10 @@ class VisibilityGraph:
         
         # calculating angles for O(n log n) algorithm
         starting_point = vertices[0]
-        angles = [atan2(vertice[1] - starting_point[1], verticefor vertice in vertices]
-        return vertices, points
+        angles = [angle(starting_point, vertice) for vertice in vertices]
+        angles.pop(0)
+        angles.pop()
+        return vertices, points, angles
 
     """
     epsilon is a parameter of Ramer-Douglas-Peucker algorithm
@@ -118,7 +124,7 @@ class VisibilityGraph:
 
         # add info about convex hull
         self.polygons = self.polygons.join(pd.DataFrame(self.polygons.geometry).apply(self.__convex_hull, axis=1,
-                result_type='expand').rename(columns={0: 'convex_hull', 1: 'convex_hull_points'}))
+                result_type='expand').rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         # linestring coordinates
         self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, False])
@@ -240,7 +246,7 @@ class VisibilityGraph:
                     restriction_pair = (polygon.geometry[left], polygon.geometry[right])
                     visible_vertices.set_restriction_angle(restriction_pair, point, True)
 
-                # if a point is strictly inside a convex hull
+                # if a point is strictly inside a convex hull and a part of polygon
                 else:
                     restriction_pair = find_line_brute_force(point, polygon.geometry, i, point_number)
                     if restriction_pair is None:
@@ -248,11 +254,11 @@ class VisibilityGraph:
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
 
             # if a point not inside convex hull
-            elif not point_in_ch_linear(point, polygon.convex_hull):
+            elif not point_in_ch(point, polygon.convex_hull, polygon.angles):
                 pair = pair_func(point, polygon.convex_hull, i)
                 visible_vertices.add_pair(pair)
 
-            # if a point is inside convex hull but not a part of it
+            # if a point is inside convex hull but not a part of polygon
             else:
                 line = find_line_brute_force(point, polygon.geometry, i)
                 if line is None:

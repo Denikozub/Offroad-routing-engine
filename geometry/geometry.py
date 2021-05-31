@@ -1,5 +1,5 @@
 from numpy import array, cross, dot
-from math import fabs
+from math import fabs, atan2, pi
 
 
 # from geopy.distance import geodesic
@@ -11,6 +11,11 @@ from math import fabs
 # [ab, bc]
 def turn(a, b, c):
     return cross(array(b) - array(a), array(c) - array(b))
+
+
+# polar angle of vector ab
+def angle(a, b):
+    return (atan2(b[1] - a[1], b[0] - a[0]) + 2 * pi) % (2 * pi)
 
 
 # check if point i is in angle (lpr)
@@ -76,6 +81,33 @@ def point_in_ch_linear(point, polygon):
 
 
 # O(log n) Preparata Shamos algorithm
-#def point_in_ch(point, polygon):
-    
+def point_in_ch(point, polygon, angles):
+    if len(polygon) <= 3:
+        return False
+    point_angle = angle(polygon[0], point)
+    polygon_turn = turn(polygon[0], polygon[1], polygon[2])
+    mid = (len(angles) - 1) // 2
+    low = 0
+    high = len(angles) - 1
+    while low <= high:
+        if mid + 1 == len(angles):
+            return False
+        angle1 = angles[mid]
+        angle2 = angles[mid + 1]
+        if angle1 > pi and angle2 < pi:
+            if point_angle >= angle1 or point_angle <= angle2:
+                return turn(polygon[mid + 1], polygon[mid + 2], point) * polygon_turn >= 0
+            if point_angle > pi:
+                high = mid - 1
+            if point_angle < pi:
+                low = mid + 1
+        else:
+            if point_angle >= angle1 and point_angle <= angle2:
+                return turn(polygon[mid + 1], polygon[mid + 2], point) * polygon_turn >= 0
+            if point_angle < angle1:
+                high = mid - 1
+            if point_angle > angle2:
+                low = mid + 1
+        mid = (high + low) // 2
+    return False
 

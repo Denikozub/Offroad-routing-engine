@@ -1,6 +1,5 @@
 from shapely.geometry import LineString
-from geometry.geometry import compare_points, ray_intersects_segment, turn, point_in_angle
-from math import atan2
+from geometry.geometry import ray_intersects_segment, turn, point_in_angle, angle
 
 """
 class that builds visibility graph for line segments
@@ -86,12 +85,12 @@ class SegmentVisibility:
         for edge in self.__segments:
             points.append((edge[0], edge[1]))
             points.append((edge[1], edge[0]))
-        points.sort(key=lambda x: atan2(x[0][0][1] - point[1], x[0][0][0] - point[0]))
+        points.sort(key=lambda x: angle(point, x[0][0]))
 
         # list of segments intersected by 0-angle ray
         intersected = list()
         for edge in self.__segments:
-            if ray_intersects_segment(point, (point[0] - 1, point[1]), edge[0][0], edge[1][0], True):
+            if ray_intersects_segment(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
                 # intersected[edge[0][0]] = edge[1][0]
                 intersected.insert(0, (edge[0][0], edge[1][0]))
 
