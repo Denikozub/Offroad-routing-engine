@@ -1,4 +1,4 @@
-from geometry.geometry import ray_intersects_segment, turn
+from geometry.algorithm import ray_intersects_segment, turn
 
 # find a pair of supporting points from point to a non-convex polygon
 # if supporting points were not found return None

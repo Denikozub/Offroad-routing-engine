@@ -83,16 +83,15 @@ def point_in_ch_linear(point, polygon):
 # O(log n) Preparata Shamos algorithm
 # polygon has to be given counter-clockwise
 def point_in_ch(point, polygon, angles):
-    
-    # polygon is a segment or a point
-    if len(polygon) <= 3:
+
+    if angles is None:
         return False
-    
+
     # point equals [0] point of polygon
     if compare_points(point, polygon[0], 10 ** -10):
         return True
 
-    # binary search    
+    # binary search
     point_angle = angle(polygon[0], point)
     mid = (len(angles) - 1) // 2
     low = 0
@@ -102,7 +101,7 @@ def point_in_ch(point, polygon, angles):
             return False
         angle1 = angles[mid]
         angle2 = angles[mid + 1]
-        
+
         # 2 angles contain zero-angle
         if angle1 > pi and angle2 < pi:
             if point_angle >= angle1 or point_angle <= angle2:

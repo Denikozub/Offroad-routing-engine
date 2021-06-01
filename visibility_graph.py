@@ -1,16 +1,16 @@
 from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon, MultiLineString, LineString, Point
-from geometry.geometry import point_in_ch, angle
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
 from math import fabs
-from geometry.supporting_non_convex import find_line_brute_force
-from numpy import array, arange
+from numpy import arange
 from numpy.random import choice
-from networkx import Graph
-import matplotlib.pyplot as plt
-import pandas as pd
-import rdp
+from networkx import MultiGraph
+from matplotlib.pyplot import plot, figure, fill
+from pandas import DataFrame
+from rdp import rdp
+from geometry.algorithm import point_in_ch, angle
+from geometry.supporting_non_convex import find_line_brute_force
 
 
 class VisibilityGraph:
@@ -23,14 +23,14 @@ class VisibilityGraph:
         natural = natural.loc[:, ['natural', 'geometry']]
 
         # splitting polygon and linestring data
-        self.polygons = pd.DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
-        self.multipolygons = pd.DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
-        self.multilinestrings = pd.DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural' : 'surface'})
+        self.polygons = DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
+        self.multipolygons = DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
+        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural' : 'surface'})
 
         # getting road network data with pyrosm
         roads = osm.get_network()
         if roads is not None:
-            roads = pd.DataFrame(roads.loc[:, ['surface', 'geometry']].loc[roads.geometry.type == 'MultiLineString'])
+            roads = DataFrame(roads.loc[:, ['surface', 'geometry']].loc[roads.geometry.type == 'MultiLineString'])
             self.multilinestrings = self.multilinestrings.append(roads)
 
         # bounding box size
@@ -59,27 +59,32 @@ class VisibilityGraph:
             points = [pair[0] for pair in coordinates]
             points.append(coordinates[-1][1])
             coordinates = points
-        return [tuple(point) for point in coordinates] if epsilon is None or epsilon <= 0 else [tuple(point) for point in rdp.rdp(coordinates, epsilon=epsilon)]
+        return tuple([tuple(point) for point in coordinates]) if epsilon is None or epsilon <= 0 else tuple([tuple(point) for point in rdp(coordinates, epsilon=epsilon)])
 
     # method returns an array of coordinates of CH points and a list or their numbers in initial polygon
     @staticmethod
     def __convex_hull(polygon_df):
         polygon = polygon_df[0]
+        polygon_size = len(polygon) - 1
 
         # polygon is a segment or a point
-        if len(polygon) <= 4:
+        if polygon_size <= 2:
+            return polygon, [i for i in range(len(polygon) - 1)], None
+
+        # polygon is a triangle
+        if polygon_size == 3:
             starting_point = polygon[0]
             angles = [angle(starting_point, vertice) for vertice in polygon]
             angles.pop(0)
             angles.pop()
-            return polygon, [i for i in range(len(polygon) - 1)], angles
+            return polygon, tuple([i for i in range(len(polygon) - 1)]), tuple(angles)
 
         # getting convex hull with scipy
         ch = ConvexHull(polygon)
         points = list(ch.vertices)
         points.append(points[0])
         vertices = ch.points[points]
-        vertices = [tuple(point) for point in vertices]
+        vertices = tuple([tuple(point) for point in vertices])
         points.pop()
         
         # calculating angles for O(n log n) algorithm
@@ -87,16 +92,16 @@ class VisibilityGraph:
         angles = [angle(starting_point, vertice) for vertice in vertices]
         angles.pop(0)
         angles.pop()
-        return vertices, points, angles
+        return vertices, tuple(points), tuple(angles)
 
     """
-    epsilon is a parameter of Ramer-Douglas-Peucker algorithm
+    epsilon_polygon is a parameter of Ramer-Douglas-Peucker algorithm estimating polygons
+    epsilon_linestring is a parameter of Ramer-Douglas-Peucker algorithm estimating linestrings
     bbox_comp is a scale object comparison parameter
-    length_comp is a scale linestring comparison parameter
     """
-    def build_dataframe(self, epsilon=None, bbox_comp=None, length_comp=None):
+    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=None):
     
-        for param in {epsilon, bbox_comp, length_comp}:
+        for param in {epsilon_polygon, epsilon_linestring, bbox_comp}:
             if param is not None:
             
                 if type(param) not in {float, int}:
@@ -106,13 +111,13 @@ class VisibilityGraph:
                     raise ValueError("wrong ", str(param), " value")
 
         # polygon coordinates
-        self.polygons.geometry = self.polygons.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, True])
+        self.polygons.geometry = self.polygons.geometry.apply(self.__get_coord, args=[epsilon_polygon, bbox_comp, True])
 
         # multipolygon coordinates
         for i in range(self.multipolygons.shape[0]):
             natural = self.multipolygons.natural.iloc[i]
             for polygon in MultiPolygon(self.multipolygons.geometry.iloc[i]).geoms:
-                self.polygons = self.polygons.append({'geometry': self.__get_coord(polygon, epsilon, bbox_comp, True),
+                self.polygons = self.polygons.append({'geometry': self.__get_coord(polygon, epsilon_polygon, bbox_comp, True),
                                                       'natural': natural}, ignore_index=True)
 
         # free multipolugon memory
@@ -123,45 +128,44 @@ class VisibilityGraph:
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
         # add info about convex hull
-        self.polygons = self.polygons.join(pd.DataFrame(self.polygons.geometry).apply(self.__convex_hull, axis=1,
+        self.polygons = self.polygons.join(DataFrame(self.polygons.geometry).apply(self.__convex_hull, axis=1,
                 result_type='expand').rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         # linestring coordinates
-        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon, bbox_comp, False])
+        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon_linestring, bbox_comp, False])
 
         # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
         self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
 
-        # length_comp length between linestring points comparison
-        if length_comp is None:
-            return
-        for i in range(self.multilinestrings.shape[0]):
-            line_geometry = self.multilinestrings.geometry[i]
-            point1 = line_geometry[0]
-            new_line = list()
-            new_line.append(point1)
-            for j in range(len(line_geometry) - 1):
-                point2 = line_geometry[j + 1]
-                if ((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)**0.5 < min(self.bbox_size[0], self.bbox_size[1]) / length_comp:
-                    continue
-                new_line.append(point2)
-                point1 = point2
-            self.multilinestrings.geometry[i] = new_line
-
     @staticmethod
     def __add_inside_poly(point, point_number, polygon, polygon_number, inside_percent):
-        n = len(polygon) - 1
         edges_inside = list()
-
-        # polygon is a segment or a point
-        if n < 2:
+        size = len(polygon) - 1
+        
+        # point is strictly in polygon
+        if point_number is None:
+            for i in range(size):
+                if Polygon(polygon).contains(LineString([point, polygon[i]])):
+                
+                    # randomly choose segments to add with percentage
+                    if inside_percent == 1 or choice(arange(0, 2), p=[1-inside_percent, inside_percent]) == 1:
+                        edges_inside.append((polygon[i], polygon_number, i, True, 1))
+                        
             return edges_inside
-        for i in range(n):
+
+        # connect last and first vertice
+        if point_number == size - 1:
+            return [(polygon[0], polygon_number, 0, True, 1)]
+            
+        for i in range(point_number + 1, size):
+        
+            # neighbour vervice in polygon
+            if i == point_number + 1:
+                edges_inside.append((polygon[i], polygon_number, i, True, 1))
 
             # check if a segment is inner with shapely
-            if (point_number is not None and i != point_number and (fabs(point_number - i) in (0, 1, n-1)) or \
-                    (Polygon(polygon).contains(LineString([point, polygon[i]])))):
+            if Polygon(polygon).contains(LineString([point, polygon[i]])):
 
                 # randomly choose diagonals to add with percentage
                 if inside_percent == 1 or choice(arange(0, 2), p=[1-inside_percent, inside_percent]) == 1:
@@ -280,11 +284,12 @@ class VisibilityGraph:
                     following = point_number + 1
                     edges_inside.append((linestring[following], i, following, False, 2))
 
-            # add whole linestring
-            line = list()
-            for j in range(linestring_point_count):
-                line.append((linestring[j], i, j, False, 0))
-            visible_vertices.add_line(line)
+            else:
+                # add whole linestring
+                line = list()
+                for j in range(linestring_point_count):
+                    line.append((linestring[j], i, j, False, 0))
+                visible_vertices.add_line(line)
 
         # building visibility graph of segments
         if seg_func=="sweep":
@@ -294,7 +299,7 @@ class VisibilityGraph:
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, plot, pair_func, seg_func, add_edges_inside, inside_percent):
+    def __process_points_of_objects(self, is_polygon, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent):
         max_poly_len = 10000                    # for graph indexing
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
 
@@ -320,7 +325,7 @@ class VisibilityGraph:
                 vertices = self.incident_vertices(point_data, pair_func, seg_func, add_edges_inside, inside_percent)
                 if vertices is None:
                     continue
-                if G is None and plot is None:
+                if G is None and map_plot is None:
                     continue
 
                 # drawing plot for mplleaflet and adding edges to the graph
@@ -335,11 +340,11 @@ class VisibilityGraph:
                         G.add_edge(point_index, vertex_index)
 
                     # drawing plot for mplleaflet
-                    if plot is not None:
+                    if map_plot is not None:
                         px, py = point
-                        plt.plot([px, vx], [py, vy], color=plot[1][vertex[4]])
+                        plot([px, vx], [py, vy], color=map_plot[1][vertex[4]])
 
-    def build_graph(self, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1, graph=False, plot=None, crs='EPSG:4326'):
+    def build_graph(self, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
     
         if not callable(pair_func):
             raise ValueError("pair_func is not callable")
@@ -362,24 +367,24 @@ class VisibilityGraph:
         if type(graph) != bool:
             raise TypeError("wrong graph type")
         
-        if plot is not None:
-            iter(plot)
+        if map_plot is not None:
+            iter(map_plot)
         
         if type(crs) != str:
             raise TypeError("wrong crs type")
         
-        G = Graph(crs=crs) if graph else None  # MultiGraph
+        G = MultiGraph(crs=crs) if graph else None
         fig = None
 
         # drawing polygons for mplleaflet
-        if plot is not None:
-            fig = plt.figure()
+        if map_plot is not None:
+            fig = figure()
             for p in self.polygons.geometry:
                 x, y = zip(*list(p))
-                plt.fill(x, y, color=plot[0]);
+                fill(x, y, color=map_plot[0]);
 
         # processing polygons and linestrings
-        self.__process_points_of_objects(True, G, plot, pair_func, seg_func, add_edges_inside, inside_percent)
-        self.__process_points_of_objects(False, G, plot, pair_func, seg_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects(True, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects(False, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent)
         return G, fig
 

@@ -1,4 +1,4 @@
-from geometry.geometry import point_in_angle
+from geometry.algorithm import point_in_angle
 
 # find a pair of supporting points from point to a convex polygon
 # if supporting points were not found return None
@@ -19,7 +19,7 @@ def find_pair_array(point, polygon, polygon_number):
     n = len(polygon) - 1
 
     # if a polygon is a segment or a point
-    if n == 2:
+    if n <= 2:
         start = 0
         end = 1
     else:
@@ -61,7 +61,7 @@ def find_pair_cutoff(point, polygon, polygon_number):
     n = len(polygon) - 1
 
     # if a polygon is a segment or a point
-    if n == 2:
+    if n <= 2:
         begin = 0
         end = 1
         found = True

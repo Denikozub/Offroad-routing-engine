@@ -1,5 +1,5 @@
 from shapely.geometry import LineString
-from geometry.geometry import ray_intersects_segment, turn, point_in_angle, angle
+from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
 
 """
 class that builds visibility graph for line segments
@@ -76,6 +76,7 @@ class SegmentVisibility:
                 visible_edges.append(a)
             if not intersects_b:
                 visible_edges.append(b)
+        self.__segments.clear()
         return visible_edges
 
     def get_edges_sweepline(self, point):
@@ -131,6 +132,7 @@ class SegmentVisibility:
                 except ValueError: pass
                 visible_edges.append(p[0])
 
+        self.__segments.clear()
         return visible_edges
 
     """
