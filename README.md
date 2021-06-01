@@ -10,7 +10,7 @@
 - Minimized stored and precomputed data
 
 This is how Google routing engine (and all others) currently [01.02.2021] work. I am ready to change this.
-![](maps/Google_maps.png)
+![](presentations/Google_maps.png)
 
 Scope of application:
 - Extending functionality of other routing engines  

@@ -1,4 +1,3 @@
-from pyrosm import OSM
 from shapely.geometry import mapping, MultiPolygon, Polygon, MultiLineString, LineString, Point
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
@@ -7,7 +6,7 @@ from numpy import arange
 from numpy.random import choice
 from networkx import MultiGraph
 from matplotlib.pyplot import plot, figure, fill
-from pandas import DataFrame
+from pandas import DataFrame, HDFStore
 from rdp import rdp
 from geometry.algorithm import point_in_ch, angle
 from geometry.supporting_non_convex import find_line_brute_force
@@ -15,43 +14,26 @@ from geometry.supporting_non_convex import find_line_brute_force
 
 class VisibilityGraph:
 
-    def __init__(self, filename, bbox):
+    def __init__(self):
+        self.polygons = None
+        self.multilinestrings = None
 
-        # parsing OMS map with pyrosm
-        osm = OSM(filename, bounding_box=bbox)
-        natural = osm.get_natural()  # Additional attributes: natural.tags.unique()
-        natural = natural.loc[:, ['natural', 'geometry']]
+    @staticmethod
+    def __get_coord(obj, epsilon, bbox_comp, bbox_size, is_polygon):
 
-        # splitting polygon and linestring data
-        self.polygons = DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
-        self.multipolygons = DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
-        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural' : 'surface'})
+        # getting polygon bbox with shapely
+        if is_polygon and bbox_comp is not None:
+            bounds = Polygon(obj).bounds
+            bounds_size = (fabs(bounds[2] - bounds[0]), fabs(bounds[3] - bounds[1]))
 
-        # getting road network data with pyrosm
-        roads = osm.get_network()
-        if roads is not None:
-            roads = DataFrame(roads.loc[:, ['surface', 'geometry']].loc[roads.geometry.type == 'MultiLineString'])
-            self.multilinestrings = self.multilinestrings.append(roads)
+            if bounds_size[0] == 0 or bounds_size[1] == 0:
+                return None
 
-        # bounding box size
-        self.bbox_size = None if bbox is None else (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
+            # comparing object sizes
+            if bbox_size[0] / bounds_size[0] >= bbox_comp and bbox_size[1] / bounds_size[1] >= bbox_comp:
+                return None
 
-    def __get_coord(self, obj, epsilon, bbox_comp, is_polygon):
-
-        # getting object bbox with shapely
-        bounds = Polygon(obj).bounds if is_polygon else MultiLineString(obj).bounds
-        bounds_size = (fabs(bounds[2] - bounds[0]), fabs(bounds[3] - bounds[1]))
-
-        # if object is point-like or segment-like
-        if bounds_size[0] == 0 or bounds_size[1] == 0:
-            return None
-
-        # comparing object sizes
-        if bbox_comp is not None and self.bbox_size[0] / bounds_size[0] >= bbox_comp and \
-                self.bbox_size[1] / bounds_size[1] >= bbox_comp:
-            return None
-
-        # extracting coordinates from GeoPandas.GeoDataFrame
+        # extracting coordinates from geopandas.GeoDataFrame
         if is_polygon:
             coordinates = mapping(obj)['coordinates'][0]
         else:
@@ -61,7 +43,6 @@ class VisibilityGraph:
             coordinates = points
         return tuple([tuple(point) for point in coordinates]) if epsilon is None or epsilon <= 0 else tuple([tuple(point) for point in rdp(coordinates, epsilon=epsilon)])
 
-    # method returns an array of coordinates of CH points and a list or their numbers in initial polygon
     @staticmethod
     def __convex_hull(polygon_df):
         polygon = polygon_df[0]
@@ -86,7 +67,7 @@ class VisibilityGraph:
         vertices = ch.points[points]
         vertices = tuple([tuple(point) for point in vertices])
         points.pop()
-        
+
         # calculating angles for O(n log n) algorithm
         starting_point = vertices[0]
         angles = [angle(starting_point, vertice) for vertice in vertices]
@@ -94,34 +75,17 @@ class VisibilityGraph:
         angles.pop()
         return vertices, tuple(points), tuple(angles)
 
-    """
-    epsilon_polygon is a parameter of Ramer-Douglas-Peucker algorithm estimating polygons
-    epsilon_linestring is a parameter of Ramer-Douglas-Peucker algorithm estimating linestrings
-    bbox_comp is a scale object comparison parameter
-    """
-    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=None):
-    
-        for param in {epsilon_polygon, epsilon_linestring, bbox_comp}:
-            if param is not None:
-            
-                if type(param) not in {float, int}:
-                    raise TypeError("wrong ", str(param), " type")
-                
-                if param < 0:
-                    raise ValueError("wrong ", str(param), " value")
+    def __build_dataframe(self, multipolygons, epsilon_polygon, epsilon_linestring, bbox_comp, bbox_size):
 
         # polygon coordinates
-        self.polygons.geometry = self.polygons.geometry.apply(self.__get_coord, args=[epsilon_polygon, bbox_comp, True])
+        self.polygons.geometry = self.polygons.geometry.apply(self.__get_coord, args=[epsilon_polygon, bbox_comp, bbox_size, True])
 
         # multipolygon coordinates
-        for i in range(self.multipolygons.shape[0]):
-            natural = self.multipolygons.natural.iloc[i]
-            for polygon in MultiPolygon(self.multipolygons.geometry.iloc[i]).geoms:
-                self.polygons = self.polygons.append({'geometry': self.__get_coord(polygon, epsilon_polygon, bbox_comp, True),
+        for i in range(multipolygons.shape[0]):
+            natural = multipolygons.natural.iloc[i]
+            for polygon in MultiPolygon(multipolygons.geometry.iloc[i]).geoms:
+                self.polygons = self.polygons.append({'geometry': self.__get_coord(polygon, epsilon_polygon, bbox_comp, bbox_size, True),
                                                       'natural': natural}, ignore_index=True)
-
-        # free multipolugon memory
-        self.multipolygons = self.multipolygons.iloc[0:0]
 
         # delete None elements
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
@@ -132,34 +96,100 @@ class VisibilityGraph:
                 result_type='expand').rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         # linestring coordinates
-        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon_linestring, bbox_comp, False])
+        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__get_coord, args=[epsilon_linestring, None, None, False])
 
         # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
         self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
 
+    """
+    filename has to be in .osm.pbf format
+    bbox can be None of in format min_lon, min_lat, max_lon, max_lat
+    epsilon_polygon is a parameter of Ramer-Douglas-Peucker algorithm estimating polygons
+    epsilon_linestring is a parameter of Ramer-Douglas-Peucker algorithm estimating linestrings
+    bbox_comp is a scale object comparison parameter
+    """
+    def compute_geometry(self, filename, bbox=None, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=None):
+
+        if type(filename) != str:
+            raise TypeError("wrong filename type")
+
+        iter(bbox)
+
+        for param in {epsilon_polygon, epsilon_linestring, bbox_comp}:
+            if param is not None:
+
+                if type(param) not in {float, int}:
+                    raise TypeError("wrong ", str(param), " type")
+
+                if param < 0:
+                    raise ValueError("wrong ", str(param), " value")
+
+        from pyrosm import OSM
+
+        # parsing OMS map with pyrosm
+        osm = OSM(filename, bounding_box=bbox)
+        natural = osm.get_natural()  # Additional attributes: natural.tags.unique()
+        natural = natural.loc[:, ['natural', 'geometry']]
+
+        # splitting polygon and linestring data
+        self.polygons = DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
+        multipolygons = DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
+        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural' : 'surface'})
+        natural = natural.iloc[0:0]
+
+        # getting road network data with pyrosm
+        roads = osm.get_network()
+        if roads is not None:
+            roads = DataFrame(roads.loc[:, ['surface', 'geometry']].loc[roads.geometry.type == 'MultiLineString'])
+            self.multilinestrings = self.multilinestrings.append(roads)
+        roads = roads.iloc[0:0]
+
+        # bounding box size
+        bbox_size = None if bbox is None else (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
+
+        self.__build_dataframe(multipolygons, epsilon_polygon, epsilon_linestring, bbox_comp, bbox_size)
+
+    def save_geometry(self, filename):
+
+        if type(filename) != str:
+            raise TypeError("wrong filename type")
+
+        store = HDFStore('maps/' + filename + '.h5')
+        store["polygons"] = self.polygons
+        store["multilinestrings"] = self.multilinestrings
+
+    def load_geometry(self, filename):
+
+        if type(filename) != str:
+            raise TypeError("wrong filename type")
+
+        store = HDFStore('maps/' + filename + '.h5')
+        self.polygons = store["polygons"]
+        self.multilinestrings = store["multilinestrings"]
+
     @staticmethod
     def __add_inside_poly(point, point_number, polygon, polygon_number, inside_percent):
         edges_inside = list()
         size = len(polygon) - 1
-        
+
         # point is strictly in polygon
         if point_number is None:
             for i in range(size):
                 if Polygon(polygon).contains(LineString([point, polygon[i]])):
-                
+
                     # randomly choose segments to add with percentage
                     if inside_percent == 1 or choice(arange(0, 2), p=[1-inside_percent, inside_percent]) == 1:
                         edges_inside.append((polygon[i], polygon_number, i, True, 1))
-                        
+
             return edges_inside
 
         # connect last and first vertice
         if point_number == size - 1:
             return [(polygon[0], polygon_number, 0, True, 1)]
-            
+
         for i in range(point_number + 1, size):
-        
+
             # neighbour vervice in polygon
             if i == point_number + 1:
                 edges_inside.append((polygon[i], polygon_number, i, True, 1))
@@ -188,30 +218,30 @@ class VisibilityGraph:
     inside_percent is a float parameter setting the probability of an inner edge to be added (from 0 to 1)
     """
     def incident_vertices(self, point_data, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1):
-        
+
         iter(point_data)
-        
+
         if len(point_data) != 5:
             raise ValueError("wrong point_data length")
-        
+
         if not callable(pair_func):
             raise ValueError("pair_func is not callable")
-        
+
         if type(seg_func) != str:
             raise TypeError("wrong seg_func type")
-        
+
         if seg_func not in {"brute", "sweep"}:
             raise ValueError("wrong seg_func value")
-        
+
         if type(add_edges_inside) != bool:
             raise TypeError("wrong add_edges_inside type")
-        
+
         if type(inside_percent) not in {float, int}:
             raise TypeError("wrong inside_percent type")
-        
+
         if 0 < inside_percent > 1:
             raise ValueError("wrong inside_percent value")
-        
+
         point = point_data[0]
         obj_number = point_data[1]
         point_number = point_data[2]
@@ -345,34 +375,34 @@ class VisibilityGraph:
                         plot([px, vx], [py, vy], color=map_plot[1][vertex[4]])
 
     def build_graph(self, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
-    
+
         if not callable(pair_func):
             raise ValueError("pair_func is not callable")
-        
+
         if type(seg_func) != str:
             raise TypeError("wrong seg_func type")
-        
+
         if seg_func not in {"brute", "sweep"}:
             raise ValueError("wrong seg_func value")
-        
+
         if type(add_edges_inside) != bool:
             raise TypeError("wrong add_edges_inside type")
-        
+
         if type(inside_percent) not in {float, int}:
             raise TypeError("wrong inside_percent type")
-        
+
         if 0 < inside_percent > 1:
             raise ValueError("wrong inside_percent value")
-    
+
         if type(graph) != bool:
             raise TypeError("wrong graph type")
-        
+
         if map_plot is not None:
             iter(map_plot)
-        
+
         if type(crs) != str:
             raise TypeError("wrong crs type")
-        
+
         G = MultiGraph(crs=crs) if graph else None
         fig = None
 
