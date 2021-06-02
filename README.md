@@ -9,7 +9,7 @@
 - No projected crs -> more accuracy and speed
 - Minimized stored and precomputed data
 
-This is how Google routing engine (and all others) currently [01.02.2021] work. I am ready to change this.
+This is how Google routing engine (and all others) currently [03.06.2021] work. I am ready to change this.
 ![](docs/Google_maps.png)
 
 Scope of application:
@@ -17,3 +17,5 @@ Scope of application:
 - Road building  
 - Rescue and military operations planning  
 - Route planning for hiking and tourism  
+
+For usage example and algorithm documentation see docs/
