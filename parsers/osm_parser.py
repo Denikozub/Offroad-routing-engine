@@ -113,9 +113,7 @@ class OsmParser:
 
         store = HDFStore(filename)
         store["polygons"] = self.polygons
-        store["multipolygons"] = self.multipolygons
         store["multilinestrings"] = self.multilinestrings
-        store["bbox_comp"] = self.bbox_size
 
     def load_geometry(self, filename):
         """
@@ -129,6 +127,4 @@ class OsmParser:
 
         store = HDFStore(filename)
         self.polygons = store["polygons"]
-        self.multipolygons = store["multipolygons"]
         self.multilinestrings = store["multilinestrings"]
-        self.bbox_size = store["bbox_comp"]
