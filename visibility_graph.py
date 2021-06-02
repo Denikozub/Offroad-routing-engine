@@ -6,11 +6,12 @@ from geometry.locate_convex import point_in_ch
 from geometry.supporting_non_convex import find_line_brute_force
 from segment_visibility import SegmentVisibility
 from geometry.edges_inside import edge_inside_poly
+from geometry.supporting_convex import find_pair
 
 
 class VisibilityGraph(OsmParser):
 
-    def incident_vertices(self, point_data, pair_func, inside_percent=1):
+    def incident_vertices(self, point_data, inside_percent=1):
         """
         find all incident vertices in visibility graph for given point
         :param point_data: point_data of given point
@@ -28,9 +29,6 @@ class VisibilityGraph(OsmParser):
 
         if len(point_data) != 5:
             raise ValueError("wrong point_data length")
-
-        if not callable(pair_func):
-            raise ValueError("pair_func is not callable")
 
         if type(inside_percent) not in {float, int}:
             raise TypeError("wrong inside_percent type")
@@ -84,7 +82,7 @@ class VisibilityGraph(OsmParser):
 
             # if a point not inside convex hull
             elif not point_in_ch(point, polygon.convex_hull, polygon.angles)[0]:
-                pair = pair_func(point, polygon.convex_hull, i, polygon.angles)
+                pair = find_pair(point, polygon.convex_hull, i, polygon.angles)
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon
@@ -121,20 +119,21 @@ class VisibilityGraph(OsmParser):
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, map_plot, pair_func, inside_percent):
+    def __process_points_of_objects(self, is_polygon, G, map_plot, inside_percent):
         """
         build visibility graph for all objects of given type (polygons or linestrings)
         :param is_polygon: bool parameter: set object type
         :param G: None or networkx.Graph
         :param map_plot: None or iterable of 2 elements: colors to plot visibility graph
-            1 element: color to plot polygons
-            2 element: iterable of 3 elements: colors to plot edges
-                1 element: edge between objects
-                2 element: edge inside polygon
-                3 element: road edge
+            0 element: color to plot polygons  
+            1 element: dict of 3 elements: colors to plot edges  
+                0: edges between objects
+                1: edges inside polygon
+                2: road edges
         :param inside_percent: float parameter setting the probability of an inner edge to be added (from 0 to 1)
         :return: None
         """
+
         max_poly_len = 10000                    # for graph indexing
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
 
@@ -157,7 +156,7 @@ class VisibilityGraph(OsmParser):
                     G.add_node(point_index, x=px, y=py)
 
                 # getting incident vertices
-                vertices = self.incident_vertices(point_data, pair_func, inside_percent)
+                vertices = self.incident_vertices(point_data, inside_percent)
                 if vertices is None:
                     continue
                 if G is None and map_plot is None:
@@ -179,23 +178,20 @@ class VisibilityGraph(OsmParser):
                         px, py = point
                         plot([px, vx], [py, vy], color=map_plot[1][vertex[4]])
 
-    def build_graph(self, pair_func, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
+    def build_graph(self, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
         """
         compute [and build] [and plot] visibility graph
         :param inside_percent: float parameter setting the probability of an inner edge to be added (from 0 to 1)
         :param graph: bool parameter indicating whether to build a networkx graph
         :param map_plot: None or iterable of 2 elements: colors to plot visibility graph
-            1 element: color to plot polygons
-            2 element: iterable of 3 elements: colors to plot edges
-                1 element: edge between objects
-                2 element: edge inside polygon
-                3 element: road edge
+            0 element: color to plot polygons  
+            1 element: dict of 3 elements: colors to plot edges  
+                0: edges between objects
+                1: edges inside polygon
+                2: road edges
         :param crs: string parameter: coordinate reference system
         :return: None
         """
-
-        if not callable(pair_func):
-            raise ValueError("pair_func is not callable")
 
         if type(inside_percent) not in {float, int}:
             raise TypeError("wrong inside_percent type")
@@ -223,6 +219,6 @@ class VisibilityGraph(OsmParser):
                 fill(x, y, color=map_plot[0])
 
         # processing polygons and linestrings
-        self.__process_points_of_objects(True, G, map_plot, pair_func, inside_percent)
-        self.__process_points_of_objects(False, G, map_plot, pair_func, inside_percent)
+        self.__process_points_of_objects(True, G, map_plot, inside_percent)
+        self.__process_points_of_objects(False, G, map_plot, inside_percent)
         return G, fig

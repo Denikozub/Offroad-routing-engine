@@ -70,14 +70,14 @@ def point_in_ch(point, polygon, angles, reverse_angle=False):
         # 2 angles contain zero-angle
         if angle1 > pi > angle2:
             if point_angle >= angle1 or point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 1
+                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 2
             if point_angle > pi:
                 high = mid - 1
             if point_angle < pi:
                 low = mid + 1
         else:
             if angle1 <= point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 1
+                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 2
             if point_angle - pi > angle2:
                 high = mid - 1
             elif point_angle + pi < angle1:

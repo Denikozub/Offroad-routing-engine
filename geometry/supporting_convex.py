@@ -4,32 +4,39 @@ from geometry.locate_convex import point_in_ch
 """
 all algorithms work with quality of convex polygon in respect to a point
 angles of polygon and semi-planes forming the polygon are sorted by the fact of containing the point
-therefore 2 subsets are formed, point dividing them are supporting points
+therefore 2 subsets are formed, points dividing them are supporting points
+each of them is found with binary search
+see more details in documentation
 """
 
 
 def binary_search(point, polygon, low, high, low_contains):
-    curr_contains = low_contains
+    """
+    find supporting point from point to polygon (index between low and high)
+    :param point: iterable of x, y
+    :param polygon: iterable of points (polygon[0] == polygon[-1]) given counter-clockwise
+    :param low: binary search algorithm parameter (polygon min index)
+    :param high: binary search algorithm parameter (polygon max index)
+    :param low_contains: bool - angle formed by polygon[low] contains point
+    :return: index of supporting point from point to polygon
+    """
     polygon_size = len(polygon) - 1
     mid = (high + low) // 2
-    while low <= high:
-        if mid + 1 == polygon_size:
-            break
+    while low <= high and mid < polygon_size:
+
+        # supporting point separating 2 subsets is found
         if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0 and \
-                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) >= 0:
+                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) >= 0 or \
+                turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 and \
+                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) <= 0:
             return mid
-        if curr_contains:
-            if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0:
-                low = mid + 1
-            else:
-                high = mid - 1
-                curr_contains = False
+
+        # update mid
+        if low_contains and turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 or \
+                not low_contains and turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0:
+            low = mid + 1
         else:
-            if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0:
-                low = mid + 1
-            else:
-                high = mid - 1
-                curr_contains = True
+            high = mid - 1
         mid = (high + low) // 2
         
     return None
@@ -52,17 +59,21 @@ def find_pair(point, polygon, polygon_number, angles):
         3 element: if object is polygon (1) or linestring (0)
         4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
     """
-    if angles is None:
-        if len(polygon) == 2:
-            return None
-        return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
-    
     iter(point)
     iter(polygon)
-    iter(angles)
 
     if type(polygon_number) not in {float, int}:
         raise TypeError("wrong polygon_number type")
+
+    polygon_size = len(polygon) - 1
+    if angles is None:
+        if polygon_size == 1:
+            return None
+        return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
+    iter(angles)
+
+    if polygon_size == 3:
+        return find_pair_cutoff(point, polygon, polygon_number)
 
     start_to_point = point_in_ch(point, polygon, angles, False)
 
@@ -71,7 +82,7 @@ def find_pair(point, polygon, polygon_number, angles):
         index1 = binary_search(point, polygon, 0, start_to_point[1], True)
         if index1 is None:
             return None
-        index2 = binary_search(point, polygon, start_to_point[1], len(polygon) - 2, True)
+        index2 = binary_search(point, polygon, start_to_point[1], polygon_size - 1, False)
         if index2 is None:
             return None
     else:
@@ -82,21 +93,21 @@ def find_pair(point, polygon, polygon_number, angles):
             index1 = binary_search(point, polygon, 0, point_to_start[1], False)
             if index1 is None:
                 return None
-            index2 = binary_search(point, polygon, point_to_start[1], len(polygon) - 2, False)
+            index2 = binary_search(point, polygon, point_to_start[1], polygon_size - 1, True)
             if index2 is None:
                 return None
 
         # polygon[0] is supporting point
         else:
             index1 = 0
-            index2 = binary_search(point, polygon, 1, len(polygon) - 2, turn(polygon[0], polygon[1], point) >= 0)
+            index2 = binary_search(point, polygon, 1, polygon_size - 1, turn(polygon[0], polygon[1], point) >= 0)
             if index2 is None:
                 return None
 
     return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
 
 
-def find_pair_array(point, polygon, polygon_number, _):
+def find_pair_array(point, polygon, polygon_number):
     """
     find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub use of array of angles implementation
@@ -160,7 +171,7 @@ def find_pair_array(point, polygon, polygon_number, _):
     return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
 
 
-def find_pair_cutoff(point, polygon, polygon_number, _):
+def find_pair_cutoff(point, polygon, polygon_number):
     """
     find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub NO use of array of angles implementation
