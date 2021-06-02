@@ -9,18 +9,30 @@ therefore 2 subsets are formed, point dividing them are supporting points
 
 
 def binary_search(point, polygon, low, high, low_contains):
+    curr_contains = low_contains
     polygon_size = len(polygon) - 1
     mid = (high + low) // 2
     while low <= high:
         if mid + 1 == polygon_size:
             break
-        if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 and low_contains or \
-                turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) < 0 and not low_contains:
-            low = mid + 1
+        if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0 and \
+                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) >= 0:
+            return mid
+        if curr_contains:
+            if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0:
+                low = mid + 1
+            else:
+                high = mid - 1
+                curr_contains = False
         else:
-            high = mid - 1
+            if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0:
+                low = mid + 1
+            else:
+                high = mid - 1
+                curr_contains = True
         mid = (high + low) // 2
-    return mid
+        
+    return None
 
 
 def find_pair(point, polygon, polygon_number, angles):
@@ -57,19 +69,29 @@ def find_pair(point, polygon, polygon_number, angles):
     # ray polygon[0], point intersects polygon
     if start_to_point[1] is not None:
         index1 = binary_search(point, polygon, 0, start_to_point[1], True)
+        if index1 is None:
+            return None
         index2 = binary_search(point, polygon, start_to_point[1], len(polygon) - 2, True)
+        if index2 is None:
+            return None
     else:
         point_to_start = point_in_ch(point, polygon, angles, True)
 
         # ray polygon[0], point does not intersect polygon
         if point_to_start[1] is not None:
             index1 = binary_search(point, polygon, 0, point_to_start[1], False)
+            if index1 is None:
+                return None
             index2 = binary_search(point, polygon, point_to_start[1], len(polygon) - 2, False)
+            if index2 is None:
+                return None
 
         # polygon[0] is supporting point
         else:
             index1 = 0
             index2 = binary_search(point, polygon, 1, len(polygon) - 2, turn(polygon[0], polygon[1], point) >= 0)
+            if index2 is None:
+                return None
 
     return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
 

@@ -8,6 +8,7 @@ def edge_inside_poly(point, point_number, polygon, polygon_number, inside_percen
     finds segments from point to polygon vertices which are strictly inside polygon
     if point is not a polygon vertex, finds all segments
     if point is a polygon vertex, finds diagonals to further vertices
+    we should not add fully outer segments because they may intersect other polygons!
     :param point: iterable of x, y
     :param point_number: None if point is not a polygon vertex else number or vertex
     :param polygon: iterable of points (polygon[0] == polygon[-1])
@@ -67,7 +68,5 @@ def edge_inside_poly(point, point_number, polygon, polygon_number, inside_percen
             # randomly choose diagonals to add with percentage
             if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
                 edges_inside.append((polygon[i], polygon_number, i, True, 1))
-
-            # we should not add fully outer segments because they may intersect other polygons!!!!!
 
     return edges_inside
