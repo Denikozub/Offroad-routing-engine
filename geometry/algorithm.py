@@ -103,7 +103,7 @@ def point_in_ch(point, polygon, angles):
         angle2 = angles[mid + 1]
 
         # 2 angles contain zero-angle
-        if angle1 > pi and angle2 < pi:
+        if angle1 > pi > angle2:
             if point_angle >= angle1 or point_angle <= angle2:
                 return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0
             if point_angle > pi:
@@ -111,7 +111,7 @@ def point_in_ch(point, polygon, angles):
             if point_angle < pi:
                 low = mid + 1
         else:
-            if point_angle >= angle1 and point_angle <= angle2:
+            if angle1 <= point_angle <= angle2:
                 return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0
             if point_angle - pi > angle2:
                 high = mid - 1
@@ -123,4 +123,3 @@ def point_in_ch(point, polygon, angles):
                 low = mid + 1
         mid = (high + low) // 2
     return False
-

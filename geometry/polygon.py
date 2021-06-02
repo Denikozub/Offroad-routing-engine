@@ -46,4 +46,3 @@ class Polygon(shapely.geometry.Polygon):
         angles.pop(0)
         angles.pop()
         return vertices, points, angles
-

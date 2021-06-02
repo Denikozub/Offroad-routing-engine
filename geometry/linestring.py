@@ -22,4 +22,3 @@ class MultiLineString:
 
     def rdp(self, epsilon):
         return MultiLineString(rdp(self.coordinates, epsilon=epsilon))
-

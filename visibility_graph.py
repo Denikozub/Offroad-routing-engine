@@ -1,4 +1,4 @@
-from shapely.geometry import mapping, MultiPolygon, Polygon, MultiLineString, LineString, Point
+from shapely.geometry import mapping, MultiPolygon, Polygon, LineString, Point
 from scipy.spatial import ConvexHull
 from segment_visibility import SegmentVisibility
 from math import fabs
@@ -135,7 +135,7 @@ class VisibilityGraph:
         # splitting polygon and linestring data
         self.polygons = DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
         multipolygons = DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
-        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural' : 'surface'})
+        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']).rename(columns={'natural': 'surface'})
         natural = natural.iloc[0:0]
 
         # getting road network data with pyrosm
@@ -212,12 +212,12 @@ class VisibilityGraph:
         2 element: number of point in object
         3 element: if object is polygon or linestring
         4 element: surface type
-    pair_func is a function that takes point, polygon, polygon_number as arguments and returns a tuple (point_data, point_data) representing supporting points
-    seg_func is a string parameter ("brute" or "sweep") which sets a function to be used for building graph of segments
+    pair_func is a function that takes point, polygon, polygon_number as arguments and
+    returns a tuple (point_data, point_data) representing supporting points
     add_edges_inside is a bool parameter which indicates whether inside edges should be added
     inside_percent is a float parameter setting the probability of an inner edge to be added (from 0 to 1)
     """
-    def incident_vertices(self, point_data, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1):
+    def incident_vertices(self, point_data, pair_func, add_edges_inside=True, inside_percent=1):
 
         iter(point_data)
 
@@ -226,12 +226,6 @@ class VisibilityGraph:
 
         if not callable(pair_func):
             raise ValueError("pair_func is not callable")
-
-        if type(seg_func) != str:
-            raise TypeError("wrong seg_func type")
-
-        if seg_func not in {"brute", "sweep"}:
-            raise ValueError("wrong seg_func value")
 
         if type(add_edges_inside) != bool:
             raise TypeError("wrong add_edges_inside type")
@@ -322,14 +316,11 @@ class VisibilityGraph:
                 visible_vertices.add_line(line)
 
         # building visibility graph of segments
-        if seg_func=="sweep":
-            visible_edges = visible_vertices.get_edges_sweepline(point)
-        if seg_func=="brute":
-            visible_edges = visible_vertices.get_edges_brute(point)
+        visible_edges = visible_vertices.get_edges_sweepline(point)
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent):
+    def __process_points_of_objects(self, is_polygon, G, map_plot, pair_func, add_edges_inside, inside_percent):
         max_poly_len = 10000                    # for graph indexing
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
 
@@ -352,7 +343,7 @@ class VisibilityGraph:
                     G.add_node(point_index, x=px, y=py)
 
                 # getting incident vertices
-                vertices = self.incident_vertices(point_data, pair_func, seg_func, add_edges_inside, inside_percent)
+                vertices = self.incident_vertices(point_data, pair_func, add_edges_inside, inside_percent)
                 if vertices is None:
                     continue
                 if G is None and map_plot is None:
@@ -374,16 +365,10 @@ class VisibilityGraph:
                         px, py = point
                         plot([px, vx], [py, vy], color=map_plot[1][vertex[4]])
 
-    def build_graph(self, pair_func, seg_func="sweep", add_edges_inside=True, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
+    def build_graph(self, pair_func, add_edges_inside=True, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
 
         if not callable(pair_func):
             raise ValueError("pair_func is not callable")
-
-        if type(seg_func) != str:
-            raise TypeError("wrong seg_func type")
-
-        if seg_func not in {"brute", "sweep"}:
-            raise ValueError("wrong seg_func value")
 
         if type(add_edges_inside) != bool:
             raise TypeError("wrong add_edges_inside type")
@@ -411,10 +396,9 @@ class VisibilityGraph:
             fig = figure()
             for p in self.polygons.geometry:
                 x, y = zip(*list(p))
-                fill(x, y, color=map_plot[0]);
+                fill(x, y, color=map_plot[0])
 
         # processing polygons and linestrings
-        self.__process_points_of_objects(True, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent)
-        self.__process_points_of_objects(False, G, map_plot, pair_func, seg_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects(True, G, map_plot, pair_func, add_edges_inside, inside_percent)
+        self.__process_points_of_objects(False, G, map_plot, pair_func, add_edges_inside, inside_percent)
         return G, fig
-

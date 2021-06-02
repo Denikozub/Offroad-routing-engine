@@ -11,7 +11,7 @@ from geometry.algorithm import point_in_angle
 
 # O(log n) Denis denikozub Kozub binary search through semi-planes algorithm
 #def find_pair(point, polygon, polygon_number):
-    
+
 
 
 # O(n) Denis denikozub Kozub use of array of angles implementation
@@ -103,6 +103,5 @@ def find_pair_cutoff(point, polygon, polygon_number):
                     found = True
                     break
                     
-    return None if not found else ((polygon[begin], polygon_number, begin, True, 0), \
-           (polygon[end], polygon_number, end, True, 0))
-
+    return None if not found else ((polygon[begin], polygon_number, begin, True, 0),
+                                   (polygon[end], polygon_number, end, True, 0))

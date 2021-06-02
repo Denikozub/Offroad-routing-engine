@@ -6,37 +6,38 @@ find_pair_ellipse() finds it in O(1) time, which allows to speed up the algorith
 Current implementation does not work properly
 """
 
+"""
 def __compare_bounds(self, bounds, bbox_comp):
-return bbox_comp is None or self.bbox_size[0] / fabs(bounds[2] - bounds[0]) <= bbox_comp and \
-    self.bbox_size[1] / fabs(bounds[3] - bounds[1]) <= bbox_comp
+    return bbox_comp is None or self.bbox_size[0] / fabs(bounds[2] - bounds[0]) <= bbox_comp and \
+        self.bbox_size[1] / fabs(bounds[3] - bounds[1]) <= bbox_comp
 
 def __check_bounds(self, obj, bbox_comp, is_polygon):
-bounds = Polygon(obj).bounds if is_polygon else MultiLineString(obj).bounds
-return self.__compare_bounds(bounds, bbox_comp)
+    bounds = Polygon(obj).bounds if is_polygon else MultiLineString(obj).bounds
+    return self.__compare_bounds(bounds, bbox_comp)
 
 def __get_bounds(self, polygon, bbox_comp):
-bounds = polygon.bounds
-if not self.__compare_bounds(bounds, bbox_comp):
-    return None
-min_x, min_y, max_x, max_y = bounds
-return (min_x, min_y), (min_x, max_y), (max_x, max_y), (max_x, min_y), (min_x, min_y)
+    bounds = polygon.bounds
+    if not self.__compare_bounds(bounds, bbox_comp):
+        return None
+    min_x, min_y, max_x, max_y = bounds
+    return (min_x, min_y), (min_x, max_y), (max_x, max_y), (max_x, min_y), (min_x, min_y)
 
 def __get_coord(self, obj, epsilon, bbox_comp, is_polygon):
-if not self.__check_bounds(obj, bbox_comp, is_polygon):
-    return None
-coordinates = array(mapping(obj)['coordinates'][0])
-return coordinates if epsilon is None or epsilon <= 0 else rdp.rdp(coordinates, epsilon=epsilon)
+    if not self.__check_bounds(obj, bbox_comp, is_polygon):
+        return None
+    coordinates = array(mapping(obj)['coordinates'][0])
+    return coordinates if epsilon is None or epsilon <= 0 else rdp.rdp(coordinates, epsilon=epsilon)
 
 @staticmethod
 def __convex_hull(polygon_df, keep=False):
-polygon = polygon_df[0]
-if keep or len(polygon) <= 4:
-    return polygon, [i for i in range(len(polygon))]
-ch = ConvexHull(polygon)
-points = list(ch.vertices)
-points.append(points[0])
-vertices = ch.points[points]
-return vertices, points
+    polygon = polygon_df[0]
+    if keep or len(polygon) <= 4:
+        return polygon, [i for i in range(len(polygon))]
+    ch = ConvexHull(polygon)
+    points = list(ch.vertices)
+    points.append(points[0])
+    vertices = ch.points[points]
+    return vertices, points
 
 def build_dataframe (self, epsilon=None, bbox_comp=None, length_comp=None, ellipse=False):
 if ellipse:
@@ -91,4 +92,4 @@ def find_pair_ellipse(point, polygon, polygon_number=None):
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
     random.seed(1)
     return (point1, polygon_number, random.randint(5000, 9999), True, 0), (point2, polygon_number, random.randint(5000, 9999), True, 0)
-
+"""

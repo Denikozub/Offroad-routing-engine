@@ -115,7 +115,8 @@ class SegmentVisibility:
                 try:
                     # intersected.pop(p[0][0])
                     intersected.remove((p[0][0], p[1][0]))
-                except ValueError: pass
+                except ValueError:
+                    pass
 
             # add suitable points
             if good:
@@ -129,7 +130,8 @@ class SegmentVisibility:
                 # do not add same points
                 try:
                     visible_edges.remove(p[0])
-                except ValueError: pass
+                except ValueError:
+                    pass
                 visible_edges.append(p[0])
 
         self.__segments.clear()
@@ -142,10 +144,10 @@ class SegmentVisibility:
     - crosses = [None for angle in range(angle_count)] is an array to store minimal distances to points for each angle
     - when adding a segment (pair of points) for each segment point calculate its angle in degrees from point
     - for each of 2 angles fill the corresponding element of crosses with distance to the point
-    - for each angle between 2 found angles (between means < pi) fill the corresponding element of crosses with distance to the segment for each angle
+    - for each angle between 2 found angles (between means < pi)
+    fill the corresponding element of crosses with distance to the segment for each angle
     - when returning visible edges check each element of crosses for None and for laying inside restriction angle
     First problem is that distances have to be calculated using projected crs
     Second problem is that O(n) constant is high (filling each in-between angle may nean up to 180 operations)
     All in all, this part of graph building is not bottle neck, so it will not be implemented soon
     """
-

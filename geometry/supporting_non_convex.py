@@ -6,6 +6,7 @@ from geometry.algorithm import ray_intersects_segment, turn
 # returns a list of point_data tuples of points connecting 2 supporting points else
 # O(n^2) brute force implementation
 
+
 def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=None):
     n = len(polygon) - 1
     result = list()
@@ -53,4 +54,3 @@ def find_line_brute_force(point, polygon, polygon_number, polygon_point_number=N
         for i in range(point1, point2 + 1):
             line.append((polygon[i], polygon_number, i, True, 0))
     return line
-
