@@ -1,15 +1,16 @@
 from shapely.geometry import LineString
 from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
 
-"""
-class that builds visibility graph for line segments
-1) brute force O(n^2)
-2) rotational sweep line O(n log n)
-3) Denis denikozub Kozub angle approximation O(n)
-"""
-
 
 class SegmentVisibility:
+    """
+    point_data is a tuple where:
+        0 element: point coordinates - tuple of x, y
+        1 element: number of object where point belongs
+        2 element: number of point in object
+        3 element: if object is polygon (1) or linestring (0)
+        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+    """
 
     def __init__(self):
         self.__segments = list()
@@ -22,22 +23,52 @@ class SegmentVisibility:
         self.__reverse_angle = None
 
     def add_pair(self, pair):
+        """
+        add a segment
+        :param pair: iterable of point_data of 2 points of a segment
+        :return: None
+        """
         if pair is None:
             return
+        iter(pair)
         self.__segments.append(pair)
 
     def add_line(self, line):
+        """
+        add a line of segments
+        :param line: iterable of point_data of all points of a line
+        :return: None
+        """
         if line is None:
             return
+        iter(line)
         for i in range(len(line) - 1):
             self.add_pair((line[i], line[i + 1]))
 
     def set_restriction_angle(self, restriction_pair, restriction_point, reverse_angle):
+        """
+        set restrictions for visibility graph to be built due to edges of own polygon
+        :param restriction_pair: iterable of 2 restricting points
+        :param restriction_point: starting point of restriction angle
+        :param reverse_angle: bool - restriction angle < pi
+        :return: None
+        """
+        iter(restriction_pair)
+        iter(restriction_point)
+        if type(reverse_angle) != bool:
+            raise TypeError("wrong reverse_angle type")
+
         self.__restriction_pair = restriction_pair
         self.__restriction_point = restriction_point
         self.__reverse_angle = reverse_angle
 
     def get_edges_brute(self, point):
+        """
+        build visibility graph for line segments from point, brute force O(n^2)
+        :param point: iterable of x, y
+        :return: list of point_data of all visible points
+        """
+        iter(point)
         segment_number = len(self.__segments)
         visible_edges = list()
 
@@ -47,10 +78,12 @@ class SegmentVisibility:
             a_point, b_point = a[0], b[0]
 
             # if a point is inside a restriction angle, it will not be returned
-            if self.__restriction_pair is not None and self.__restriction_point is not None and self.__reverse_angle is not None:
+            if self.__restriction_pair is not None:
                 l_point, r_point = self.__restriction_pair
-                intersects_a = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                intersects_b = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                intersects_a = \
+                    not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                intersects_b = \
+                    not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
                 if intersects_a and intersects_b:  # if both in restriction angle
                     continue
 
@@ -80,7 +113,12 @@ class SegmentVisibility:
         return visible_edges
 
     def get_edges_sweepline(self, point):
-
+        """
+        build visibility graph for line segments from point, rotational sweep line O(n log n)
+        :param point: iterable of x, y
+        :return: list of point_data of all visible points
+        """
+        iter(point)
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:
@@ -122,7 +160,7 @@ class SegmentVisibility:
             if good:
 
                 # if a point is inside a restriction angle, it will not be returned
-                if self.__restriction_pair is not None and self.__restriction_point is not None and self.__reverse_angle is not None:
+                if self.__restriction_pair is not None:
                     l_point, r_point = self.__restriction_pair
                     if not point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle:
                         continue
@@ -138,9 +176,9 @@ class SegmentVisibility:
         return visible_edges
 
     """
-    Angle approximation O(n) algorithm
+    Angle approximation Denis denikozub Kozub O(n) algorithm
     - only parameter is view_angle=1, it shows the calculation error
-    - angle_count = math.floor(360 / view_angle) is the number of angles the surface is devided into
+    - angle_count = math.floor(360 / view_angle) is the number of angles the surface is divided into
     - crosses = [None for angle in range(angle_count)] is an array to store minimal distances to points for each angle
     - when adding a segment (pair of points) for each segment point calculate its angle in degrees from point
     - for each of 2 angles fill the corresponding element of crosses with distance to the point
@@ -148,6 +186,6 @@ class SegmentVisibility:
     fill the corresponding element of crosses with distance to the segment for each angle
     - when returning visible edges check each element of crosses for None and for laying inside restriction angle
     First problem is that distances have to be calculated using projected crs
-    Second problem is that O(n) constant is high (filling each in-between angle may nean up to 180 operations)
+    Second problem is that O(n) constant is high (filling each in-between angle may mean up to 180 operations)
     All in all, this part of graph building is not bottle neck, so it will not be implemented soon
     """

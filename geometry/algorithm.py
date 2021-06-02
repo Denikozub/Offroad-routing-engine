@@ -38,7 +38,7 @@ def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
     x1, y1 = c
     x2, y2 = d
 
-    # line equasions
+    # line equations
     k12 = 10 ** 10 if x1 == x2 else (y1 - y2) / (x1 - x2)
     b12 = y1 - k12 * x1
     delta = 10 ** -7
@@ -64,62 +64,6 @@ def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
     return dot(array([x, y]), b) > 0
 
 
+# p1 == p2
 def compare_points(p1, p2, delta):
     return fabs(p1[0] - p2[0]) < delta and fabs(p1[1] - p2[1]) < delta
-
-
-# O(n) algorithm
-def point_in_ch_linear(point, polygon):
-    n = len(polygon) - 1
-    if n <= 2:
-        return False
-    polygon_turn = turn(polygon[0], polygon[1], polygon[2])
-    for i in range(n):
-        if turn(polygon[i], polygon[i + 1], point) * polygon_turn < 0:
-            return False
-    return True
-
-
-# O(log n) Preparata Shamos algorithm
-# polygon has to be given counter-clockwise
-def point_in_ch(point, polygon, angles):
-
-    if angles is None:
-        return False
-
-    # point equals [0] point of polygon
-    if compare_points(point, polygon[0], 10 ** -10):
-        return True
-
-    # binary search
-    point_angle = angle(polygon[0], point)
-    mid = (len(angles) - 1) // 2
-    low = 0
-    high = len(angles) - 1
-    while low <= high:
-        if mid + 1 == len(angles):
-            return False
-        angle1 = angles[mid]
-        angle2 = angles[mid + 1]
-
-        # 2 angles contain zero-angle
-        if angle1 > pi > angle2:
-            if point_angle >= angle1 or point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0
-            if point_angle > pi:
-                high = mid - 1
-            if point_angle < pi:
-                low = mid + 1
-        else:
-            if angle1 <= point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0
-            if point_angle - pi > angle2:
-                high = mid - 1
-            elif point_angle + pi < angle1:
-                low = mid + 1
-            elif point_angle < angle1:
-                high = mid - 1
-            else:
-                low = mid + 1
-        mid = (high + low) // 2
-    return False
