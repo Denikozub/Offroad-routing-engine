@@ -83,8 +83,8 @@ class VisibilityGraph(OsmParser):
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
 
             # if a point not inside convex hull
-            elif not point_in_ch(point, polygon.convex_hull, polygon.angles):
-                pair = pair_func(point, polygon.convex_hull, i)
+            elif not point_in_ch(point, polygon.convex_hull, polygon.angles)[0]:
+                pair = pair_func(point, polygon.convex_hull, i, polygon.angles)
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon

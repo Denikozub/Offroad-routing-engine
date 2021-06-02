@@ -27,6 +27,12 @@ class SegmentVisibility:
         add a segment
         :param pair: iterable of point_data of 2 points of a segment
         :return: None
+        point_data is a tuple where:
+            0 element: point coordinates - tuple of x, y
+            1 element: number of object where point belongs
+            2 element: number of point in object
+            3 element: if object is polygon (1) or linestring (0)
+            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
         if pair is None:
             return
@@ -38,6 +44,12 @@ class SegmentVisibility:
         add a line of segments
         :param line: iterable of point_data of all points of a line
         :return: None
+        point_data is a tuple where:
+            0 element: point coordinates - tuple of x, y
+            1 element: number of object where point belongs
+            2 element: number of point in object
+            3 element: if object is polygon (1) or linestring (0)
+            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
         if line is None:
             return
@@ -67,6 +79,12 @@ class SegmentVisibility:
         build visibility graph for line segments from point, brute force O(n^2)
         :param point: iterable of x, y
         :return: list of point_data of all visible points
+        point_data is a tuple where:
+            0 element: point coordinates - tuple of x, y
+            1 element: number of object where point belongs
+            2 element: number of point in object
+            3 element: if object is polygon (1) or linestring (0)
+            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
         iter(point)
         segment_number = len(self.__segments)
@@ -117,6 +135,12 @@ class SegmentVisibility:
         build visibility graph for line segments from point, rotational sweep line O(n log n)
         :param point: iterable of x, y
         :return: list of point_data of all visible points
+        point_data is a tuple where:
+            0 element: point coordinates - tuple of x, y
+            1 element: number of object where point belongs
+            2 element: number of point in object
+            3 element: if object is polygon (1) or linestring (0)
+            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
         iter(point)
         # list of points sorted by angle
