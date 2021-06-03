@@ -1,4 +1,4 @@
-from parsers.get_coord import get_coord_polygon, get_coord_linestring
+from parsers.get_coord import get_coordinates
 from geometry.convex_hull import convex_hull
 from pandas import DataFrame, HDFStore
 from math import fabs
@@ -49,7 +49,7 @@ class OsmParser:
         # bounding box size
         self.bbox_size = None if bbox is None else (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
 
-    def build_dataframe(self, epsilon_polygon, epsilon_linestring, bbox_comp):
+    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=20):
         """
         transform retrieved data:
             transform geometry to tuple of points
@@ -71,16 +71,22 @@ class OsmParser:
                 if param < 0:
                     raise ValueError("wrong ", str(param), " value")
 
+        if epsilon_polygon is None:
+            epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 4
+
+        if epsilon_linestring is None:
+            epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 8
+
         # polygon coordinates
         self.polygons.geometry = \
-            self.polygons.geometry.apply(get_coord_polygon, args=[epsilon_polygon, bbox_comp, self.bbox_size])
+            self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
 
         # multipolygon coordinates
         for i in range(self.multipolygons.shape[0]):
             natural = self.multipolygons.natural.iloc[i]
             for polygon in self.multipolygons.geometry.iloc[i].geoms:
-                self.polygons = self.polygons.append({'geometry': get_coord_polygon(polygon, epsilon_polygon,
-                                                                                    bbox_comp, self.bbox_size),
+                self.polygons = self.polygons.append({'geometry': get_coordinates(polygon, epsilon_polygon,
+                                                                                  bbox_comp, self.bbox_size, True),
                                                       'natural': natural}, ignore_index=True)
         self.multipolygons.drop(self.multipolygons.index, inplace=True)
 
@@ -95,7 +101,7 @@ class OsmParser:
 
         # linestring coordinates
         self.multilinestrings.geometry = self.multilinestrings.geometry\
-            .apply(get_coord_linestring, args=[epsilon_linestring])
+            .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, False])
 
         # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
