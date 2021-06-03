@@ -11,7 +11,7 @@ from geometry.supporting_convex import find_pair
 
 class VisibilityGraph(OsmParser):
 
-    def incident_vertices(self, point_data, inside_percent=1):
+    def incident_vertices(self, point_data, inside_percent=0.4):
         """
         find all incident vertices in visibility graph for given point
         :param point_data: point_data of given point

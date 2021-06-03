@@ -54,8 +54,9 @@ class OsmParser:
         transform retrieved data:
             transform geometry to tuple of points
             run Ramer-Douglas-Peucker to geometry
-            get rid of small polygons with bbox_comp parameter
+            get rid of small objects with bbox_comp parameter
             add data about convex hull for polygons
+        Default parameters will be computed for the given area to provide best performance.
         :param epsilon_polygon: None or Ramer-Douglas-Peucker algorithm parameter for polygons
         :param epsilon_linestring: None or Ramer-Douglas-Peucker algorithm parameter for linestrings
         :param bbox_comp: bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)
