@@ -94,7 +94,7 @@ __crs__: string parameter: coordinate reference system
 __return__ None
 
 # Usage
-[ipynb notebook]
+[ipynb notebook](https://github.com/Denikozub/Routing_engine/blob/main/example.ipynb)
 
 ### Downloading and processing data
 
