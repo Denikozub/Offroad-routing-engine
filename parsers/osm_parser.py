@@ -77,8 +77,6 @@ class OsmParser:
 
         if epsilon_linestring is None:
             epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
-
-        print(epsilon_polygon, epsilon_linestring)
         
         # polygon coordinates
         self.polygons.geometry = \

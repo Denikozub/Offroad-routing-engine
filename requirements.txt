@@ -1,0 +1,11 @@
+requests
+shapely
+networkx
+matplotlib
+rdp
+scipy
+pandas
+geopandas
+pyrosm
+tables
+mplleaflet
