@@ -49,7 +49,7 @@ class OsmParser:
         # bounding box size
         self.bbox_size = None if bbox is None else (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
 
-    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=20):
+    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15):
         """
         transform retrieved data:
             transform geometry to tuple of points
@@ -72,11 +72,13 @@ class OsmParser:
                     raise ValueError("wrong ", str(param), " value")
 
         if epsilon_polygon is None:
-            epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 4
+            epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
 
         if epsilon_linestring is None:
-            epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 8
+            epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
 
+        print(epsilon_polygon, epsilon_linestring)
+        
         # polygon coordinates
         self.polygons.geometry = \
             self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
