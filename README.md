@@ -1,5 +1,5 @@
 # Off-road navigation system
-- O(h log n) on-line _reduced visibility graph_ algorithm
+- O(nh log n) on-line _reduced visibility graph_ algorithm
 - A* pathfinding _without_ graph precomputing
 - Dynamic edge weights
 - Huge database of hiking and country roads
@@ -18,4 +18,4 @@ Scope of application:
 - Rescue and military operations planning  
 - Route planning for hiking and tourism  
 
-For usage example and algorithm documentation see docs/
+For usage example, methods and algorithm documentation see docs folder

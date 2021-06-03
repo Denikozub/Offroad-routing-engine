@@ -21,28 +21,38 @@
   }
 </style>
 </head>
-<body><div id="readme" class="container"><article class="markdown-body entry-content"><h1 id="off-road-navigation-system">Off-road navigation system</h1>
+<body><div id="readme" class="container"><article class="markdown-body entry-content"><h1 id="visibilitygraph">VisibilityGraph</h1>
+<p>Denis denikozub Kozub</p>
+<p>Class for building a visibility graph on a given area from OSM data  </p>
+<pre><code>compute_geometry(self, filename, bbox)</code></pre><p>parse OSM file area in bbox to retrieve information about roads and surface<br><strong>filename</strong>: .osm.pbf format<br><strong>bbox</strong>: None of in format min_lon, min_lat, max_lon, max_lat<br><strong>return</strong> None  </p>
+<pre><code>build_dataframe(self, epsilon_polygon, epsilon_linestring, bbox_comp)</code></pre><p>transform retrieved data:</p>
 <ul>
-<li>O(h log n) on-line <em>reduced visibility graph</em> algorithm</li>
-<li>A* pathfinding <em>without</em> graph precomputing</li>
-<li>Dynamic edge weights</li>
-<li>Huge database of hiking and country roads</li>
-<li>Super fast pathfinding on large areas</li>
-<li><em>Hierarchical approach</em> for graph building</li>
-<li>OSM maps data</li>
-<li>No projected crs -&gt; more accuracy and speed</li>
-<li>Minimized stored and precomputed data</li>
+<li>transform geometry to tuple of points</li>
+<li>run Ramer-Douglas-Peucker to geometry</li>
+<li>get rid of small polygons with bbox_comp parameter</li>
+<li>add data about convex hull for polygons  </li>
 </ul>
-<p>This is how Google routing engine (and all others) currently [03.06.2021] work. I am ready to change this.
-<img src="docs/Google_maps.png" alt></p>
-<p>Scope of application:</p>
+<p><strong>epsilon_polygon</strong>: None or Ramer-Douglas-Peucker algorithm parameter for polygons<br><strong>epsilon_linestring</strong>: None or Ramer-Douglas-Peucker algorithm parameter for linestrings<br><strong>bbox_comp</strong>: bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)<br><strong>return</strong> None  </p>
+<pre><code>incident_vertices(self, point_data, inside_percent=1)</code></pre><p>finds all incident vertices in visibility graph for given point<br><strong>point_data</strong>: <em>point</em>data_ of given point<br><strong>inside_percent</strong>: float parameter setting the probability of an inner edge to be added (from 0 to 1)<br><strong>return</strong> list of point_data of all visible points<br><em>point</em>data_ is a tuple where:  </p>
 <ul>
-<li>Extending functionality of other routing engines  </li>
-<li>Road building  </li>
-<li>Rescue and military operations planning  </li>
-<li>Route planning for hiking and tourism  </li>
+<li>0 element: point coordinates - tuple of x, y</li>
+<li>1 element: number of object where point belongs</li>
+<li>2 element: number of point in object</li>
+<li>3 element: if object is polygon (1) or linestring (0)</li>
+<li>4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)</li>
 </ul>
-<p>For usage example and algorithm documentation see docs/</p>
+<pre><code>build_graph(self, inside_percent=1, graph=False, map_plot=None, crs=&apos;EPSG:4326&apos;)</code></pre><p>compute [and build] [and plot] visibility graph
+<strong>inside_percent</strong>: float parameter setting the probability of an inner edge to be added (from 0 to 1)<br><strong>graph</strong>: bool parameter indicating whether to build a networkx graph<br><strong>map_plot</strong>: None or iterable of 2 elements: colors to plot visibility graph</p>
+<ul>
+<li>0 element: color to plot polygons  </li>
+<li>1 element: dict of 3 elements: colors to plot edges  <ul>
+<li>0: edges between objects</li>
+<li>1: edges inside polygon</li>
+<li>2: road edges  </li>
+</ul>
+</li>
+</ul>
+<p><strong>crs</strong>: string parameter: coordinate reference system<br><strong>return</strong> None</p>
 </article></div><div style="background-color: #b4b2b2;width: 50px;height:50px;line-height: 50px;text-align: center;position: fixed;bottom: 10px;right: 10px;padding-top:5px;" onclick="document.documentElement.scrollTop = document.body.scrollTop =0;">
   <svg t="1533629773982" class="icon" style="" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1035" xlink="http://www.w3.org/1999/xlink" width="40" height="40"><defs><style type="text/css">@font-face { font-family: uc-nexus-iconfont; src: url("chrome-extension://pogijhnlcfmcppgimcaccdkmbedjkmhi/res/font_9qmmi8b8jsxxbt9.woff") format("woff"), url("chrome-extension://pogijhnlcfmcppgimcaccdkmbedjkmhi/res/font_9qmmi8b8jsxxbt9.ttf") format("truetype"); }
   </style></defs><path d="M536.255427 195.182354c-7.804756-7.804756-17.966187-11.615549-28.311813-11.615549-9.43693 0-18.874883 3.449565-26.496467 10.163477-2.360767 1.452071-4.356214 3.267417-6.352685 5.262864L218.47792 455.611735c-15.607466 15.60542-15.607466 40.834011 0 56.43943 15.607466 15.607466 41.558511 15.607466 57.167001 0l193.46013-192.733583 0 600.526219c0 22.1423 17.787108 39.927361 39.927361 39.927361 22.140253 0 39.927361-17.785062 39.927361-39.927361L548.959773 319.317583 737.15704 508.422522c15.607466 15.607466 40.469714 15.607466 56.078203 0 15.607466-15.607466 15.425318-40.834011-0.182149-56.441477L536.255427 195.182354 536.255427 195.182354z" p-id="1036" fill="#333"/><path d="M101.784174 143.097092l816.674071 0c22.140253 0 39.925315-17.785062 39.925315-39.927361 0-22.140253-17.784038-39.925315-39.925315-39.925315L101.784174 63.244416c-22.140253 0-39.927361 17.785062-39.927361 39.925315C61.856813 125.31203 79.643921 143.097092 101.784174 143.097092L101.784174 143.097092z" p-id="1037" fill="#333"/></svg>
