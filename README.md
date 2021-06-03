@@ -18,4 +18,4 @@ Scope of application:
 - Rescue and military operations planning  
 - Route planning for hiking and tourism  
 
-For usage example, methods and algorithm documentation see docs folder
+May also check [documentation](https://github.com/Denikozub/Routing_engine/tree/main/docs#visibilitygraph), [algorithms](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf) and [usage example](https://github.com/Denikozub/Routing_engine/blob/main/docs/example.ipynb)
