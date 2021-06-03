@@ -19,7 +19,6 @@ Scope of application:
 - Rescue and military operations planning  
 - Route planning for hiking and tourism  
 
-See also: [documentation](https://github.com/Denikozub/Routing_engine/tree/main/docs#visibilitygraph),  and [usage examples](https://github.com/Denikozub/Routing_engine/blob/main/docs/example.ipynb)
 
 # Documentation
 VisibilityGraph is a class for building a visibility graph on a given area from OSM data  
