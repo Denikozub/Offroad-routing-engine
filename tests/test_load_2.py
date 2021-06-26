@@ -1,6 +1,5 @@
 from visibility_graph import VisibilityGraph
 
-filename = "../maps/kozlovo_extended.osm.pbf"
 bbox = [36.2, 56.5, 36.7, 57]
 
 map_data = VisibilityGraph()

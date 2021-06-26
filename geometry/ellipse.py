@@ -6,7 +6,7 @@ find_pair_ellipse() finds it in O(1) time, which allows to speed up the algorith
 Current implementation does not work properly
 """
 
-"""
+
 def __compare_bounds(self, bounds, bbox_comp):
     return bbox_comp is None or self.bbox_size[0] / fabs(bounds[2] - bounds[0]) <= bbox_comp and \
         self.bbox_size[1] / fabs(bounds[3] - bounds[1]) <= bbox_comp
@@ -92,4 +92,4 @@ def find_pair_ellipse(point, polygon, polygon_number=None):
     point1, point2 = ((x1 + xc) / multipl, (y[0] + yc) / multipl), ((x2 + xc) / multipl, (y[1] + yc) / multipl)
     random.seed(1)
     return (point1, polygon_number, random.randint(5000, 9999), True, 0), (point2, polygon_number, random.randint(5000, 9999), True, 0)
-"""
+

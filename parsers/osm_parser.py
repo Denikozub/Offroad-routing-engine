@@ -1,137 +1,68 @@
-from parsers.get_coord import get_coordinates
-from geometry.convex_hull import convex_hull
-from pandas import DataFrame, HDFStore
+from parsers.osm_converter import OsmConverter
 from math import fabs
+from pandas import DataFrame
 
 
 class OsmParser:
 
     def __init__(self):
         self.polygons = None
+        self.linestrings = None
         self.multilinestrings = None
-        self.multipolygons = None
         self.bbox_size = None
-
-    def compute_geometry(self, filename, bbox):
+    
+    def compute_geometry(self, bbox, filename=None):
         """
-        parse OSM file area in bbox to retrieve information about roads and surface
-        :param filename: .osm.pbf format
-        :param bbox: None of in format min_lon, min_lat, max_lon, max_lat
+        parse OSM file (area in bbox) to retrieve information about needed tags
+        :param bbox: in format min_lon, min_lat, max_lon, max_lat
+        :param filename: None (map will be downloaded) or in .osm.pbf format
         :return: None
         """
 
-        if type(filename) != str:
+        if filename is not None and type(filename) != str:
             raise TypeError("wrong filename type")
 
         iter(bbox)
 
+        # download .osm.pbf map        
+        if filename is None:
+            converter = OsmConverter(bbox)
+            filename = converter.filename
+
+        # for Windows compilation
         from pyrosm import OSM
+        from geopandas import GeoDataFrame
 
         # parsing OMS map with pyrosm
         osm = OSM(filename, bounding_box=bbox)
-        natural = osm.get_natural()  # Additional attributes: natural.tags.unique()
-        natural = natural.loc[:, ['natural', 'geometry']]
-
-        # splitting polygon and linestring data
-        self.polygons = DataFrame(natural.loc[natural.geometry.type == 'Polygon'])
-        self.multipolygons = DataFrame(natural.loc[natural.geometry.type == 'MultiPolygon'])
-        self.multilinestrings = DataFrame(natural.loc[natural.geometry.type == 'MultiLineString']) \
-            .rename(columns={'natural': 'surface'})
-        natural.drop(natural.index, inplace=True)
-
-        # getting road network data with pyrosm
-        roads = osm.get_network()
-        if roads is not None:
-            roads = DataFrame(roads.loc[:, ['surface', 'geometry']].loc[roads.geometry.type == 'MultiLineString'])
-            self.multilinestrings = self.multilinestrings.append(roads)
-        roads.drop(roads.index, inplace=True)
+        custom_filter = {'highway' : ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'track', 'road', 'footway', 'path'], 'railway' : ['light_rail', 'rail'], 'natural' : ['wood', 'scrub', 'grassland', 'sand', 'mud', 'wetland', 'water', 'bay', 'beach', 'glacier', 'peninsula', 'dune'], 'landuse' : ['construction', 'industrial', 'residential', 'farmland', ' 	allotments', 'forest', 'farmyard', 'orchard', 'meadow', 'brownfield', 'grass', 'greenfield', 'greenhouse_horticulture', 'landfill', 'military', 'quarry', 'railway', 'village_green'], 'waterway' : True, 'water' : True, 'geological' : True, 'barrier' : ['cable_barrier', 'fence', 'wall'], 'military' : ['danger_area']}
+        pois = osm.get_pois(custom_filter=custom_filter)
+        df = pois[['geometry']]
+        tags = ['natural', 'highway', 'landuse', 'railway', 'waterway', 'water', 'geological', 'barrier', 'military'] # 'building'
+        for tag in tags:
+            try:
+                df = df.join(pois[tag])
+            except KeyError:
+                pass
+        pois = DataFrame(df.iloc[:, 1:].stack()).reset_index()[['level_1', 0]].rename(columns={'level_1' : "key", 0 : "value"})
+        pois = GeoDataFrame(pois.join(df.geometry))
+        
+        # extracting figures
+        self.polygons = DataFrame(pois.loc[(pois.geometry.type == 'Polygon') | ((pois.key.isin(['natural', 'water', 'landuse'])) & (pois.geometry.type == 'MultiLineString'))])
+        multipolygons = DataFrame(pois.loc[pois.geometry.type == 'MultiPolygon'])
+        self.linestrings = DataFrame(pois.loc[(pois.geometry.type == 'LineString') & (~pois.key.isin(['natural', 'water', 'landuse']))])
+        self.multilinestrings = DataFrame(pois.loc[(pois.geometry.type == 'MultiLineString') & (~pois.key.isin(['natural', 'water', 'landuse']))])
+        
+        # splitting multipolygons to polygons
+        for i in range(multipolygons.shape[0]):
+            key = multipolygons.key.iloc[i]
+            value = multipolygons.value.iloc[i]
+            for polygon in multipolygons.geometry.iloc[i].geoms:
+                self.polygons = self.polygons.append({'key': key,
+                                                      'value' : value,
+                                                      'geometry': polygon}, ignore_index=True)
+        
 
         # bounding box size
-        self.bbox_size = None if bbox is None else (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
+        self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
 
-    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15):
-        """
-        transform retrieved data:
-            transform geometry to tuple of points
-            run Ramer-Douglas-Peucker to geometry
-            get rid of small objects with bbox_comp parameter
-            add data about convex hull for polygons
-        Default parameters will be computed for the given area to provide best performance.
-        :param epsilon_polygon: None or Ramer-Douglas-Peucker algorithm parameter for polygons
-        :param epsilon_linestring: None or Ramer-Douglas-Peucker algorithm parameter for linestrings
-        :param bbox_comp: bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)
-        :return: None
-        """
-
-        for param in {epsilon_polygon, epsilon_linestring, bbox_comp}:
-            if param is not None:
-
-                if type(param) not in {float, int}:
-                    raise TypeError("wrong ", str(param), " type")
-
-                if param < 0:
-                    raise ValueError("wrong ", str(param), " value")
-
-        if epsilon_polygon is None:
-            epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
-
-        if epsilon_linestring is None:
-            epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
-        
-        # polygon coordinates
-        self.polygons.geometry = \
-            self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
-
-        # multipolygon coordinates
-        for i in range(self.multipolygons.shape[0]):
-            natural = self.multipolygons.natural.iloc[i]
-            for polygon in self.multipolygons.geometry.iloc[i].geoms:
-                self.polygons = self.polygons.append({'geometry': get_coordinates(polygon, epsilon_polygon,
-                                                                                  bbox_comp, self.bbox_size, True),
-                                                      'natural': natural}, ignore_index=True)
-        self.multipolygons.drop(self.multipolygons.index, inplace=True)
-
-        # delete None elements
-        self.polygons = self.polygons[self.polygons['geometry'].notna()]
-        self.polygons = self.polygons.reset_index().drop(columns='index')
-
-        # add info about convex hull
-        self.polygons = self.polygons.join(DataFrame(self.polygons.geometry)
-                                           .apply(lambda x: convex_hull(x[0]), axis=1, result_type='expand')
-                                           .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
-
-        # linestring coordinates
-        self.multilinestrings.geometry = self.multilinestrings.geometry\
-            .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, False])
-
-        # delete None elements
-        self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
-        self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
-
-    def save_geometry(self, filename):
-        """
-        save computed data to filename
-        :param filename: standard filename requirements
-        :return: None
-        """
-
-        if type(filename) != str:
-            raise TypeError("wrong filename type")
-
-        store = HDFStore(filename)
-        store["polygons"] = self.polygons
-        store["multilinestrings"] = self.multilinestrings
-
-    def load_geometry(self, filename):
-        """
-        load saved data from filename
-        :param filename: standard filename requirements
-        :return: None
-        """
-
-        if type(filename) != str:
-            raise TypeError("wrong filename type")
-
-        store = HDFStore(filename)
-        self.polygons = store["polygons"]
-        self.multilinestrings = store["multilinestrings"]
