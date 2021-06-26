@@ -18,7 +18,7 @@ class DfBuilder(OsmParser):
             add data about convex hull for polygons
         Default parameters will be computed for the given area to provide best performance.
         :param epsilon_polygon: None or Ramer-Douglas-Peucker algorithm parameter for polygons
-        :param epsilon_linestring: None or Ramer-Douglas-Peucker algorithm parameter for linestrings and multilinestrings
+        :param epsilon_linestring: None or Ramer-Douglas-Peucker algorithm parameter for multilinestrings
         :param bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)
         :return: None
         """
@@ -40,7 +40,7 @@ class DfBuilder(OsmParser):
         
         # polygon coordinates
         self.polygons.geometry = \
-            self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, 0])
+            self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
 
         # delete None elements
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
@@ -52,13 +52,9 @@ class DfBuilder(OsmParser):
                                                .apply(lambda x: convex_hull(x[0][0]), axis=1, result_type='expand')
                                                .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
-        # linestring & multilinestring coordinates
-        self.linestrings.geometry = self.linestrings.geometry\
-            .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, 1])
+        # multilinestring coordinates
         self.multilinestrings.geometry = self.multilinestrings.geometry\
-            .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, 2])
-        self.multilinestrings = self.multilinestrings.append(self.linestrings)
-        self.linestrings.drop(self.linestrings.index, inplace=True)
+            .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, False])
 
         # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
