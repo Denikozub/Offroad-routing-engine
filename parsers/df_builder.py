@@ -47,7 +47,7 @@ class DfBuilder(OsmParser):
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
         # add info about convex hull
-        if (self.polygons.shape[0] > 0):
+        if self.polygons.shape[0] > 0:
             self.polygons = self.polygons.join(DataFrame(self.polygons.geometry)
                                                .apply(lambda x: convex_hull(x[0][0]), axis=1, result_type='expand')
                                                .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
@@ -59,4 +59,3 @@ class DfBuilder(OsmParser):
         # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
         self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
-

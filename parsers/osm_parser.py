@@ -30,7 +30,6 @@ class OsmParser:
 
         # for Windows compilation
         from pyrosm import OSM
-        from geopandas import GeoDataFrame
 
         # parsing OMS map with pyrosm
         osm = OSM(filename, bounding_box=bbox)
@@ -58,10 +57,9 @@ class OsmParser:
         # getting road network data with pyrosm
         roads = osm.get_network()
         if roads is not None:
-            self.multilinestrings = DataFrame(roads.loc[:, ['highway', 'geometry']] \
-            .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
+            self.multilinestrings = DataFrame(roads.loc[:, ['highway', 'geometry']]
+                    .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
         roads.drop(roads.index, inplace=True)
         
         # bounding box size
         self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
-

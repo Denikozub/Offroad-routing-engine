@@ -1,6 +1,7 @@
-from shapely.geometry import mapping, MultiLineString
+from shapely.geometry import mapping
 from math import fabs
 from rdp import rdp
+
 
 def get_coordinates(obj, epsilon, bbox_comp, bbox_size, is_polygon):
     """
@@ -47,8 +48,8 @@ def get_coordinates(obj, epsilon, bbox_comp, bbox_size, is_polygon):
         coordinates = mapping(obj)['coordinates']
         polygons = list()
         for polygon in coordinates:
-            polygons.append(tuple([tuple(point) for point in polygon]) if epsilon is None or epsilon == 0 else \
-                tuple([tuple(point) for point in rdp(polygon, epsilon=epsilon)]))
+            polygons.append(tuple([tuple(point) for point in polygon]) if epsilon is None or epsilon == 0 else
+                    tuple([tuple(point) for point in rdp(polygon, epsilon=epsilon)]))
         return tuple(polygons)
     else:
         coordinates = mapping(obj)['coordinates']
@@ -57,4 +58,3 @@ def get_coordinates(obj, epsilon, bbox_comp, bbox_size, is_polygon):
         coordinates = points
     return tuple([tuple(point) for point in coordinates]) if epsilon is None or epsilon == 0 else \
         tuple([tuple(point) for point in rdp(coordinates, epsilon=epsilon)])
-

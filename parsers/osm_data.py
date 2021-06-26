@@ -34,4 +34,3 @@ class OsmData(DfBuilder):
         store = HDFStore(filename)
         self.polygons = store["polygons"]
         self.multilinestrings = store["multilinestrings"]
-

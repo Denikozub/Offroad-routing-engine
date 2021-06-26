@@ -8,7 +8,7 @@ by Denis Kozub
 - Minimized stored and precomputed data
 - Dynamic edge weights
 - Huge database of hiking and country roads for learning
-- OpenStreetMap data
+- OpenStreetMap data (see OSM data explanation)
 
 This is how Google routing engine (and all others) currently [03.06.2021] work. The goal is to change it.
 ![](docs/Google_maps.png)
@@ -24,12 +24,13 @@ Scope of application:
 VisibilityGraph is a class for building a visibility graph on a given area from OSM data  
 
 ~~~python
-compute_geometry(filename, bbox)
+compute_geometry(bbox, filename=None)
 ~~~
-Parse OSM file area in bounding box to retrieve information about roads and surface.  
-This method uses [pyrosm](https://pypi.org/project/pyrosm/), which requires [geopandas](https://geopandas.org/) to be installed. This may be problematic on Windows.  
-__filename__: .osm.pbf format  
-__bbox__: None of in format min_lon, min_lat, max_lon, max_lat  
+Parse OSM file (area in bounding box) to retrieve information about roads and surface.  
+This method uses [pyrosm](https://pypi.org/project/pyrosm/), which requires [geopandas](https://geopandas.org/) to be installed.  
+What is more, curl and [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) are required for downloading the map.  
+__bbox__: in format min_lon, min_lat, max_lon, max_lat  
+__filename__: None (map will be downloaded) or in .osm.pbf format  
 __return__ None  
 
 ~~~python
@@ -97,24 +98,25 @@ __return__ None
 
 ### Downloading and processing data
 
-You need to download data in osm.pbf format:  
-[Parts of the world](http://download.geofabrik.de/)  
-[Cities](https://download.bbbike.org/osm/bbbike/)  
-[Choose borders](https://extract.bbbike.org/)  
+There are two ways you can obtain OSM data in osm.pbf format:  
+- Download it yourself: [parts of the world](https://download.geofabrik.de/), [cities](https://download.bbbike.org/osm/bbbike/), [adjustable area](https://extract.bbbike.org/) (via mail), [adjustable area](https://export.hotosm.org/en/v3/) (online), [planet](https://planet.maps.mail.ru/pbf/)
+- Let the program get the job done for you
 
-After file is downloaded, you can choose any bbox inside downloaded area to work with:
+Whether the map is downloaded or not, you can choose any bounding box to work with:
+
 
 ```python
 from visibility_graph import VisibilityGraph
 
-filename = "maps/kozlovo.osm.pbf"
-bbox = [36.0, 56.45, 36.1, 56.5]
+filename = '../maps/kozlovo.osm.pbf'
+bbox = [36, 56.45, 36.1, 56.5]
 map_data = VisibilityGraph()
-map_data.compute_geometry(filename=filename, bbox=bbox)
+map_data.compute_geometry(bbox=bbox, filename=filename)
 ```
 
 Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
 If not specified, optimal parameters will be computed by the algorithm.
+
 
 ```python
 map_data.build_dataframe(epsilon_polygon=0.003,
@@ -124,22 +126,26 @@ map_data.build_dataframe(epsilon_polygon=0.003,
 
 Computed data can also be saved in .h5 file to skip data processing the next time:
 
+
 ```python
-map_data.save_geometry("maps/kozlovo_36_5645_361_565.h5")
+map_data.save_geometry("../maps/kozlovo_36_5645_361_565.h5")
 ```
 
 ### Using precomputed data and building visibility graph
+
 
 ```python
 from visibility_graph import VisibilityGraph
 
 map_data = VisibilityGraph()
-map_data.load_geometry("maps/kozlovo_36_5645_361_565.h5")
+map_data.load_geometry("../maps/kozlovo_36_5645_361_565.h5")
 ```
 
 Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using mplleaflet:
 
+
 ```python
+%%time
 import mplleaflet
 
 map_plot=('r', {0: "royalblue", 1: "r", 2: "k"})
@@ -156,6 +162,7 @@ note: using mplleaflet may be problematic on Windows
 
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
+
 
 ```python
 import matplotlib.pyplot as plt
