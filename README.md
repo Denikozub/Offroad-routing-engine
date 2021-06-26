@@ -37,7 +37,7 @@ __filename__: None (map will be downloaded) or in .osm.pbf format
 __return__ None  
 
 ~~~python
-build_dataframe(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15)
+build_dataframe(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)
 ~~~
 Transform retrieved data:
 * transform geometry to tuple of points
@@ -49,6 +49,8 @@ Default parameters will be computed for the given area to provide best performan
 __epsilon_polygon__: None or Ramer-Douglas-Peucker algorithm parameter for polygons  
 __epsilon_linestring__: None or Ramer-Douglas-Peucker algorithm parameter for linestrings  
 __bbox_comp__: bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)  
+__remove_inner__: bool - whether inner polygons for other polygons should be removed  
+(currently their share of all polygon is too low due to lack of OSM data and pyrosm problems)  
 __return__ None  
 
 ~~~python

@@ -45,7 +45,7 @@ def point_in_ch(point, polygon, angles, reverse_angle=False):
         raise TypeError("wrong reverse_angle type")
 
     # point equals [0] point of polygon
-    if compare_points(point, polygon[0], 10 ** -10):
+    if compare_points(point, polygon[0]):
         return True, None
 
     point_angle = angle(point, polygon[0]) if reverse_angle else angle(polygon[0], point)

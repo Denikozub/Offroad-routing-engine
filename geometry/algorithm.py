@@ -65,5 +65,5 @@ def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
 
 
 # p1 == p2
-def compare_points(p1, p2, delta):
+def compare_points(p1, p2, delta=10 ** -9):
     return fabs(p1[0] - p2[0]) < delta and fabs(p1[1] - p2[1]) < delta
