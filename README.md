@@ -1,6 +1,6 @@
 # Off-road navigation system
-### [Documentation](https://github.com/Denikozub/Routing_engine#documentation)  
-### [Usage](https://github.com/Denikozub/Routing_engine#usage)  
+[__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
+[__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
 ___
 by Denis Kozub
 - O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
