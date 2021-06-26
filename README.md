@@ -1,6 +1,7 @@
 # Off-road navigation system
 [__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
 [__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
+[__Visualization__]()
 ___
 by Denis Kozub
 - O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
@@ -13,8 +14,7 @@ by Denis Kozub
 - Huge database of hiking and country roads for learning
 - OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
 
-This is how Google routing engine (and all others) currently [03.06.2021] work. The goal is to change it.
-![](docs/Google_maps.png)
+<img src="docs/VGraph.png" alt="" width="700"/>
 
 Scope of application:
 - Extending functionality of other routing engines  
@@ -146,7 +146,7 @@ map_data = VisibilityGraph()
 map_data.load_geometry("../maps/kozlovo_36_5645_361_565.h5")
 ```
 
-Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using mplleaflet:
+Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using [mplleaflet](https://pypi.org/project/mplleaflet/):
 
 
 ```python
@@ -182,3 +182,7 @@ for p in incidents:
     plt.scatter(p[0][0], p[0][1], color='b')
 mplleaflet.display(fig=fig)
 ```
+
+# Visualization
+Here I provide you with two HTML files visualizing my algorithm by [mplleaflet](https://pypi.org/project/mplleaflet/).  
+They correspond to the two tests on two different areas. Feel free to play with them!
