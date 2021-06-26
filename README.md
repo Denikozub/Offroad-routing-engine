@@ -1,4 +1,7 @@
 # Off-road navigation system
+### [Documentation](https://github.com/Denikozub/Routing_engine#documentation)  
+### [Usage](https://github.com/Denikozub/Routing_engine#usage)  
+___
 by Denis Kozub
 - O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
 - Pathfinding _without_ graph precomputing
@@ -8,7 +11,7 @@ by Denis Kozub
 - Minimized stored and precomputed data
 - Dynamic edge weights
 - Huge database of hiking and country roads for learning
-- OpenStreetMap data (see OSM data explanation)
+- OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
 
 This is how Google routing engine (and all others) currently [03.06.2021] work. The goal is to change it.
 ![](docs/Google_maps.png)
