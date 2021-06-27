@@ -1,18 +1,18 @@
 # Off-road navigation system
 [__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
 [__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
-[__Visualization__](https://denikozub.github.io/Routing_engine/)
+[__Graph visualization__](https://denikozub.github.io/Routing_engine/)
 ___
 by Denis Kozub
-- O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
+- World discretization using _visibility grahs_
+- O(nh log n) reduced visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
 - Pathfinding _without_ graph precomputing
 - _Hierarchical approach_ for graph building
-- Super fast pathfinding on large areas
 - No projected crs, works in any part of the world
-- Minimized stored and precomputed data
-- Dynamic edge weights
-- Huge database of hiking and country roads for learning
-- OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
+- Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
+- Ability to download OMS maps at runtime
+- Ability to save and load precomputed map data
+- Visualization tools support
 
 <img src="docs/VGraph.png" alt="" width="800"/>
 
