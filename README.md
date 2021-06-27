@@ -163,7 +163,7 @@ print('nodes: ', G.number_of_nodes())
 mplleaflet.display(fig=fig)
 ```
 
-note: using mplleaflet may be problematic on Windows
+Check out the [result](https://denikozub.github.io/Routing_engine/) provided by mplleaflet!
 
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
