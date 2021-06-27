@@ -1,7 +1,7 @@
 # Off-road navigation system
 [__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
 [__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
-[__Visualization__](https://github.com/Denikozub/Routing_engine#visualization)
+[__Visualization__](https://denikozub.github.io/Routing_engine/)
 ___
 by Denis Kozub
 - O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
@@ -182,9 +182,3 @@ for p in incidents:
     plt.scatter(p[0][0], p[0][1], color='b')
 mplleaflet.display(fig=fig)
 ```
-
-# Visualization
-Here I provide you with two HTML files visualizing the algorithm, created by [mplleaflet](https://pypi.org/project/mplleaflet/).  
-They correspond to the two tests on two different areas, demonstated in the example.  
-In order to open HTML files, you have to download the file itself and its data folder: [visualization](https://github.com/Denikozub/Routing_engine/tree/main/docs/Visualization).  
-Feel free to play with it!
