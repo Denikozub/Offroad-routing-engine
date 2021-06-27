@@ -1,6 +1,7 @@
 from visibility_graph import VisibilityGraph
 import mplleaflet
 
+
 map_data = VisibilityGraph()
 map_data.load_geometry("../maps/kozlovo_36_5645_361_565.h5")
 

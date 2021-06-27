@@ -8,4 +8,5 @@ pandas
 geopandas
 pyrosm
 tables
+ipython
 mplleaflet
