@@ -1,7 +1,7 @@
 # Off-road navigation system
 [__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
 [__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
-[__Visualization__]()
+[__Visualization__](https://github.com/Denikozub/Routing_engine#visualization)
 ___
 by Denis Kozub
 - O(nh log n) on-line _reduced visibility graph_ algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
@@ -14,7 +14,7 @@ by Denis Kozub
 - Huge database of hiking and country roads for learning
 - OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
 
-<img src="docs/VGraph.png" alt="" width="700"/>
+<img src="docs/VGraph.png" alt="" width="800"/>
 
 Scope of application:
 - Extending functionality of other routing engines  
@@ -184,5 +184,7 @@ mplleaflet.display(fig=fig)
 ```
 
 # Visualization
-Here I provide you with two HTML files visualizing my algorithm by [mplleaflet](https://pypi.org/project/mplleaflet/).  
-They correspond to the two tests on two different areas. Feel free to play with them!
+Here I provide you with two HTML files visualizing the algorithm, created by [mplleaflet](https://pypi.org/project/mplleaflet/).  
+They correspond to the two tests on two different areas, demonstated in the example.  
+In order to open HTML files, you have to download the file itself and its data folder: [visualization](https://github.com/Denikozub/Routing_engine/tree/main/docs/Visualization).  
+Feel free to play with it!
