@@ -5,6 +5,7 @@ matplotlib
 rdp
 scipy
 pandas
+numpy
 geopandas
 pyrosm
 tables
