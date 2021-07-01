@@ -4,8 +4,8 @@
 [__Graph visualization__](https://denikozub.github.io/Routing_engine/)
 ___
 by Denis Kozub
-- World discretization using _visibility grahs_
-- O(nh log n) reduced visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
+- World discretization using _visibility graphs_
+- O(nh log n) _reduced_ visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
 - Pathfinding _without_ graph precomputing
 - _Hierarchical approach_ for graph building
 - No projected crs, works in any part of the world
