@@ -1,5 +1,6 @@
 from shapely.geometry import Polygon, Point
 from networkx import MultiGraph
+from tqdm import tqdm
 from matplotlib.pyplot import plot, figure, fill
 from parsers.osm_data import OsmData
 from geometry.locate_convex import point_in_ch
@@ -138,7 +139,7 @@ class VisibilityGraph(OsmData):
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
 
         # loop over all objects
-        for i in range(object_count):
+        for i in tqdm(range(object_count)):
 
             # object coordinates
             obj = self.polygons.geometry[i][0] if is_polygon else self.multilinestrings.geometry[i]

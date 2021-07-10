@@ -11,3 +11,4 @@ pyrosm
 tables
 ipython
 mplleaflet
+tqdm
