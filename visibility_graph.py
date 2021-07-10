@@ -176,7 +176,7 @@ class VisibilityGraph(OsmData):
                     # drawing plot for mplleaflet
                     if map_plot is not None:
                         px, py = point
-                        plot([px, vx], [py, vy], color=map_plot[1][vertex[4]])
+                        plot([px, vx], [py, vy], color=map_plot[1][vertex[4]], linewidth=4 if vertex[4] == 2 else None)
 
     def build_graph(self, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
         """

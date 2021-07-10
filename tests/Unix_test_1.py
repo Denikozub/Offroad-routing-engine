@@ -3,7 +3,7 @@ import mplleaflet
 
 
 map_data = VisibilityGraph()
-map_data.load_geometry("../maps/kozlovo_36_5645_361_565.h5")
+map_data.load_geometry("../maps/user_area.h5")
 
 map_plot = ('r', {0: "royalblue", 1: "r", 2: "k"})
 G, fig = map_data.build_graph(inside_percent=0,

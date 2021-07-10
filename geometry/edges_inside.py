@@ -9,6 +9,7 @@ def edge_inside_poly(point, point_number, polygon, polygon_number, inside_percen
     if point is not a polygon vertex, finds all segments
     if point is a polygon vertex, finds diagonals to further vertices
     we should not add fully outer segments because they may intersect other polygons!
+    now only outer polygon is processed => everywhere polygon[0] is used
     :param point: iterable of x, y
     :param point_number: None if point is not a polygon vertex else number or vertex
     :param polygon: iterable of polygons (polygon[0] is outer, rest are inner)

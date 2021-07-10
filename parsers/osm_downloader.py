@@ -9,7 +9,7 @@ class OsmDownloader:
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         """
         self.bbox = bbox
-        self.filename = "maps/request_map.osm"
+        self.filename = "request_map.osm"
         addr = '"http://www.overpass-api.de/api/xapi_meta?*[bbox=' \
             + str(bbox[0]) + ',' + str(bbox[1]) + ',' + str(bbox[2]) + ',' + str(bbox[3]) + ']"'
         system('curl -g -o ' + self.filename + ' ' + addr)

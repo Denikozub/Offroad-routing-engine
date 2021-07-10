@@ -1,7 +1,7 @@
 requests
 shapely
 networkx
-matplotlib
+matplotlib==3.3.2
 rdp
 scipy
 pandas
