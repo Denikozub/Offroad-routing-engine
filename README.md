@@ -171,7 +171,9 @@ print('nodes: ', G.number_of_nodes())
 mplleaflet.display(fig=fig)
 ```
 
-Check out the [result](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet!
+Check out the [result](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet!  
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 2 minutes 30 seconds.  
+Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 9 seconds!
 
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
