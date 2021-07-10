@@ -1,15 +1,15 @@
 # Off-road navigation system
-[__Documentation__](https://github.com/Denikozub/Routing_engine#documentation)  
-[__Usage__](https://github.com/Denikozub/Routing_engine#usage)  
-[__Graph visualization__](https://denikozub.github.io/Routing_engine/)
+[__Documentation__](https://github.com/Denikozub/Offroad-routing-engine#documentation)  
+[__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)  
+[__Graph visualization__](https://denikozub.github.io/Offroad-routing-engine/)
 ___
 by Denis Kozub
 - World discretization using _visibility graphs_
-- O(nh log n) _reduced_ visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/algorithm.pdf))
+- O(nh log n) _reduced_ visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/algorithm.pdf))
 - Pathfinding _without_ graph precomputing
 - _Hierarchical approach_ for graph building
 - No projected crs, works in any part of the world
-- Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Routing_engine/blob/main/docs/OSM_data.ipynb))
+- Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/OSM_data.ipynb))
 - Ability to download OMS maps at runtime
 - Ability to save and load precomputed map data
 - Visualization tools support
@@ -99,24 +99,32 @@ __crs__: string parameter: coordinate reference system
 __return__ None
 
 # Usage
-[ipynb notebook](https://github.com/Denikozub/Routing_engine/blob/main/docs/example.ipynb)
+[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/example.ipynb)
 
 ### Downloading and processing data
 
 There are two ways you can obtain OSM data in osm.pbf format:  
 - Download it yourself: [parts of the world](https://download.geofabrik.de/), [cities](https://download.bbbike.org/osm/bbbike/), [adjustable area](https://extract.bbbike.org/) (via mail), [adjustable area](https://export.hotosm.org/en/v3/) (online), [planet](https://planet.maps.mail.ru/pbf/)
-- Let the program get the job done for you
+- Let the program download it for you
 
-Whether the map is downloaded or not, you can choose any bounding box to work with:
+If the map is downloaded you can specify the filename:
 
 
 ```python
 from visibility_graph import VisibilityGraph
 
-filename = '../maps/kozlovo.osm.pbf'
-bbox = [36, 56.45, 36.1, 56.5]
 map_data = VisibilityGraph()
+filename = "../maps/kozlovo.osm.pbf"
+bbox = [36.2, 56.5, 36.7, 57]
 map_data.compute_geometry(bbox=bbox, filename=filename)
+```
+
+Or, alternatively, you can only specify the bounding box, and the map will be downloaded automatically ([curl](https://curl.se/) & [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) required):
+
+
+```python
+bbox = [34, 59, 34.2, 59.1]
+map_data.compute_geometry(bbox=bbox)
 ```
 
 Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
@@ -133,7 +141,7 @@ Computed data can also be saved in .h5 file to skip data processing the next tim
 
 
 ```python
-map_data.save_geometry("../maps/kozlovo_36_5645_361_565.h5")
+map_data.save_geometry("../maps/user_area.h5")
 ```
 
 ### Using precomputed data and building visibility graph
@@ -143,7 +151,7 @@ map_data.save_geometry("../maps/kozlovo_36_5645_361_565.h5")
 from visibility_graph import VisibilityGraph
 
 map_data = VisibilityGraph()
-map_data.load_geometry("../maps/kozlovo_36_5645_361_565.h5")
+map_data.load_geometry("../maps/kozlovo.h5")
 ```
 
 Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using [mplleaflet](https://pypi.org/project/mplleaflet/):
@@ -163,7 +171,7 @@ print('nodes: ', G.number_of_nodes())
 mplleaflet.display(fig=fig)
 ```
 
-Check out the [result](https://denikozub.github.io/Routing_engine/) provided by mplleaflet!
+Check out the [result](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet!
 
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
