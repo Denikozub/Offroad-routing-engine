@@ -30,6 +30,9 @@ def point_in_ch(point: Tuple[float, float], polygon: Sequence[Tuple[float, float
         None if point is inside polygon else int - number of polygon vertex where point_angle is located
     """
 
+    if angles is None:
+        return False, None
+
     # point equals [0] point of polygon
     if compare_points(point, polygon[0]):
         return True, None

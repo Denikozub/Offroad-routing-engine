@@ -169,7 +169,7 @@ class VisibilityGraph(OsmData):
         """
         Compute [and build] [and plot] visibility graph
         :param inside_percent: probability of an inner edge to be added (from 0 to 1)
-        :param graph: build a networkx graph (True) or not to build (False)
+        :param graph: build (True) or not to build (False) a networkx graph
         :param map_plot: colors to plot visibility graph
             0 element: color to plot polygons  
             1 element: colors to plot edges

@@ -32,8 +32,8 @@ compute_geometry(bbox, filename=None)
 Parse OSM file (area in bounding box) to retrieve information about roads and surface.  
 This method uses [pyrosm](https://pypi.org/project/pyrosm/), which requires [geopandas](https://geopandas.org/) to be installed.  
 What is more, curl and [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) are required for downloading the map.  
-__bbox__: in format min_lon, min_lat, max_lon, max_lat  
-__filename__: None (map will be downloaded) or in .osm.pbf format  
+__bbox__: sequence in format min_lon, min_lat, max_lon, max_lat  
+__filename__: None (map will be downloaded) or str in .osm.pbf format  
 __return__ None  
 
 ~~~python
@@ -48,8 +48,8 @@ Transform retrieved data:
 Default parameters will be computed for the given area to provide best performance.  
 __epsilon_polygon__: None or Ramer-Douglas-Peucker algorithm parameter for polygons  
 __epsilon_linestring__: None or Ramer-Douglas-Peucker algorithm parameter for linestrings  
-__bbox_comp__: bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)  
-__remove_inner__: bool - whether inner polygons for other polygons should be removed  
+__bbox_comp__: None or int - scale polygon comparison parameter (to size of map bbox)  
+__remove_inner__: bool - inner polygons for other polygons should be removed (True) or not (False)  
 (currently their share of all polygon is too low due to lack of OSM data and pyrosm problems)  
 __return__ None  
 
@@ -57,40 +57,36 @@ __return__ None
 save_geometry(filename)
 ~~~
 Save computed data to .h5 file  
-___filename___: standard filename requirements  
-__return__ None
 
 ~~~python
 load_geometry(filename)
 ~~~
 Load saved data from .h5 file  
-__filename__: standard filename requirements  
-__return__ None
 
 ~~~python
 incident_vertices(point_data, inside_percent=0.4)
 ~~~
 Finds all incident vertices in visibility graph for given point.  
 __point_data__: _point_data_ of given point  
-__inside_percent__: float parameter setting the probability of an inner edge to be added (from 0 to 1)  
+__inside_percent__: float - probability of an inner edge to be added (from 0 to 1)  
 __return__ list of point_data of all visible points  
 _point_data_ is a tuple where:  
-* 0 element: point coordinates - tuple of x, y
-* 1 element: number of object where point belongs
-* 2 element: number of point in object
-* 3 element: if object is polygon (1) or linestring (0)
-* 4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+* 0 element: tuple of x, y - point coordinates
+* 1 element: int - number of object where point belongs
+* 2 element: int - number of point in object
+* 3 element: bool - object is polygon (True) or linestring (False)
+* 4 element: int - surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
 
 
 ~~~python
 build_graph(inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326')
 ~~~
 Compute [and build] [and plot] visibility graph  
-__inside_percent__: float parameter setting the probability of an inner edge to be added (from 0 to 1)  
-__graph__: bool parameter indicating whether to build a networkx graph  
-__map_plot__: None or iterable of 2 elements: colors to plot visibility graph
+__inside_percent__: float - probability of an inner edge to be added (from 0 to 1)  
+__graph__: bool - build (True) or not to build (False) a networkx graph  
+__map_plot__: None or tuple of colors to plot visibility graph
 * 0 element: color to plot polygons  
-* 1 element: dict of 3 elements: colors to plot edges  
+* 1 element: dict of colors to plot edges  
     * 0: edges between objects
     * 1: edges inside polygon
     * 2: road edges  
