@@ -1,35 +1,25 @@
-from shapely.geometry import mapping
+from shapely.geometry import mapping, Polygon, MultiLineString
 from math import fabs
 from rdp import rdp
+from typing import Union, Optional, Tuple
 
 
-def get_coordinates(obj, epsilon, bbox_comp, bbox_size, is_polygon):
+def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_comp: Optional[int],
+                    bbox_size: Tuple[float, float], is_polygon: bool) -> Optional[tuple]:
     """
-    transform shapely.geometry.Polygon or shapely.geometry.MultiLineString to tuple of points
-    get rid of small polygons and linestrings and run Ramer-Douglas-Peucker
-    :param obj: shapely.geometry.Polygon or shapely.geometry.MultiLineString
-    :param epsilon: None or Ramer-Douglas-Peucker algorithm parameter
-    :param bbox_comp: None or int or float - scale object comparison parameter (to size of map bbox)
-    :param bbox_size: None or tuple of lon, lat size of map bbox
-    :param is_polygon: bool - object type is shapely.geometry.Polygon
+    Transform shapely.geometry.Polygon or shapely.geometry.MultiLineString to tuple of points
+    Get rid of small polygons and linestrings and run Ramer-Douglas-Peucker
+    :param epsilon: Ramer-Douglas-Peucker algorithm parameter
+    :param bbox_comp: scale object comparison parameter (to size of map bbox)
+    :param bbox_size: lon, lat difference of map bbox
+    :param is_polygon: object type is Polygon (True) or MultiLineString (False)
     :return: None if object did not pass bbox comparison
              tuple of points of object if epsilon is None or epsilon == 0
              tuple of points of object estimated by Ramer-Douglas-Peucker else
     """
 
-    for param in {epsilon, bbox_comp}:
-        if param is not None:
-
-            if type(param) not in {float, int}:
-                raise TypeError("wrong ", str(param), " type")
-
-            if param < 0:
-                raise ValueError("wrong ", str(param), " value")
-
-    iter(bbox_size)
-
-    if type(is_polygon) != bool:
-        raise TypeError("wrong is_polygon type")
+    assert epsilon >= 0
+    assert bbox_comp is None or bbox_comp >= 0
 
     # getting polygon bbox with shapely
     if bbox_comp is not None:

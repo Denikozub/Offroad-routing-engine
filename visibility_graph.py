@@ -2,40 +2,33 @@ from shapely.geometry import Polygon, Point
 from networkx import MultiGraph
 from tqdm import tqdm
 from matplotlib.pyplot import plot, figure, fill
+from matplotlib.figure import Figure
 from parsers.osm_data import OsmData
 from geometry.locate_convex import point_in_ch
 from geometry.supporting_non_convex import find_line_brute_force
 from segment_visibility import SegmentVisibility
 from geometry.edges_inside import edge_inside_poly
 from geometry.supporting_convex import find_pair
+from typing import Tuple, Optional, Dict
 
 
 class VisibilityGraph(OsmData):
 
-    def incident_vertices(self, point_data, inside_percent=0.4):
+    def incident_vertices(self, point_data: Tuple[Tuple[float, float], Optional[int], Optional[int], Optional[bool],
+                                                  Optional[int]], inside_percent: float = 0.4) -> list:
         """
         find all incident vertices in visibility graph for given point
         :param point_data: point_data of given point
-        :param inside_percent: float parameter setting the probability of an inner edge to be added (from 0 to 1)
+        :param inside_percent: probability of an inner edge to be added (from 0 to 1)
         :return: list of point_data of all visible points
         point_data is a tuple where:
-            0 element: point coordinates - tuple of x, y
+            0 element: point coordinates x, y
             1 element: number of object where point belongs
             2 element: number of point in object
-            3 element: if object is polygon (1) or linestring (0)
+            3 element: object is polygon (True) or linestring (False)
             4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
-
-        iter(point_data)
-
-        if len(point_data) != 5:
-            raise ValueError("wrong point_data length")
-
-        if type(inside_percent) not in {float, int}:
-            raise TypeError("wrong inside_percent type")
-
-        if 0 < inside_percent > 1:
-            raise ValueError("wrong inside_percent value")
+        assert 0 <= inside_percent <= 1
 
         point = point_data[0]
         obj_number = point_data[1]
@@ -120,19 +113,10 @@ class VisibilityGraph(OsmData):
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, map_plot, inside_percent):
+    def __process_points_of_objects(self, is_polygon: bool, G: Optional[MultiGraph],
+                                    map_plot: Optional[Tuple[str, Dict[int, str]]], inside_percent: float) -> None:
         """
-        build visibility graph for all objects of given type (polygons or linestrings)
-        :param is_polygon: bool parameter: set object type
-        :param G: None or networkx.Graph
-        :param map_plot: None or iterable of 2 elements: colors to plot visibility graph
-            0 element: color to plot polygons  
-            1 element: dict of 3 elements: colors to plot edges  
-                0: edges between objects
-                1: edges inside polygon
-                2: road edges
-        :param inside_percent: float parameter setting the probability of an inner edge to be added (from 0 to 1)
-        :return: None
+        Build visibility graph for all objects of given type (polygons or linestrings)
         """
 
         max_poly_len = 10000                    # for graph indexing
@@ -179,35 +163,23 @@ class VisibilityGraph(OsmData):
                         px, py = point
                         plot([px, vx], [py, vy], color=map_plot[1][vertex[4]], linewidth=4 if vertex[4] == 2 else None)
 
-    def build_graph(self, inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326'):
+    def build_graph(self, inside_percent: float = 1, graph: bool = False,
+                    map_plot: Optional[Tuple[str, Dict[int, str]]] = None,
+                    crs: str = 'EPSG:4326') -> Tuple[Optional[MultiGraph], Optional[Figure]]:
         """
-        compute [and build] [and plot] visibility graph
-        :param inside_percent: float parameter setting the probability of an inner edge to be added (from 0 to 1)
-        :param graph: bool parameter indicating whether to build a networkx graph
-        :param map_plot: None or iterable of 2 elements: colors to plot visibility graph
+        Compute [and build] [and plot] visibility graph
+        :param inside_percent: probability of an inner edge to be added (from 0 to 1)
+        :param graph: build a networkx graph (True) or not to build (False)
+        :param map_plot: colors to plot visibility graph
             0 element: color to plot polygons  
-            1 element: dict of 3 elements: colors to plot edges  
+            1 element: colors to plot edges
                 0: edges between objects
                 1: edges inside polygon
                 2: road edges
-        :param crs: string parameter: coordinate reference system
-        :return: None
+        :param crs: coordinate reference system
         """
-
-        if type(inside_percent) not in {float, int}:
-            raise TypeError("wrong inside_percent type")
-
-        if 0 < inside_percent > 1:
-            raise ValueError("wrong inside_percent value")
-
-        if type(graph) != bool:
-            raise TypeError("wrong graph type")
-
-        if map_plot is not None:
-            iter(map_plot)
-
-        if type(crs) != str:
-            raise TypeError("wrong crs type")
+        assert 0 <= inside_percent <= 1
+        assert map_plot is None or len(map_plot) == 2 and isinstance(map_plot[1], dict)
 
         G = MultiGraph(crs=crs) if graph else None
         fig = None

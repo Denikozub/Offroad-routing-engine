@@ -1,8 +1,9 @@
 from geometry.algorithm import point_in_angle, turn
 from geometry.locate_convex import point_in_ch
+from typing import Tuple, Sequence, Optional
 
 """
-all algorithms work with quality of convex polygon in respect to a point
+All algorithms work with quality of convex polygon in respect to a point
 angles of polygon and semi-planes forming the polygon are sorted by the fact of containing the point
 therefore 2 subsets are formed, points dividing them are supporting points
 each of them is found with binary search
@@ -10,14 +11,14 @@ see more details in documentation
 """
 
 
-def binary_search(point, polygon, low, high, low_contains):
+def binary_search(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
+                  low: int, high: int, low_contains: bool) -> Optional[int]:
     """
-    find supporting point from point to polygon (index between low and high)
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1]) given counter-clockwise
+    Find supporting point from point to polygon (index between low and high)
+    :param polygon: given counter-clockwise, first and last points must be equal
     :param low: binary search algorithm parameter (polygon min index)
     :param high: binary search algorithm parameter (polygon max index)
-    :param low_contains: bool - angle formed by polygon[low] contains point
+    :param low_contains: angle formed by polygon[low] contains point (True) or not (False)
     :return: index of supporting point from point to polygon
     """
     polygon_size = len(polygon) - 1
@@ -42,28 +43,17 @@ def binary_search(point, polygon, low, high, low_contains):
     return None
 
 
-def find_pair(point, polygon, polygon_number, angles):
+def find_pair(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
+              polygon_number: int, angles: Optional[Tuple[float]]) -> Optional[tuple]:
     """
-    find a pair of supporting points from point to a convex polygon
+    Find a pair of supporting points from point to a convex polygon
     O(log n) Denis denikozub Kozub binary search through semi-planes algorithm
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1]) given counter-clockwise
+    :param polygon: given counter-clockwise, first and last points must be equal
     :param polygon_number: additional info which will be returned in point_data
     :param angles: tuple of polar angles from first point to others or None if polygon is a segment or a point
     :return: None if supporting points were not found
              a tuple of point_data tuples of 2 supporting points else
-    point_data is a tuple where:
-        0 element: point coordinates - tuple of x, y
-        1 element: number of object where point belongs
-        2 element: number of point in object
-        3 element: if object is polygon (1) or linestring (0)
-        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
     """
-    iter(point)
-    iter(polygon)
-
-    if type(polygon_number) not in {float, int}:
-        raise TypeError("wrong polygon_number type")
 
     polygon_size = len(polygon) - 1
     if angles is None:
@@ -107,27 +97,16 @@ def find_pair(point, polygon, polygon_number, angles):
     return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
 
 
-def find_pair_array(point, polygon, polygon_number):
+def find_pair_array(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
+                    polygon_number: int) -> Optional[tuple]:
     """
-    find a pair of supporting points from point to a convex polygon
+    Find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub use of array of angles implementation
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1])
+    :param polygon: first and last points must be equal
     :param polygon_number: additional info which will be returned in point_data
     :return: None if supporting points were not found
              a tuple of point_data tuples of 2 supporting points else
-    point_data is a tuple where:
-        0 element: point coordinates - tuple of x, y
-        1 element: number of object where point belongs
-        2 element: number of point in object
-        3 element: if object is polygon (1) or linestring (0)
-        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
     """
-    iter(point)
-    iter(polygon)
-
-    if type(polygon_number) not in {float, int}:
-        raise TypeError("wrong polygon_number type")
 
     n = len(polygon) - 1
 
@@ -171,27 +150,16 @@ def find_pair_array(point, polygon, polygon_number):
     return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
 
 
-def find_pair_cutoff(point, polygon, polygon_number):
+def find_pair_cutoff(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
+                     polygon_number: int) -> Optional[tuple]:
     """
-    find a pair of supporting points from point to a convex polygon
+    Find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub NO use of array of angles implementation
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1])
+    :param polygon: first and last points must be equal
     :param polygon_number: additional info which will be returned in point_data
     :return: None if supporting points were not found
              a tuple of point_data tuples of 2 supporting points else
-    point_data is a tuple where:
-        0 element: point coordinates - tuple of x, y
-        1 element: number of object where point belongs
-        2 element: number of point in object
-        3 element: if object is polygon (1) or linestring (0)
-        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
     """
-    iter(point)
-    iter(polygon)
-
-    if type(polygon_number) not in {float, int}:
-        raise TypeError("wrong polygon_number type")
 
     n = len(polygon) - 1
 

@@ -1,18 +1,17 @@
 from scipy.spatial import ConvexHull
 from geometry.algorithm import angle
+from typing import Sequence, Tuple
 
 
-def convex_hull(polygon):
+def convex_hull(polygon: Sequence[Tuple[float, float]]) -> tuple:
     """
-    builds a convex hull of a polygon
-    :param polygon: iterable of points (polygon[0] == polygon[-1])
+    Builds a convex hull of a polygon
+    :param polygon: first and last points must be equal
     :return: tuple of 3 elements:
         tuple of convex hull points
         tuple of their indexes in initial polygon
         tuple of polar angles from first point to others or None if polygon is a segment or a point
     """
-
-    iter(polygon)
 
     polygon_size = len(polygon) - 1
 

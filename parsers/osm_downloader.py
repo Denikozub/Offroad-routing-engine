@@ -1,9 +1,10 @@
 from os import system, remove
+from typing import Sequence
 
 
-class OsmDownloader:
+class OsmDownloader(object):
 
-    def __init__(self, bbox):
+    def __init__(self, bbox: Sequence[float]) -> None:
         """
         Download OSM XLM file of given bbox
         :param bbox: in format min_lon, min_lat, max_lon, max_lat

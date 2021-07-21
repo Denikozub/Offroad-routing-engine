@@ -1,32 +1,18 @@
 from geometry.algorithm import ray_intersects_segment, turn
+from typing import Tuple, Sequence, Optional, Union
 
 
-def find_line_brute_force(point, polygon, polygon_number, point_number=None):
+def find_line_brute_force(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], polygon_number: int,
+                          point_number: Optional[int] = None) -> Optional[Union[tuple, list]]:
     """
-    find a pair of supporting points from point to a non-convex polygon, O(n^2) brute force
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1])
+    Find a pair of supporting points from point to a non-convex polygon, O(n^2) brute force
+    :param polygon: first and last points must be equal
     :param polygon_number: additional info which will be returned in point_data
     :param point_number: None if point is not a polygon vertex else number or vertex
     :return: None if supporting points were not found
              a tuple of coordinates of 2 supporting points if polygon_point_number is None
              a list of point_data tuples of points connecting 2 supporting points else
-    point_data is a tuple where:
-        0 element: point coordinates - tuple of x, y
-        1 element: number of object where point belongs
-        2 element: number of point in object
-        3 element: if object is polygon (1) or linestring (0)
-        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
     """
-    iter(point)
-    iter(polygon)
-
-    if point_number is not None:
-        if type(point_number) not in {float, int}:
-            raise TypeError("wrong point_number type")
-
-    if type(polygon_number) not in {float, int}:
-        raise TypeError("wrong polygon_number type")
 
     n = len(polygon) - 1
     result = list()

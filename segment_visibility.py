@@ -1,16 +1,9 @@
 from shapely.geometry import LineString
 from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
+from typing import Sequence, Tuple, Optional
 
 
-class SegmentVisibility:
-    """
-    point_data is a tuple where:
-        0 element: point coordinates - tuple of x, y
-        1 element: number of object where point belongs
-        2 element: number of point in object
-        3 element: if object is polygon (1) or linestring (0)
-        4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
-    """
+class SegmentVisibility(object):
 
     def __init__(self):
         self.__segments = list()
@@ -18,71 +11,45 @@ class SegmentVisibility:
         self.__restriction_point = None
         self.__reverse_angle = None
 
-    def add_pair(self, pair):
+    def add_pair(self, pair: Optional[Sequence[Tuple[Tuple[float, float], Optional[int],
+                                                     Optional[int], Optional[bool], Optional[int]]]]) -> None:
         """
-        add a segment
-        :param pair: iterable of point_data of 2 points of a segment
-        :return: None
-        point_data is a tuple where:
-            0 element: point coordinates - tuple of x, y
-            1 element: number of object where point belongs
-            2 element: number of point in object
-            3 element: if object is polygon (1) or linestring (0)
-            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+        Add a line segment (pair of point_data)
         """
         if pair is None:
             return
-        iter(pair)
+        assert len(pair) == 2
         self.__segments.append(pair)
 
-    def add_line(self, line):
+    def add_line(self, line: Optional[Sequence[Tuple[Tuple[float, float], Optional[int],
+                                                     Optional[int], Optional[bool], Optional[int]]]]) -> None:
         """
-        add a line of segments
-        :param line: iterable of point_data of all points of a line
-        :return: None
-        point_data is a tuple where:
-            0 element: point coordinates - tuple of x, y
-            1 element: number of object where point belongs
-            2 element: number of point in object
-            3 element: if object is polygon (1) or linestring (0)
-            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+        Add a polyline (sequence of point_data)
         """
         if line is None:
             return
-        iter(line)
         for i in range(len(line) - 1):
             self.add_pair((line[i], line[i + 1]))
 
-    def set_restriction_angle(self, restriction_pair, restriction_point, reverse_angle):
+    def set_restriction_angle(self, restriction_pair: Sequence[Tuple[float, float]],
+                              restriction_point: Tuple[float, float], reverse_angle: bool) -> None:
         """
-        set restrictions for visibility graph to be built due to edges of own polygon
-        :param restriction_pair: iterable of 2 restricting points
-        :param restriction_point: starting point of restriction angle
-        :param reverse_angle: bool - restriction angle < pi
-        :return: None
+        Set restrictions for visibility graph to be built due to edges of own polygon
+        :param restriction_pair: restricting points - neighbours in polygon
+        :param restriction_point: starting point of restriction angle - current point in polygon
+        :param reverse_angle: restriction angle < pi (True) or >= pi (false)
         """
-        iter(restriction_pair)
-        iter(restriction_point)
-        if type(reverse_angle) != bool:
-            raise TypeError("wrong reverse_angle type")
+        assert len(restriction_pair) == 2
 
         self.__restriction_pair = restriction_pair
         self.__restriction_point = restriction_point
         self.__reverse_angle = reverse_angle
 
-    def get_edges_brute(self, point):
+    def get_edges_brute(self, point: Tuple[float, float]) -> list:
         """
-        build visibility graph for line segments from point, brute force O(n^2)
-        :param point: iterable of x, y
+        Build visibility graph for line segments from point, brute force O(n^2)
         :return: list of point_data of all visible points
-        point_data is a tuple where:
-            0 element: point coordinates - tuple of x, y
-            1 element: number of object where point belongs
-            2 element: number of point in object
-            3 element: if object is polygon (1) or linestring (0)
-            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
-        iter(point)
         segment_number = len(self.__segments)
         visible_edges = list()
 
@@ -120,19 +87,11 @@ class SegmentVisibility:
         self.__segments.clear()
         return visible_edges
 
-    def get_edges_sweepline(self, point):
+    def get_edges_sweepline(self, point: Tuple[float, float]) -> list:
         """
-        build visibility graph for line segments from point, rotational sweep line O(n log n)
-        :param point: iterable of x, y
+        Build visibility graph for line segments from point, rotational sweep line O(n log n)
         :return: list of point_data of all visible points
-        point_data is a tuple where:
-            0 element: point coordinates - tuple of x, y
-            1 element: number of object where point belongs
-            2 element: number of point in object
-            3 element: if object is polygon (1) or linestring (0)
-            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
-        iter(point)
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:

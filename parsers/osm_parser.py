@@ -1,27 +1,22 @@
 from parsers.osm_converter import OsmConverter
 from math import fabs
 from pandas import DataFrame
+from typing import Sequence, Optional
 
 
-class OsmParser:
+class OsmParser(object):
 
     def __init__(self):
         self.polygons = DataFrame(columns=['tag', 'geometry'])
         self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
         self.bbox_size = None
     
-    def compute_geometry(self, bbox, filename=None):
+    def compute_geometry(self, bbox: Sequence[float], filename: Optional[str] = None) -> None:
         """
         parse OSM file (area in bbox) to retrieve information about needed tags
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         :param filename: None (map will be downloaded) or in .osm.pbf format
-        :return: None
         """
-
-        if filename is not None and type(filename) != str:
-            raise TypeError("wrong filename type")
-
-        iter(bbox)
 
         # download .osm.pbf map        
         if filename is None:

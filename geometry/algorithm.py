@@ -1,32 +1,35 @@
 from numpy import array, cross, dot
 from math import fabs, atan2, pi
+from typing import Tuple
 
 
 # from geopy.distance import geodesic
 # points a and b given in format (lon, lat)
-# def dist(a, b):
+# def dist(a: Sequence[Union[int, float]], b: Sequence[Union[int, float]]) -> Union[int, float]:
 #     return geodesic((a[1], a[0]), (b[1], b[0])).km
 
 
 # [ab, bc]
-def turn(a, b, c):
-    return cross(array(b) - array(a), array(c) - array(b))
+def turn(a: Tuple[float, float], b: Tuple[float, float], c: Tuple[float, float]) -> float:
+    return float(cross(array(b) - array(a), array(c) - array(b)))
 
 
 # polar angle of vector ab
-def angle(a, b):
+def angle(a: Tuple[float, float], b: Tuple[float, float]) -> float:
     return (atan2(b[1] - a[1], b[0] - a[0]) + 2 * pi) % (2 * pi)
 
 
 # check if point i is in angle (lpr)
-def point_in_angle(i, l, p, r):
+def point_in_angle(i: Tuple[float, float], l: Tuple[float, float],
+                   p: Tuple[float, float], r: Tuple[float, float]) -> bool:
     if turn(l, p, r) > 0:
         return turn(p, l, i) < 0 < turn(p, r, i)
     return turn(p, r, i) < 0 < turn(p, l, i)
 
 
 # find intersection point, then check if it belongs to a ray and a segment
-def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
+def ray_intersects_segment(a0: Tuple[float, float], b0: Tuple[float, float], c0: Tuple[float, float],
+                           d0: Tuple[float, float], end_intersection: bool = False) -> bool:
 
     # relative coordinates
     a = array(a0)
@@ -65,5 +68,5 @@ def ray_intersects_segment(a0, b0, c0, d0, end_intersection=False):
 
 
 # p1 == p2
-def compare_points(p1, p2, delta=10 ** -9):
+def compare_points(p1: Tuple[float, float], p2: Tuple[float, float], delta: int = 10 ** -9) -> bool:
     return fabs(p1[0] - p2[0]) < delta and fabs(p1[1] - p2[1]) < delta

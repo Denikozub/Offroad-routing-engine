@@ -1,16 +1,12 @@
 from geometry.algorithm import angle, compare_points, turn
 from math import pi
+from typing import Tuple, Sequence, Optional
 
 
-def point_in_ch_linear(point, polygon):
+def point_in_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]) -> bool:
     """
-    locating point inside convex polygon O(n) algorithm
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1])
-    :return: bool - point is inside polygon
+    Locating point inside convex polygon O(n) algorithm
     """
-    iter(point)
-    iter(polygon)
 
     n = len(polygon) - 1
     if n <= 2:
@@ -22,27 +18,17 @@ def point_in_ch_linear(point, polygon):
     return True
 
 
-def point_in_ch(point, polygon, angles, reverse_angle=False):
+def point_in_ch(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], angles: Optional[Tuple[float]],
+                reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
-    locating point inside convex polygon O(log n) Preparata Shamos algorithm
-    :param point: iterable of x, y
-    :param polygon: iterable of points (polygon[0] == polygon[-1]) given counter-clockwise
-    :param angles: tuple of polar angles from first point to others or None if polygon is a segment or a point
-    :param reverse_angle: bool - point_angle should be turned on pi
+    Locating point inside convex polygon O(log n) Preparata Shamos algorithm
+    :param polygon: given counter-clockwise, first and last points must be equal
+    :param angles: polar angles from first point to others or None if polygon is a segment or a point
+    :param reverse_angle: point_angle should be turned on pi (True) or not (False)
     :return: tuple of 2 elements:
         bool - point is inside polygon
-        None if 0 element == False else int - number of polygon vertex where point_angle is located
+        None if point is inside polygon else int - number of polygon vertex where point_angle is located
     """
-
-    if angles is None:
-        return False, None
-
-    iter(point)
-    iter(polygon)
-    iter(angles)
-
-    if type(reverse_angle) != bool:
-        raise TypeError("wrong reverse_angle type")
 
     # point equals [0] point of polygon
     if compare_points(point, polygon[0]):

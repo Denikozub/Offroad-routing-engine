@@ -3,6 +3,7 @@ from parsers.coord_filter import get_coordinates
 from geometry.convex_hull import convex_hull
 from geometry.algorithm import compare_points
 from pandas import DataFrame
+from typing import Optional
 
 
 class DfBuilder(OsmParser):
@@ -10,29 +11,23 @@ class DfBuilder(OsmParser):
     def __init__(self):
         super().__init__()
     
-    def build_dataframe(self, epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False):
+    def build_dataframe(self, epsilon_polygon: Optional[float] = None, epsilon_linestring: Optional[float] = None,
+                        bbox_comp: Optional[int] = 15, remove_inner: bool = False) -> None:
         """
-        transform retrieved data:
+        Transform retrieved data:
             transform geometry to tuple of points
             run Ramer-Douglas-Peucker to geometry
             get rid of small objects with bbox_comp parameter
             add data about convex hull for polygons
         Default parameters will be computed for the given area to provide best performance.
-        :param epsilon_polygon: None or Ramer-Douglas-Peucker algorithm parameter for polygons
-        :param epsilon_linestring: None or Ramer-Douglas-Peucker algorithm parameter for multilinestrings
-        :param bbox_comp: None or int or float - scale polygon comparison parameter (to size of map bbox)
-        :param remove_inner: bool - whether inner polygons for other polygons should be removed
-        :return: None
+        :param epsilon_polygon: Ramer-Douglas-Peucker algorithm parameter for polygons
+        :param epsilon_linestring: Ramer-Douglas-Peucker algorithm parameter for multilinestrings
+        :param bbox_comp: scale polygon comparison parameter (to size of map bbox)
+        :param remove_inner: inner polygons for other polygons should be removed (True) or not (False)
         """
 
         for param in {epsilon_polygon, epsilon_linestring, bbox_comp}:
-            if param is not None:
-
-                if type(param) not in {float, int}:
-                    raise TypeError("wrong ", str(param), " type")
-
-                if param < 0:
-                    raise ValueError("wrong ", str(param), " value")
+            assert param is None or param >= 0
 
         if epsilon_polygon is None:
             epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
