@@ -69,7 +69,10 @@ incident_vertices(point_data, inside_percent=0.4)
 Finds all incident vertices in visibility graph for given point.  
 __point_data__: _point_data_ of given point  
 __inside_percent__: float - probability of an inner edge to be added (from 0 to 1)  
-__return__ list of point_data of all visible points  
+__return__ list of _point_data_ of all visible points  
+### point_data explanation
+In order to speed up computation, low-level data transfer approach is used.  
+Data about points, polylines and polygons is transferred using tuples instead of structures.  
 _point_data_ is a tuple where:  
 * 0 element: tuple of x, y - point coordinates
 * 1 element: int - number of object where point belongs
