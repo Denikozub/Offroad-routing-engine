@@ -110,7 +110,7 @@ If the map is downloaded you can specify the filename:
 
 
 ```python
-from visibility_graph import VisibilityGraph
+from visibility.visibility_graph import VisibilityGraph
 
 map_data = VisibilityGraph()
 filename = "../maps/kozlovo.osm.pbf"
@@ -147,7 +147,7 @@ map_data.save_geometry("../maps/user_area.h5")
 
 
 ```python
-from visibility_graph import VisibilityGraph
+from visibility.visibility_graph import VisibilityGraph
 
 map_data = VisibilityGraph()
 map_data.load_geometry("../maps/kozlovo.h5")

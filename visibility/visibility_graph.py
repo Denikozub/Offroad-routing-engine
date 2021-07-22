@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 from parsers.osm_data import OsmData
 from geometry.locate_convex import point_in_ch
 from geometry.supporting_non_convex import find_line_brute_force
-from segment_visibility import SegmentVisibility
+from visibility.segment_visibility import SegmentVisibility
 from geometry.edges_inside import edge_inside_poly
 from geometry.supporting_convex import find_pair
 from typing import Tuple, Optional, Dict
