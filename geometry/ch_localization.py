@@ -3,9 +3,9 @@ from math import pi
 from typing import Tuple, Sequence, Optional
 
 
-def point_in_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]) -> bool:
+def localize_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]) -> bool:
     """
-    Locating point inside convex polygon O(n) algorithm
+    Localizing point inside convex polygon O(n) algorithm
     """
 
     n = len(polygon) - 1
@@ -18,10 +18,10 @@ def point_in_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float
     return True
 
 
-def point_in_ch(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], angles: Optional[Tuple[float]],
+def localize_ch(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], angles: Optional[Tuple[float]],
                 reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
-    Locating point inside convex polygon O(log n) Preparata Shamos algorithm
+    Localizing point inside convex polygon O(log n) Preparata Shamos algorithm
     :param polygon: given counter-clockwise, first and last points must be equal
     :param angles: polar angles from first point to others or None if polygon is a segment or a point
     :param reverse_angle: point_angle should be turned on pi (True) or not (False)

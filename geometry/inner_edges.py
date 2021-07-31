@@ -4,8 +4,8 @@ from numpy.random import choice
 from typing import Tuple, Optional, Sequence, Union
 
 
-def edge_inside_poly(point: Tuple[float, float], point_number: Optional[int], polygon: Sequence[Tuple[float, float]],
-                     polygon_number: int, inside_percent: Union[int, float]) -> list:
+def inner_edges(point: Tuple[float, float], point_number: Optional[int], polygon: Sequence[Tuple[float, float]],
+                polygon_number: int, inside_percent: Union[int, float]) -> list:
     """
     Finds segments from point to polygon vertices which are strictly inside polygon
     if point is not a polygon vertex, finds all segments

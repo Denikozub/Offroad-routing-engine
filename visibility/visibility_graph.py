@@ -3,16 +3,16 @@ from networkx import MultiGraph
 from tqdm import tqdm
 from matplotlib.pyplot import plot, figure, fill
 from matplotlib.figure import Figure
-from parsers.osm_data import OsmData
-from geometry.locate_convex import point_in_ch
-from geometry.supporting_non_convex import find_line_brute_force
-from visibility.segment_visibility import SegmentVisibility
-from geometry.edges_inside import edge_inside_poly
-from geometry.supporting_convex import find_pair
 from typing import Tuple, Optional, Dict
+from osm_data.geometry_saver import GeometrySaver
+from visibility.segment_visibility import SegmentVisibility
+from geometry.ch_localization import localize_ch
+from geometry.supporting_pair import find_line_brute_force
+from geometry.supporting_pair_ch import find_pair
+from geometry.inner_edges import inner_edges
 
 
-class VisibilityGraph(OsmData):
+class VisibilityGraph(GeometrySaver):
 
     def incident_vertices(self, point_data: Tuple[Tuple[float, float], Optional[int], Optional[int], Optional[bool],
                                                   Optional[int]], inside_percent: float = 0.4) -> list:
@@ -45,7 +45,7 @@ class VisibilityGraph(OsmData):
             # if a point is not a part of an object
             if obj_number is None or point_number is None or is_polygon is None:
                 if Polygon(polygon.geometry[0]).contains(Point(point)):
-                    return edge_inside_poly(point, None, polygon.geometry, i, inside_percent)
+                    return inner_edges(point, None, polygon.geometry, i, inside_percent)
                 else:
                     continue
 
@@ -53,7 +53,7 @@ class VisibilityGraph(OsmData):
             if is_polygon and i == obj_number:
 
                 # add edges inside a polygon
-                edges_inside = edge_inside_poly(point, point_number, polygon.geometry, i, inside_percent)
+                edges_inside = inner_edges(point, point_number, polygon.geometry, i, inside_percent)
 
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
@@ -75,7 +75,7 @@ class VisibilityGraph(OsmData):
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
 
             # if a point not inside convex hull
-            elif not point_in_ch(point, polygon.convex_hull, polygon.angles)[0]:
+            elif not localize_ch(point, polygon.convex_hull, polygon.angles)[0]:
                 pair = find_pair(point, polygon.convex_hull, i, polygon.angles)
                 visible_vertices.add_pair(pair)
 
@@ -83,7 +83,7 @@ class VisibilityGraph(OsmData):
             else:
                 line = find_line_brute_force(point, polygon.geometry[0], i)
                 if line is None:
-                    return edge_inside_poly(point, None, polygon.geometry, i, inside_percent)
+                    return inner_edges(point, None, polygon.geometry, i, inside_percent)
                 visible_vertices.add_line(line)
 
         # loop over all linestrings

@@ -1,5 +1,5 @@
 from geometry.algorithm import point_in_angle, turn
-from geometry.locate_convex import point_in_ch
+from geometry.ch_localization import localize_ch
 from typing import Tuple, Sequence, Optional
 
 """
@@ -65,7 +65,7 @@ def find_pair(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]
     if polygon_size == 3:
         return find_pair_cutoff(point, polygon, polygon_number)
 
-    start_to_point = point_in_ch(point, polygon, angles, False)
+    start_to_point = localize_ch(point, polygon, angles, False)
 
     # ray polygon[0], point intersects polygon
     if start_to_point[1] is not None:
@@ -76,7 +76,7 @@ def find_pair(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]
         if index2 is None:
             return None
     else:
-        point_to_start = point_in_ch(point, polygon, angles, True)
+        point_to_start = localize_ch(point, polygon, angles, True)
 
         # ray polygon[0], point does not intersect polygon
         if point_to_start[1] is not None:

@@ -1,5 +1,5 @@
 from os import system, remove
-from parsers.osm_downloader import OsmDownloader
+from osm_data.osm_downloader import OsmDownloader
 from typing import Sequence
 
 

@@ -1,8 +1,8 @@
-from parsers.pruner import Pruner
+from osm_data.pruner import Pruner
 from pandas import HDFStore
 
 
-class OsmData(Pruner):
+class GeometrySaver(Pruner):
 
     def __init__(self):
         super().__init__()
