@@ -1,6 +1,6 @@
 """
 This is an attempt to approximate a polygon with an ellipse
-prune() method is changed to store coordinates of a bbox instead of a convex hull if parameter ellipse=True
+prune_geometry() method is changed to store coordinates of a bbox instead of a convex hull if parameter ellipse=True
 This requires usage of a specialized function find_pair_ellipse() to find a pair of supporting lines
 find_pair_ellipse() finds it in O(1) time, which allows to speed up the algorithm
 Current implementation does not work properly

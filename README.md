@@ -37,7 +37,7 @@ __filename__: None (map will be downloaded) or str in .osm.pbf format
 __return__ None  
 
 ~~~python
-prune(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)
+prune_geometry(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)
 ~~~
 Transform retrieved data:
 * transform geometry to tuple of points
@@ -130,9 +130,9 @@ Data inside this area can be processed using VisibilityGraph with chosen or defa
 If not specified, optimal parameters will be computed by the algorithm.
 
 ```python
-vgraph.prune(epsilon_polygon=0.003,
-             epsilon_linestring=0.001,
-             bbox_comp=10)
+vgraph.prune_geometry(epsilon_polygon=0.003,
+                      epsilon_linestring=0.001,
+                      bbox_comp=10)
 ```
 
 Computed data can also be saved in .h5 file to skip data processing the next time:
