@@ -49,7 +49,7 @@
 <p>VisibilityGraph is a class for building a visibility graph on a given area from OSM data  </p>
 <pre><code class="language-python">compute_geometry(bbox, filename=None)</code></pre>
 <p>Parse OSM file (area in bounding box) to retrieve information about roads and surface.<br>This method uses <a href="https://pypi.org/project/pyrosm/">pyrosm</a>, which requires <a href="https://geopandas.org/">geopandas</a> to be installed.<br>What is more, curl and <a href="https://wiki.openstreetmap.org/wiki/Osmosis">osmosis</a> are required for downloading the map.<br><strong>bbox</strong>: sequence in format min_lon, min_lat, max_lon, max_lat<br><strong>filename</strong>: None (map will be downloaded) or str in .osm.pbf format<br><strong>return</strong> None  </p>
-<pre><code class="language-python">build_dataframe(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)</code></pre>
+<pre><code class="language-python">prune(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)</code></pre>
 <p>Transform retrieved data:</p>
 <ul>
 <li>transform geometry to tuple of points</li>
@@ -104,7 +104,7 @@ vgraph.compute_geometry(bbox=bbox, filename=filename)</code></pre>
 <pre><code class="language-python">bbox = [34, 59, 34.2, 59.1]
 vgraph.compute_geometry(bbox=bbox)</code></pre>
 <p>Data inside this area can be processed using VisibilityGraph with chosen or default parameters.<br>If not specified, optimal parameters will be computed by the algorithm.</p>
-<pre><code class="language-python">vgraph.build_dataframe(epsilon_polygon=0.003,
+<pre><code class="language-python">vgraph.prune(epsilon_polygon=0.003,
                        epsilon_linestring=0.001,
                        bbox_comp=10)</code></pre>
 <p>Computed data can also be saved in .h5 file to skip data processing the next time:</p>

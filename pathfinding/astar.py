@@ -1,3 +1,4 @@
+from visibility.visibility_graph import VisibilityGraph
 from path import Path
 from typing import Tuple
 
@@ -7,4 +8,5 @@ class AStar(object):
         self.start = start
         self.end = end
 
-    def find(self, map_data:) -> Path:
+    def find(self, vgraph: VisibilityGraph) -> Path:
+

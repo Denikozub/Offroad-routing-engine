@@ -1,8 +1,8 @@
-from parsers.df_builder import DfBuilder
+from parsers.pruner import Pruner
 from pandas import HDFStore
 
 
-class OsmData(DfBuilder):
+class OsmData(Pruner):
 
     def __init__(self):
         super().__init__()

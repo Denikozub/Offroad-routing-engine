@@ -6,13 +6,13 @@ from pandas import DataFrame
 from typing import Optional
 
 
-class DfBuilder(OsmParser):
+class Pruner(OsmParser):
 
     def __init__(self):
         super().__init__()
     
-    def build_dataframe(self, epsilon_polygon: Optional[float] = None, epsilon_linestring: Optional[float] = None,
-                        bbox_comp: Optional[int] = 15, remove_inner: bool = False) -> None:
+    def prune(self, epsilon_polygon: Optional[float] = None, epsilon_linestring: Optional[float] = None,
+              bbox_comp: Optional[int] = 15, remove_inner: bool = False) -> None:
         """
         Transform retrieved data:
             transform geometry to tuple of points
