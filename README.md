@@ -1,4 +1,4 @@
-# Off-road navigation system
+# Off-road Navigation System
 [__Documentation__](https://github.com/Denikozub/Offroad-routing-engine#documentation)  
 [__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)  
 [__Graph visualization__](https://denikozub.github.io/Offroad-routing-engine/)
@@ -98,7 +98,7 @@ __crs__: string parameter: coordinate reference system
 __return__ None
 
 # Usage
-[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/example.ipynb)
+[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/graph_usage.ipynb)
 
 ### Downloading and processing data
 
@@ -112,10 +112,10 @@ If the map is downloaded you can specify the filename:
 ```python
 from visibility.visibility_graph import VisibilityGraph
 
-map_data = VisibilityGraph()
+vgraph = VisibilityGraph()
 filename = "../maps/kozlovo.osm.pbf"
 bbox = [36.2, 56.5, 36.7, 57]
-map_data.compute_geometry(bbox=bbox, filename=filename)
+vgraph.compute_geometry(bbox=bbox, filename=filename)
 ```
 
 Or, alternatively, you can only specify the bounding box, and the map will be downloaded automatically ([curl](https://curl.se/) & [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) required):
@@ -123,7 +123,7 @@ Or, alternatively, you can only specify the bounding box, and the map will be do
 
 ```python
 bbox = [34, 59, 34.2, 59.1]
-map_data.compute_geometry(bbox=bbox)
+vgraph.compute_geometry(bbox=bbox)
 ```
 
 Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
@@ -131,16 +131,16 @@ If not specified, optimal parameters will be computed by the algorithm.
 
 
 ```python
-map_data.build_dataframe(epsilon_polygon=0.003,
-                         epsilon_linestring=0.001,
-                         bbox_comp=10)
+vgraph.build_dataframe(epsilon_polygon=0.003,
+                       epsilon_linestring=0.001,
+                       bbox_comp=10)
 ```
 
 Computed data can also be saved in .h5 file to skip data processing the next time:
 
 
 ```python
-map_data.save_geometry("../maps/user_area.h5")
+vgraph.save_geometry("../maps/user_area.h5")
 ```
 
 ### Using precomputed data and building visibility graph
@@ -149,8 +149,8 @@ map_data.save_geometry("../maps/user_area.h5")
 ```python
 from visibility.visibility_graph import VisibilityGraph
 
-map_data = VisibilityGraph()
-map_data.load_geometry("../maps/kozlovo.h5")
+vgraph = VisibilityGraph()
+vgraph.load_geometry("../maps/kozlovo.h5")
 ```
 
 Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using [mplleaflet](https://pypi.org/project/mplleaflet/):
@@ -161,9 +161,9 @@ Visibility graph can be built and (optionally) saved as networkx graph and (opti
 import mplleaflet
 
 map_plot=('r', {0: "royalblue", 1: "r", 2: "k"})
-G, fig = map_data.build_graph(inside_percent=0,
-                              graph=True,
-                              map_plot=map_plot)
+G, fig = vgraph.build_graph(inside_percent=0,
+                            graph=True,
+                            map_plot=map_plot)
 
 print('edges: ', G.number_of_edges())
 print('nodes: ', G.number_of_nodes())
@@ -183,7 +183,7 @@ import matplotlib.pyplot as plt
 import mplleaflet
 
 start = ([36.35, 56.57], None, None, None, None)
-incidents = map_data.incident_vertices(start)
+incidents = vgraph.incident_vertices(start)
 
 fig = plt.figure()
 plt.scatter(start[0][0], start[0][1], color='r')
