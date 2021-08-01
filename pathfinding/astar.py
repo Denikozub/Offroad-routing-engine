@@ -3,6 +3,7 @@ from typing import Tuple
 from geometry.algorithm import dist
 from path import Path
 from visibility.visibility_graph import VisibilityGraph
+from priority_queue import PriorityQueue
 
 
 class AStar(object):
@@ -14,5 +15,5 @@ class AStar(object):
         return dist(node, goal)
 
     def find(self, start: Tuple[float, float], goal: Tuple[float, float]) -> Path:
-        opened = []
-        
+        frontier = PriorityQueue()
+

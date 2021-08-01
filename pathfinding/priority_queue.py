@@ -3,7 +3,7 @@ from typing import List, Tuple, TypeVar
 T = TypeVar("T")
 
 
-class PriorityQueue:
+class PriorityQueue(object):
     def __init__(self) -> None:
         self.elements: List[Tuple[float, T]] = []
 
