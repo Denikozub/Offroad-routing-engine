@@ -1,8 +1,9 @@
 from geometry.algorithm import point_in_angle, turn
 from geometry.ch_localization import localize_ch
-from typing import Tuple, Optional, TypeVar
-TPoint = TypeVar("TPoint")
-TPolygon = TypeVar("TPolygon")
+from typing import Optional, TypeVar
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TAngles = TypeVar("TAngles")  # Sequence[float]
 
 """
 All algorithms work with quality of convex polygon in respect to a point
@@ -15,7 +16,9 @@ see more details in documentation
 
 def binary_search(point: TPoint, polygon: TPolygon, low: int, high: int, low_contains: bool) -> Optional[int]:
     """
-    Find supporting point from point to polygon (index between low and high)
+    Find supporting point from point to polygon (index between low and high).
+
+    :param point: visibility point
     :param polygon: given counter-clockwise, first and last points must be equal
     :param low: binary search algorithm parameter (polygon min index)
     :param high: binary search algorithm parameter (polygon max index)
@@ -44,15 +47,17 @@ def binary_search(point: TPoint, polygon: TPolygon, low: int, high: int, low_con
     return None
 
 
-def find_pair(point: TPoint, polygon: TPolygon, polygon_number: int, angles: Optional[Tuple[float]]) -> Optional[tuple]:
+def find_pair(point: TPoint, polygon: TPolygon, polygon_number: int, angles: Optional[TAngles]) -> Optional[tuple]:
     """
-    Find a pair of supporting points from point to a convex polygon
-    O(log n) Denis denikozub Kozub binary search through semi-planes algorithm
+    Find a pair of supporting points from point to a convex polygon.
+    O(log n) Denis Kozub binary search through semi-planes algorithm.
+
+    :param point: visibility point
     :param polygon: given counter-clockwise, first and last points must be equal
-    :param polygon_number: additional info which will be returned in point_data
+    :param polygon_number: additional info which will be returned in PointData
     :param angles: tuple of polar angles from first point to others or None if polygon is a segment or a point
-    :return: None if supporting points were not found
-             a tuple of point_data tuples of 2 supporting points else
+    :return: None if supporting points were not found,
+             a tuple of PointData tuples of 2 supporting points else
     """
 
     polygon_size = len(polygon) - 1
@@ -99,11 +104,13 @@ def find_pair(point: TPoint, polygon: TPolygon, polygon_number: int, angles: Opt
 
 def find_pair_array(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
     """
-    Find a pair of supporting points from point to a convex polygon
-    O(n) Denis denikozub Kozub use of array of angles implementation
+    Find a pair of supporting points from point to a convex polygon.
+    O(n) Denis Kozub use of array of angles implementation.
+
+    :param point: visibility point
     :param polygon: first and last points must be equal
     :param polygon_number: additional info which will be returned in PointData
-    :return: None if supporting points were not found
+    :return: None if supporting points were not found,
              a tuple of PointData tuples of 2 supporting points else
     """
 
@@ -151,12 +158,14 @@ def find_pair_array(point: TPoint, polygon: TPolygon, polygon_number: int) -> Op
 
 def find_pair_cutoff(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
     """
-    Find a pair of supporting points from point to a convex polygon
-    O(n) Denis denikozub Kozub NO use of array of angles implementation
+    Find a pair of supporting points from point to a convex polygon.
+    O(n) Denis Kozub NO use of array of angles implementation.
+
+    :param point: visibility point
     :param polygon: first and last points must be equal
-    :param polygon_number: additional info which will be returned in point_data
-    :return: None if supporting points were not found
-             a tuple of point_data tuples of 2 supporting points else
+    :param polygon_number: additional info which will be returned in PointData
+    :return: None if supporting points were not found,
+             a tuple of PointData tuples of 2 supporting points else
     """
 
     n = len(polygon) - 1

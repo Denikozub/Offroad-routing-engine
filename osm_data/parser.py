@@ -13,7 +13,8 @@ class OsmParser(object):
     
     def compute_geometry(self, bbox: Sequence[float], filename: Optional[str] = None) -> None:
         """
-        Parse OSM file (area in bbox) to retrieve information about needed tags
+        Parse OSM file (area in bbox) to retrieve information about needed tags.
+
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         :param filename: None (map will be downloaded) or in .osm.pbf format
         """

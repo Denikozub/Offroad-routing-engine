@@ -73,7 +73,8 @@ __return__ list of PointData of all visible points
 #### PointData explanation
 In order to speed up computation, low-level data transfer approach is used.  
 Data about points, polylines and polygons is transferred using tuples instead of structures.  
-PointData is a tuple where:  
+TPoint = NewType("Point", Tuple[float, float])  
+PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])   
 * 0 element: tuple of x, y - point coordinates
 * 1 element: int - number of object where point belongs
 * 2 element: int - number of point in object

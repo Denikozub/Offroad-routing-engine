@@ -6,7 +6,8 @@ class OsmDownloader(object):
 
     def __init__(self, bbox: Sequence[float]) -> None:
         """
-        Download OSM XLM file of given bbox
+        Download OSM XLM file of given bbox.
+
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         """
         self.bbox = bbox

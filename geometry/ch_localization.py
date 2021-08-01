@@ -1,13 +1,14 @@
 from geometry.algorithm import angle, compare_points, turn
 from math import pi
 from typing import Tuple, Optional, TypeVar
-TPoint = TypeVar("TPoint")
-TPolygon = TypeVar("TPolygon")
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TAngles = TypeVar("TAngles")  # Sequence[float]
 
 
 def localize_ch_linear(point: TPoint, polygon: TPolygon) -> bool:
     """
-    Localizing point inside convex polygon O(n) algorithm
+    Localizing point inside convex polygon O(n) algorithm.
     """
 
     n = len(polygon) - 1
@@ -20,16 +21,18 @@ def localize_ch_linear(point: TPoint, polygon: TPolygon) -> bool:
     return True
 
 
-def localize_ch(point: TPoint, polygon: TPolygon, angles: Optional[Tuple[float]],
+def localize_ch(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
                 reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
-    Localizing point inside convex polygon O(log n) Preparata Shamos algorithm
+    Localizing point inside convex polygon O(log n) Preparata Shamos algorithm.
+
+    :param point: point to be localized
     :param polygon: given counter-clockwise, first and last points must be equal
     :param angles: polar angles from first point to others or None if polygon is a segment or a point
     :param reverse_angle: point_angle should be turned on pi (True) or not (False)
     :return: tuple of 2 elements:
-        bool - point is inside polygon
-        None if point is inside polygon else int - number of polygon vertex where point_angle is located
+        1. bool - point is inside polygon
+        2. None if point is inside polygon else int - number of polygon vertex where point_angle is located
     """
 
     if angles is None:

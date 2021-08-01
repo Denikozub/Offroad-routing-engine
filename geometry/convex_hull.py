@@ -1,24 +1,27 @@
 from scipy.spatial import ConvexHull
 from geometry.algorithm import angle
-from typing import TypeVar
-TPolygon = TypeVar("TPolygon")
+from typing import TypeVar, Tuple, Optional
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TAngles = TypeVar("TAngles")  # Sequence[float]
 
 
-def convex_hull(polygon: TPolygon) -> tuple:
+def convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Optional[TAngles]]:
     """
-    Builds a convex hull of a polygon
+    Builds a convex hull of a polygon.
+
     :param polygon: first and last points must be equal
     :return: tuple of 3 elements:
-        tuple of convex hull points
-        tuple of their indexes in initial polygon
-        tuple of polar angles from first point to others or None if polygon is a segment or a point
+        1. tuple of convex hull points
+        2. tuple of their indexes in initial polygon
+        3. tuple of polar angles from first point to others or None if polygon is a segment or a point
     """
 
     polygon_size = len(polygon) - 1
 
     # polygon is a segment or a point
     if polygon_size <= 2:
-        return polygon, [i for i in range(len(polygon) - 1)], None
+        return polygon, tuple([i for i in range(len(polygon) - 1)]), None
 
     # polygon is a triangle
     if polygon_size == 3:

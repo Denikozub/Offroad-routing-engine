@@ -2,7 +2,7 @@ from numpy import array, cross, dot
 from math import fabs, atan2, pi
 from geopy.distance import geodesic
 from typing import TypeVar
-TPoint = TypeVar("TPoint")
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
 
 # points a and b given in format (lon, lat)

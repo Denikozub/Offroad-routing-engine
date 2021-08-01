@@ -19,16 +19,17 @@ class VisibilityGraph(GeometrySaver):
 
     def incident_vertices(self, point_data: PointData, inside_percent: float = 0.4) -> List[PointData]:
         """
-        find all incident vertices in visibility graph for given point
+        Find all incident vertices in visibility graph for given point.
+        PointData is a tuple with elements
+        0: point coordinates x, y
+        1: number of object where point belongs
+        2: number of point in object
+        3: object is polygon (True) or linestring (False)
+        4: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+
         :param point_data: PointData of given point
         :param inside_percent: probability of an inner edge to be added (from 0 to 1)
         :return: list of PointData of all visible points
-        PointData is a tuple where:
-            0 element: point coordinates x, y
-            1 element: number of object where point belongs
-            2 element: number of point in object
-            3 element: object is polygon (True) or linestring (False)
-            4 element: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
         """
         assert 0 <= inside_percent <= 1
 
@@ -119,7 +120,7 @@ class VisibilityGraph(GeometrySaver):
                                     map_plot: Optional[Tuple[str, Dict[int, str]]],
                                     inside_percent: float, multiprocessing: bool) -> None:
         """
-        Build visibility graph for all objects of given type (polygons or linestrings)
+        Build visibility graph for all objects of given type (polygons or linestrings).
         """
 
         max_poly_len = 10000                    # for graph indexing
@@ -181,8 +182,10 @@ class VisibilityGraph(GeometrySaver):
                     map_plot: Optional[Tuple[str, Dict[int, str]]] = None,
                     crs: str = 'EPSG:4326') -> Tuple[Optional[MultiGraph], Optional[Figure]]:
         """
-        Compute [and build] [and plot] visibility graph
+        Compute [and build] [and plot] visibility graph.
+
         :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
+        :param multiprocessing: bool - speed up computation for dense areas using multiprocessing
         :param graph: build a networkx.MultiGraph
         :param map_plot: colors to plot visibility graph
             0 element: color to plot polygons  

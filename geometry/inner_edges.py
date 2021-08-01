@@ -1,23 +1,24 @@
 from shapely.geometry import Polygon, LineString
 from numpy import arange
 from numpy.random import choice
-from typing import Optional, Sequence, Union, TypeVar, List
-TPoint = TypeVar("TPoint")
-TPolygon = TypeVar("TPolygon")
-PointData = TypeVar("PointData")
+from typing import Optional, Sequence, TypeVar, List
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 
 def inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
-                polygon_number: int, inside_percent: Union[int, float]) -> List[PointData]:
+                polygon_number: int, inside_percent: float) -> List[PointData]:
     """
-    Finds segments from point to polygon vertices which are strictly inside polygon
-    if point is not a polygon vertex, finds all segments
-    if point is a polygon vertex, finds diagonals to further vertices
-    we should not add fully outer segments because they may intersect other polygons!
-    now only outer polygon is processed => everywhere polygon[0] is used
+    Finds segments from point to polygon vertices which are strictly inside polygon.
+    If point is not a polygon vertex, finds all segments.
+    If point is a polygon vertex, finds diagonals to further vertices.
+    We should not add fully outer segments because they may intersect other polygons!
+    Currently only outer polygon is processed => everywhere polygon[0] is used.
+
+    :param point: point strictly inside outer polygon
     :param point_number: None if point is not a polygon vertex else number or vertex
-    :param polygon: polygons (polygon[0] is outer, rest are inner)
-    for each polygon first and last points must be equal
+    :param polygon: polygons (polygon[0] is outer, rest are inner), for each polygon first and last points must be equal
     :param polygon_number: additional info which will be returned in PointData
     :param inside_percent: probability of an inner edge to be added (from 0 to 1)
     :return: list of PointData tuples of each point forming an inner edge with point

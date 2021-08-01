@@ -7,7 +7,8 @@ class OsmConverter(OsmDownloader):
 
     def __init__(self, bbox: Sequence[float]) -> None:
         """
-        Convert file from OSM XML to PBF
+        Convert file from OSM XML to PBF.
+
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         """
         super().__init__(bbox)

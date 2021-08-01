@@ -2,22 +2,23 @@ from shapely.geometry import mapping, Polygon, MultiLineString
 from math import fabs
 from rdp import rdp
 from typing import Union, Optional, Tuple, TypeVar
-TPoint = TypeVar("TPoint")
-TPolygon = TypeVar("TPolygon")
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 
 
 def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_comp: Optional[int],
                     bbox_size: Tuple[float, float], is_polygon: bool) \
         -> Union[Tuple[TPoint, ...], Tuple[TPolygon, ...], None]:
     """
-    Transform shapely.geometry.Polygon or shapely.geometry.MultiLineString to tuple of points
-    Get rid of small polygons and linestrings and run Ramer-Douglas-Peucker
+    Transform shapely.geometry.Polygon or shapely.geometry.MultiLineString to tuple of points.
+    Get rid of small polygons and linestrings and run Ramer-Douglas-Peucker.
+
     :param epsilon: Ramer-Douglas-Peucker algorithm parameter
     :param bbox_comp: scale object comparison parameter (to size of map bbox)
     :param bbox_size: lon, lat difference of map bbox
     :param is_polygon: object type is Polygon (True) or MultiLineString (False)
-    :return: None if object did not pass bbox comparison
-             tuple of points of object if epsilon is None or epsilon == 0
+    :return: None if object did not pass bbox comparison,
+             tuple of points of object if epsilon is None or epsilon == 0,
              tuple of points of object estimated by Ramer-Douglas-Peucker else
     """
 

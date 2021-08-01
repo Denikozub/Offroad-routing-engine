@@ -1,8 +1,8 @@
 from shapely.geometry import LineString
 from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
-from typing import Sequence, Optional, TypeVar, List
-TPoint = TypeVar("TPoint")
-PointData = TypeVar("PointData")
+from typing import Sequence, Optional, TypeVar, List, Tuple
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 
 class SegmentVisibility(object):
@@ -13,7 +13,7 @@ class SegmentVisibility(object):
         self.__restriction_point = None
         self.__reverse_angle = None
 
-    def add_pair(self, pair: Optional[Sequence[PointData]]) -> None:
+    def add_pair(self, pair: Optional[Tuple[PointData, PointData]]) -> None:
         if pair is None:
             return
         assert len(pair) == 2
@@ -28,7 +28,8 @@ class SegmentVisibility(object):
     def set_restriction_angle(self, restriction_pair: Sequence[TPoint],
                               restriction_point: TPoint, reverse_angle: bool) -> None:
         """
-        Set restrictions for visibility graph to be built due to edges of own polygon
+        Set restrictions for visibility graph to be built due to edges of own polygon.
+
         :param restriction_pair: restricting points - neighbours in polygon
         :param restriction_point: starting point of restriction angle - current point in polygon
         :param reverse_angle: restriction angle < pi (True) or >= pi (false)
@@ -41,7 +42,9 @@ class SegmentVisibility(object):
 
     def get_edges_brute(self, point: TPoint) -> List[PointData]:
         """
-        Build visibility graph for line segments from point, brute force O(n^2)
+        Build visibility graph for line segments from point, brute force O(n^2).
+
+        :param point: visibility point
         :return: list of PointData of all visible points
         """
         segment_number = len(self.__segments)
@@ -83,7 +86,9 @@ class SegmentVisibility(object):
 
     def get_edges_sweepline(self, point: TPoint) -> List[PointData]:
         """
-        Build visibility graph for line segments from point, rotational sweep line O(n log n)
+        Build visibility graph for line segments from point, rotational sweep line O(n log n).
+
+        :param point: visibility point
         :return: list of PointData of all visible points
         """
         # list of points sorted by angle
