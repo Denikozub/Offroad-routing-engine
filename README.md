@@ -12,7 +12,7 @@ by Denis Kozub
 - Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/OSM_data.ipynb))
 - Downloading OMS maps at runtime
 - Saving and loading precomputed map data
-- Visualization tools support
+- Multiprocessing and visualization tools support
 
 <img src="docs/VGraph.png" alt="" width="800"/>
 
@@ -49,8 +49,8 @@ Default parameters will be computed for the given area to provide best performan
 __epsilon_polygon__: None or Ramer-Douglas-Peucker algorithm parameter for polygons  
 __epsilon_linestring__: None or Ramer-Douglas-Peucker algorithm parameter for linestrings  
 __bbox_comp__: None or int - scale polygon comparison parameter (to size of map bbox)  
-__remove_inner__: bool - inner polygons for other polygons should be removed (True) or not (False)  
-(currently their share of all polygon is too low due to lack of OSM data and pyrosm problems)  
+__remove_inner__: bool - remove inner polygons for other polygons  
+(currently their share of all polygon is too low due to lack of OSM data)  
 __return__ None  
 
 ~~~python
@@ -67,13 +67,13 @@ Load saved data from .h5 file
 incident_vertices(point_data, inside_percent=0.4)
 ~~~
 Finds all incident vertices in visibility graph for given point.  
-__point_data__: _point_data_ of given point  
-__inside_percent__: float - probability of an inner edge to be added (from 0 to 1)  
-__return__ list of _point_data_ of all visible points  
-### point_data explanation
+__point_data__: PointData of given point  
+__inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
+__return__ list of PointData of all visible points  
+#### PointData explanation
 In order to speed up computation, low-level data transfer approach is used.  
 Data about points, polylines and polygons is transferred using tuples instead of structures.  
-_point_data_ is a tuple where:  
+PointData is a tuple where:  
 * 0 element: tuple of x, y - point coordinates
 * 1 element: int - number of object where point belongs
 * 2 element: int - number of point in object
@@ -82,11 +82,12 @@ _point_data_ is a tuple where:
 
 
 ~~~python
-build_graph(inside_percent=1, graph=False, map_plot=None, crs='EPSG:4326')
+build_graph(inside_percent=1, multiprocessing = True, graph=False, map_plot=None, crs='EPSG:4326')
 ~~~
 Compute [and build] [and plot] visibility graph  
-__inside_percent__: float - probability of an inner edge to be added (from 0 to 1)  
-__graph__: bool - build (True) or not to build (False) a networkx graph  
+__inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
+__multiprocessing__: bool - speed up computation for dense areas using multiprocessing  
+__graph__: bool - build a networkx.MultiGraph  
 __map_plot__: None or tuple of colors to plot visibility graph
 * 0 element: color to plot polygons  
 * 1 element: dict of colors to plot edges  
@@ -94,8 +95,8 @@ __map_plot__: None or tuple of colors to plot visibility graph
     * 1: edges inside polygon
     * 2: road edges  
 
-__crs__: string parameter: coordinate reference system  
-__return__ None
+__crs__: string - coordinate reference system  
+__return__ networkx.MultiGraph (None if graph is False), matplotlib.figure.Figure (None if map_plot is None)
 
 # Usage
 [ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/graph_usage.ipynb)
@@ -169,10 +170,6 @@ print('nodes: ', G.number_of_nodes())
 mplleaflet.display(fig=fig)
 ```
 
-Check out the [result](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet!  
-Computational time for an extremely dense area of 800 km<sup>2</sup> is about 2 minutes 30 seconds.  
-Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 9 seconds!
-
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
 
@@ -190,3 +187,8 @@ for p in incidents:
     plt.scatter(p[0][0], p[0][1], color='b')
 mplleaflet.display(fig=fig)
 ```
+
+### Results
+Check out the [result vizualization](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet.  
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 50 seconds with multiprocessing.  
+Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 9 seconds.
