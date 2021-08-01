@@ -1,6 +1,9 @@
-from shapely.geometry import LineString
-from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
 from typing import Sequence, Optional, TypeVar, List, Tuple
+
+from shapely.geometry import LineString
+
+from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 

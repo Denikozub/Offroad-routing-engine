@@ -1,6 +1,8 @@
-from visibility.visibility_graph import VisibilityGraph
-import mplleaflet
 import timeit
+
+import mplleaflet
+
+from visibility.visibility_graph import VisibilityGraph
 
 
 def main():

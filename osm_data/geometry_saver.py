@@ -1,5 +1,6 @@
-from osm_data.pruner import Pruner
 from pandas import HDFStore
+
+from osm_data.pruner import Pruner
 
 
 class GeometrySaver(Pruner):

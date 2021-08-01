@@ -1,7 +1,9 @@
-from osm_data.osm_converter import OsmConverter
 from math import fabs
-from pandas import DataFrame
 from typing import Sequence, Optional
+
+from pandas import DataFrame
+
+from osm_data.osm_converter import OsmConverter
 
 
 class OsmParser(object):

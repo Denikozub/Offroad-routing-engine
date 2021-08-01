@@ -1,16 +1,19 @@
-from shapely.geometry import Polygon, Point
-from networkx import MultiGraph
 from concurrent.futures import ProcessPoolExecutor
-from tqdm import tqdm
-from matplotlib.pyplot import plot, figure, fill
-from matplotlib.figure import Figure
 from typing import Tuple, Optional, Dict, NewType, List
-from osm_data.geometry_saver import GeometrySaver
-from visibility.segment_visibility import SegmentVisibility
+
+from matplotlib.figure import Figure
+from matplotlib.pyplot import plot, figure, fill
+from networkx import MultiGraph
+from shapely.geometry import Polygon, Point
+from tqdm import tqdm
+
 from geometry.ch_localization import localize_ch
+from geometry.inner_edges import inner_edges
 from geometry.supporting_pair import find_line_brute_force
 from geometry.supporting_pair_ch import find_pair
-from geometry.inner_edges import inner_edges
+from osm_data.geometry_saver import GeometrySaver
+from visibility.segment_visibility import SegmentVisibility
+
 TPoint = NewType("Point", Tuple[float, float])
 PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
 

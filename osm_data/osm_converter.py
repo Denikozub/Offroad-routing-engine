@@ -1,6 +1,7 @@
 from os import system, remove
-from osm_data.osm_downloader import OsmDownloader
 from typing import Sequence
+
+from osm_data.osm_downloader import OsmDownloader
 
 
 class OsmConverter(OsmDownloader):

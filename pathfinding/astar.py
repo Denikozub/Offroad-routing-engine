@@ -1,8 +1,8 @@
-from visibility.visibility_graph import VisibilityGraph
+from typing import Tuple
+
 from geometry.algorithm import dist
 from path import Path
-import heapq
-from typing import Tuple
+from visibility.visibility_graph import VisibilityGraph
 
 
 class AStar(object):
@@ -14,4 +14,4 @@ class AStar(object):
         return dist(node, goal)
 
     def find(self, start: Tuple[float, float], goal: Tuple[float, float]) -> Path:
-        open = []
+        opened = []

@@ -1,7 +1,9 @@
-from shapely.geometry import mapping, Polygon, MultiLineString
 from math import fabs
-from rdp import rdp
 from typing import Union, Optional, Tuple, TypeVar
+
+from rdp import rdp
+from shapely.geometry import mapping, Polygon, MultiLineString
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 
