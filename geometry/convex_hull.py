@@ -1,9 +1,10 @@
 from scipy.spatial import ConvexHull
 from geometry.algorithm import angle
-from typing import Sequence, Tuple
+from typing import TypeVar
+TPolygon = TypeVar("TPolygon")
 
 
-def convex_hull(polygon: Sequence[Tuple[float, float]]) -> tuple:
+def convex_hull(polygon: TPolygon) -> tuple:
     """
     Builds a convex hull of a polygon
     :param polygon: first and last points must be equal

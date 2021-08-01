@@ -1,17 +1,20 @@
 from geometry.algorithm import ray_intersects_segment, turn
-from typing import Tuple, Sequence, Optional, Union
+from typing import Optional, Union, List, TypeVar, Tuple
+TPoint = TypeVar("TPoint")
+TPolygon = TypeVar("TPolygon")
+PointData = TypeVar("PointData")
 
 
-def find_line_brute_force(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], polygon_number: int,
-                          point_number: Optional[int] = None) -> Optional[Union[tuple, list]]:
+def find_line_brute_force(point: TPoint, polygon: TPolygon, polygon_number: int,
+                          point_number: Optional[int] = None) -> Union[Tuple[TPoint, TPoint], List[PointData], None]:
     """
     Find a pair of supporting points from point to a non-convex polygon, O(n^2) brute force
     :param polygon: first and last points must be equal
-    :param polygon_number: additional info which will be returned in point_data
+    :param polygon_number: additional info which will be returned in PointData
     :param point_number: None if point is not a polygon vertex else number or vertex
     :return: None if supporting points were not found
              a tuple of coordinates of 2 supporting points if polygon_point_number is None
-             a list of point_data tuples of points connecting 2 supporting points else
+             a list of PointData tuples of points connecting 2 supporting points else
     """
 
     n = len(polygon) - 1

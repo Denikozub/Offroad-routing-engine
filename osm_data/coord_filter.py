@@ -1,11 +1,14 @@
 from shapely.geometry import mapping, Polygon, MultiLineString
 from math import fabs
 from rdp import rdp
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, TypeVar
+TPoint = TypeVar("TPoint")
+TPolygon = TypeVar("TPolygon")
 
 
 def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_comp: Optional[int],
-                    bbox_size: Tuple[float, float], is_polygon: bool) -> Optional[tuple]:
+                    bbox_size: Tuple[float, float], is_polygon: bool) \
+        -> Union[Tuple[TPoint, ...], Tuple[TPolygon, ...], None]:
     """
     Transform shapely.geometry.Polygon or shapely.geometry.MultiLineString to tuple of points
     Get rid of small polygons and linestrings and run Ramer-Douglas-Peucker

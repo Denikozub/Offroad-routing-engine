@@ -12,3 +12,4 @@ tables
 ipython
 mplleaflet
 tqdm
+geopy

@@ -10,15 +10,15 @@ by Denis Kozub
 - _Hierarchical approach_ for graph building
 - No projected crs, works in any part of the world
 - Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/OSM_data.ipynb))
-- Ability to download OMS maps at runtime
-- Ability to save and load precomputed map data
+- Downloading OMS maps at runtime
+- Saving and loading precomputed map data
 - Visualization tools support
 
 <img src="docs/VGraph.png" alt="" width="800"/>
 
 Scope of application:
 - Extending functionality of other routing engines  
-- Road building  
+- Road and facilities design  
 - Rescue and military operations planning  
 - Route planning for hiking and tourism  
 

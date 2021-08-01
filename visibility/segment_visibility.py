@@ -1,6 +1,8 @@
 from shapely.geometry import LineString
 from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
-from typing import Sequence, Tuple, Optional
+from typing import Sequence, Optional, TypeVar, List
+TPoint = TypeVar("TPoint")
+PointData = TypeVar("PointData")
 
 
 class SegmentVisibility(object):
@@ -11,28 +13,20 @@ class SegmentVisibility(object):
         self.__restriction_point = None
         self.__reverse_angle = None
 
-    def add_pair(self, pair: Optional[Sequence[Tuple[Tuple[float, float], Optional[int],
-                                                     Optional[int], Optional[bool], Optional[int]]]]) -> None:
-        """
-        Add a line segment (pair of point_data)
-        """
+    def add_pair(self, pair: Optional[Sequence[PointData]]) -> None:
         if pair is None:
             return
         assert len(pair) == 2
         self.__segments.append(pair)
 
-    def add_line(self, line: Optional[Sequence[Tuple[Tuple[float, float], Optional[int],
-                                                     Optional[int], Optional[bool], Optional[int]]]]) -> None:
-        """
-        Add a polyline (sequence of point_data)
-        """
+    def add_line(self, line: Optional[Sequence[PointData]]) -> None:
         if line is None:
             return
         for i in range(len(line) - 1):
             self.add_pair((line[i], line[i + 1]))
 
-    def set_restriction_angle(self, restriction_pair: Sequence[Tuple[float, float]],
-                              restriction_point: Tuple[float, float], reverse_angle: bool) -> None:
+    def set_restriction_angle(self, restriction_pair: Sequence[TPoint],
+                              restriction_point: TPoint, reverse_angle: bool) -> None:
         """
         Set restrictions for visibility graph to be built due to edges of own polygon
         :param restriction_pair: restricting points - neighbours in polygon
@@ -45,10 +39,10 @@ class SegmentVisibility(object):
         self.__restriction_point = restriction_point
         self.__reverse_angle = reverse_angle
 
-    def get_edges_brute(self, point: Tuple[float, float]) -> list:
+    def get_edges_brute(self, point: TPoint) -> List[PointData]:
         """
         Build visibility graph for line segments from point, brute force O(n^2)
-        :return: list of point_data of all visible points
+        :return: list of PointData of all visible points
         """
         segment_number = len(self.__segments)
         visible_edges = list()
@@ -87,10 +81,10 @@ class SegmentVisibility(object):
         self.__segments.clear()
         return visible_edges
 
-    def get_edges_sweepline(self, point: Tuple[float, float]) -> list:
+    def get_edges_sweepline(self, point: TPoint) -> List[PointData]:
         """
         Build visibility graph for line segments from point, rotational sweep line O(n log n)
-        :return: list of point_data of all visible points
+        :return: list of PointData of all visible points
         """
         # list of points sorted by angle
         points = list()

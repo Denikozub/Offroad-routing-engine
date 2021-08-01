@@ -1,11 +1,14 @@
 from shapely.geometry import Polygon, LineString
 from numpy import arange
 from numpy.random import choice
-from typing import Tuple, Optional, Sequence, Union
+from typing import Optional, Sequence, Union, TypeVar, List
+TPoint = TypeVar("TPoint")
+TPolygon = TypeVar("TPolygon")
+PointData = TypeVar("PointData")
 
 
-def inner_edges(point: Tuple[float, float], point_number: Optional[int], polygon: Sequence[Tuple[float, float]],
-                polygon_number: int, inside_percent: Union[int, float]) -> list:
+def inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
+                polygon_number: int, inside_percent: Union[int, float]) -> List[PointData]:
     """
     Finds segments from point to polygon vertices which are strictly inside polygon
     if point is not a polygon vertex, finds all segments
@@ -15,9 +18,9 @@ def inner_edges(point: Tuple[float, float], point_number: Optional[int], polygon
     :param point_number: None if point is not a polygon vertex else number or vertex
     :param polygon: polygons (polygon[0] is outer, rest are inner)
     for each polygon first and last points must be equal
-    :param polygon_number: additional info which will be returned in point_data
+    :param polygon_number: additional info which will be returned in PointData
     :param inside_percent: probability of an inner edge to be added (from 0 to 1)
-    :return: list of point_data tuples of each point forming an inner edge with point
+    :return: list of PointData tuples of each point forming an inner edge with point
     """
     assert 0 <= inside_percent <= 1
 

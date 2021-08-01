@@ -1,9 +1,11 @@
 from geometry.algorithm import angle, compare_points, turn
 from math import pi
-from typing import Tuple, Sequence, Optional
+from typing import Tuple, Optional, TypeVar
+TPoint = TypeVar("TPoint")
+TPolygon = TypeVar("TPolygon")
 
 
-def localize_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]) -> bool:
+def localize_ch_linear(point: TPoint, polygon: TPolygon) -> bool:
     """
     Localizing point inside convex polygon O(n) algorithm
     """
@@ -18,7 +20,7 @@ def localize_ch_linear(point: Tuple[float, float], polygon: Sequence[Tuple[float
     return True
 
 
-def localize_ch(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]], angles: Optional[Tuple[float]],
+def localize_ch(point: TPoint, polygon: TPolygon, angles: Optional[Tuple[float]],
                 reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
     Localizing point inside convex polygon O(log n) Preparata Shamos algorithm

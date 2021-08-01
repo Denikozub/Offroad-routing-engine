@@ -1,6 +1,8 @@
 from geometry.algorithm import point_in_angle, turn
 from geometry.ch_localization import localize_ch
-from typing import Tuple, Sequence, Optional
+from typing import Tuple, Optional, TypeVar
+TPoint = TypeVar("TPoint")
+TPolygon = TypeVar("TPolygon")
 
 """
 All algorithms work with quality of convex polygon in respect to a point
@@ -11,8 +13,7 @@ see more details in documentation
 """
 
 
-def binary_search(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
-                  low: int, high: int, low_contains: bool) -> Optional[int]:
+def binary_search(point: TPoint, polygon: TPolygon, low: int, high: int, low_contains: bool) -> Optional[int]:
     """
     Find supporting point from point to polygon (index between low and high)
     :param polygon: given counter-clockwise, first and last points must be equal
@@ -43,8 +44,7 @@ def binary_search(point: Tuple[float, float], polygon: Sequence[Tuple[float, flo
     return None
 
 
-def find_pair(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
-              polygon_number: int, angles: Optional[Tuple[float]]) -> Optional[tuple]:
+def find_pair(point: TPoint, polygon: TPolygon, polygon_number: int, angles: Optional[Tuple[float]]) -> Optional[tuple]:
     """
     Find a pair of supporting points from point to a convex polygon
     O(log n) Denis denikozub Kozub binary search through semi-planes algorithm
@@ -97,15 +97,14 @@ def find_pair(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]]
     return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
 
 
-def find_pair_array(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
-                    polygon_number: int) -> Optional[tuple]:
+def find_pair_array(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
     """
     Find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub use of array of angles implementation
     :param polygon: first and last points must be equal
-    :param polygon_number: additional info which will be returned in point_data
+    :param polygon_number: additional info which will be returned in PointData
     :return: None if supporting points were not found
-             a tuple of point_data tuples of 2 supporting points else
+             a tuple of PointData tuples of 2 supporting points else
     """
 
     n = len(polygon) - 1
@@ -118,7 +117,7 @@ def find_pair_array(point: Tuple[float, float], polygon: Sequence[Tuple[float, f
     if n == 2:
         return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
 
-    b = [1 for i in range(n)]
+    b = [1 for _ in range(n)]
     count = 0
 
     # fill an array of angles containing (1) or not containing (0) point (2 subsets)
@@ -150,8 +149,7 @@ def find_pair_array(point: Tuple[float, float], polygon: Sequence[Tuple[float, f
     return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
 
 
-def find_pair_cutoff(point: Tuple[float, float], polygon: Sequence[Tuple[float, float]],
-                     polygon_number: int) -> Optional[tuple]:
+def find_pair_cutoff(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
     """
     Find a pair of supporting points from point to a convex polygon
     O(n) Denis denikozub Kozub NO use of array of angles implementation

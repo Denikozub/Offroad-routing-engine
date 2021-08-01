@@ -3,25 +3,26 @@ from networkx import MultiGraph
 from tqdm import tqdm
 from matplotlib.pyplot import plot, figure, fill
 from matplotlib.figure import Figure
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, NewType, List
 from osm_data.geometry_saver import GeometrySaver
 from visibility.segment_visibility import SegmentVisibility
 from geometry.ch_localization import localize_ch
 from geometry.supporting_pair import find_line_brute_force
 from geometry.supporting_pair_ch import find_pair
 from geometry.inner_edges import inner_edges
+TPoint = NewType("Point", Tuple[float, float])
+PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
 
 
 class VisibilityGraph(GeometrySaver):
 
-    def incident_vertices(self, point_data: Tuple[Tuple[float, float], Optional[int], Optional[int], Optional[bool],
-                                                  Optional[int]], inside_percent: float = 0.4) -> list:
+    def incident_vertices(self, point_data: PointData, inside_percent: float = 0.4) -> List[PointData]:
         """
         find all incident vertices in visibility graph for given point
-        :param point_data: point_data of given point
+        :param point_data: PointData of given point
         :param inside_percent: probability of an inner edge to be added (from 0 to 1)
-        :return: list of point_data of all visible points
-        point_data is a tuple where:
+        :return: list of PointData of all visible points
+        PointData is a tuple where:
             0 element: point coordinates x, y
             1 element: number of object where point belongs
             2 element: number of point in object
@@ -132,7 +133,7 @@ class VisibilityGraph(GeometrySaver):
             # loop over all points of an object
             for j in range(point_count):
                 point = obj[j]
-                point_data = (point, i, j, is_polygon, None)
+                point_data = PointData((point, i, j, is_polygon, None))
 
                 # adding a vertex in networkx graph
                 if G is not None:
