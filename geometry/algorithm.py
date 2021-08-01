@@ -1,7 +1,9 @@
-from numpy import array, cross, dot
 from math import fabs, atan2, pi
-from geopy.distance import geodesic
 from typing import TypeVar
+
+from geopy.distance import geodesic
+from numpy import array, cross, dot
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
 

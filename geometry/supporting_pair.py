@@ -1,5 +1,7 @@
-from geometry.algorithm import ray_intersects_segment, turn
 from typing import Optional, Union, List, TypeVar, Tuple
+
+from geometry.algorithm import ray_intersects_segment, turn
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]

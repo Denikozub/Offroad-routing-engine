@@ -15,3 +15,4 @@ class AStar(object):
 
     def find(self, start: Tuple[float, float], goal: Tuple[float, float]) -> Path:
         opened = []
+        

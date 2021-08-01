@@ -1,6 +1,8 @@
-from geometry.algorithm import angle, compare_points, turn
 from math import pi
 from typing import Tuple, Optional, TypeVar
+
+from geometry.algorithm import angle, compare_points, turn
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 TAngles = TypeVar("TAngles")  # Sequence[float]

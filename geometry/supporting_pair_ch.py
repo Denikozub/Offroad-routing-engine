@@ -1,6 +1,8 @@
+from typing import Optional, TypeVar
+
 from geometry.algorithm import point_in_angle, turn
 from geometry.ch_localization import localize_ch
-from typing import Optional, TypeVar
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 TAngles = TypeVar("TAngles")  # Sequence[float]

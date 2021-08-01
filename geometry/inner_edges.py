@@ -1,7 +1,9 @@
-from shapely.geometry import Polygon, LineString
+from typing import Optional, Sequence, TypeVar, List
+
 from numpy import arange
 from numpy.random import choice
-from typing import Optional, Sequence, TypeVar, List
+from shapely.geometry import Polygon, LineString
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]

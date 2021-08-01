@@ -1,6 +1,9 @@
-from scipy.spatial import ConvexHull
-from geometry.algorithm import angle
 from typing import TypeVar, Tuple, Optional
+
+from scipy.spatial import ConvexHull
+
+from geometry.algorithm import angle
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 TAngles = TypeVar("TAngles")  # Sequence[float]
