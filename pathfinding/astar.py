@@ -23,7 +23,7 @@ class AStar(object):
         start_data = (start, None, None, None, None)
         goal_data = (goal, None, None, None, None)
 
-        # vgraph nodes incident to goal point
+        # vgraph nodes incident to goal point (defined by object and position in the object)
         goal_neighbours = [(i[1], i[2], i[3]) for i in self.vgraph.incident_vertices(goal_data)]
         if not goal_neighbours:
             return None
@@ -44,7 +44,7 @@ class AStar(object):
 
             neighbours = self.vgraph.incident_vertices(current)
 
-            # add goal as one of neighbours
+            # if current is goal neighbour add it to neighbour list
             goal_neighbour = (current[1], current[2], current[3]) in goal_neighbours
             if goal_neighbour:
                 neighbours.insert(0, goal_data)
@@ -52,6 +52,8 @@ class AStar(object):
             for neighbour in neighbours:
                 neighbour_point = neighbour[0]
                 new_cost = cost_so_far[current_point] + dist(current_point, neighbour_point)
+
+                # neighbour not visited or shorter path found
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:
                     cost_so_far[neighbour_point] = new_cost
                     priority = new_cost + self.heuristic(goal, neighbour_point)
@@ -59,4 +61,3 @@ class AStar(object):
                     came_from[neighbour_point] = current_point
 
         return Path(came_from, start, goal)
-
