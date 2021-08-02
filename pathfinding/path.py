@@ -6,16 +6,16 @@ class Path(object):
         self.came_from = came_from
         self.start = start
         self.goal = goal
+        self.path = None
 
     def retrace(self):
         current = self.goal
-        path = list()
+        self.path = list()
         while not compare_points(current, self.start):
-            path.append(current)
+            self.path.append(current)
             try:
                 current = self.came_from[current]
             except KeyError:
                 return list()
-        path.append(self.start)  # optional
-        path.reverse()  # optional
-        return path
+        self.path.append(self.start)
+        self.path.reverse()
