@@ -9,11 +9,11 @@ class GeometrySaver(Pruner):
         super().__init__()
 
     def save_geometry(self, filename: str) -> None:
-        store = HDFStore(filename)
-        store["polygons"] = self.polygons
-        store["multilinestrings"] = self.multilinestrings
+        with HDFStore(filename) as store:
+            store["polygons"] = self.polygons
+            store["multilinestrings"] = self.multilinestrings
 
     def load_geometry(self, filename: str) -> None:
-        store = HDFStore(filename)
-        self.polygons = store["polygons"]
-        self.multilinestrings = store["multilinestrings"]
+        with HDFStore(filename) as store:
+            self.polygons = store["polygons"]
+            self.multilinestrings = store["multilinestrings"]

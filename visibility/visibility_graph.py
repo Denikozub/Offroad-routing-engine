@@ -1,5 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import Tuple, Optional, Dict, NewType, List
+from typing import Tuple, Optional, Dict, TypeVar, List
 
 from matplotlib.figure import Figure
 from matplotlib.pyplot import plot, figure, fill
@@ -14,15 +14,16 @@ from geometry.supporting_pair_ch import find_pair
 from osm_data.geometry_saver import GeometrySaver
 from visibility.segment_visibility import SegmentVisibility
 
-TPoint = NewType("Point", Tuple[float, float])
-PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
+TPoint = TypeVar("TPoint")  # Tuple[float, float]
+PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
 
 
 class VisibilityGraph(GeometrySaver):
 
-    def incident_vertices(self, point_data: PointData, inside_percent: float = 0.4) -> List[PointData]:
+    def incident_vertices(self, point_data: PointData, inside_percent: float = 1) -> List[PointData]:
         """
         Find all incident vertices in visibility graph for given point.
+        Edges between roads currently not added.
         PointData is a tuple with elements
         0: point coordinates x, y
         1: number of object where point belongs
@@ -89,7 +90,7 @@ class VisibilityGraph(GeometrySaver):
             else:
                 line = find_line_brute_force(point, polygon.geometry[0], i)
                 if line is None:
-                    return inner_edges(point, None, polygon.geometry, i, inside_percent)
+                    continue
                 visible_vertices.add_line(line)
 
         # loop over all linestrings
@@ -107,12 +108,12 @@ class VisibilityGraph(GeometrySaver):
                     following = point_number + 1
                     edges_inside.append((linestring[following], i, following, False, 2))
 
-            else:
-                # add whole linestring
-                line = list()
-                for j in range(linestring_point_count):
-                    line.append((linestring[j], i, j, False, 0))
-                visible_vertices.add_line(line)
+            # else:
+            #     # add whole linestring
+            #     line = list()
+            #     for j in range(linestring_point_count):
+            #         line.append((linestring[j], i, j, False, 0))
+            #     visible_vertices.add_line(line)
 
         # building visibility graph of segments
         visible_edges = visible_vertices.get_edges_sweepline(point)
@@ -142,7 +143,7 @@ class VisibilityGraph(GeometrySaver):
                 # loop over all points of an object
                 for j in range(point_count):
                     point = obj[j]
-                    point_data = PointData((point, i, j, is_polygon, None))
+                    point_data = (point, i, j, is_polygon, None)
                     point_index = None
 
                     # adding a vertex in networkx graph
@@ -181,7 +182,7 @@ class VisibilityGraph(GeometrySaver):
                     px, py = point
                     plot([px, vx], [py, vy], color=map_plot[1][vertex[4]], linewidth=4 if vertex[4] == 2 else None)
 
-    def build_graph(self, inside_percent: float = 1, multiprocessing: bool = True, graph: bool = False,
+    def build_graph(self, inside_percent: float = 0.4, multiprocessing: bool = True, graph: bool = False,
                     map_plot: Optional[Tuple[str, Dict[int, str]]] = None,
                     crs: str = 'EPSG:4326') -> Tuple[Optional[MultiGraph], Optional[Figure]]:
         """

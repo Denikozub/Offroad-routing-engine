@@ -1,3 +1,4 @@
+from math import fabs
 from typing import Optional, Sequence, TypeVar, List
 
 from numpy import arange
@@ -41,15 +42,16 @@ def inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TP
 
         return edges_inside
 
-    # connect last and first vertex
-    if point_number == size - 1:
-        return [(polygon[0][0], polygon_number, 0, True, 1)]
+    for i in range(size):
 
-    for i in range(point_number + 1, size):
+        if i == point_number:
+            continue
 
         # neighbour vertex in polygon
-        if i == point_number + 1:
+        if fabs(i - point_number) in [1, size - 1]:
+            # print(polygon_number, i)
             edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
+            continue
 
         # check if a segment is inner with shapely
         if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):

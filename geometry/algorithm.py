@@ -2,7 +2,7 @@ from math import fabs, atan2, pi
 from typing import TypeVar
 
 from geopy.distance import geodesic
-from numpy import array, cross, dot
+from numpy import array, cross, dot, isclose
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -71,5 +71,5 @@ def ray_intersects_segment(a0: TPoint, b0: TPoint, c0: TPoint,
 
 
 # p1 == p2
-def compare_points(p1: TPoint, p2: TPoint, delta: int = 10 ** -9) -> bool:
-    return fabs(p1[0] - p2[0]) < delta and fabs(p1[1] - p2[1]) < delta
+def compare_points(p1: TPoint, p2: TPoint) -> bool:
+    return isclose(p1, p2).all()

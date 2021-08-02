@@ -64,7 +64,7 @@ load_geometry(filename)
 Load saved data from .h5 file  
 
 ~~~python
-incident_vertices(point_data, inside_percent=0.4)
+incident_vertices(point_data, inside_percent=1)
 ~~~
 Finds all incident vertices in visibility graph for given point.  
 __point_data__: PointData of given point  
@@ -83,7 +83,7 @@ PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Opt
 
 
 ~~~python
-build_graph(inside_percent=1, multiprocessing = True, graph=False, map_plot=None, crs='EPSG:4326')
+build_graph(inside_percent=0.4, multiprocessing = True, graph=False, map_plot=None, crs='EPSG:4326')
 ~~~
 Compute [and build] [and plot] visibility graph  
 __inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  

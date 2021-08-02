@@ -39,8 +39,7 @@ def find_line_brute_force(point: TPoint, polygon: TPolygon, polygon_number: int,
 
         # check intersection with all other points
         for j in range(n):
-            if j in (i - 1, i) or (point_number is not None and j in
-                                   (point_number - 1, point_number)):
+            if j in (i - 1, i) or (point_number is not None and j in (point_number - 1, point_number)):
                 continue
             if ray_intersects_segment(point, pi, polygon[j], polygon[j + 1]):
                 found = False

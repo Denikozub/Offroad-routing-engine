@@ -1,11 +1,11 @@
 import heapq
-from typing import List, Tuple, TypeVar
+from typing import TypeVar
 T = TypeVar("T")
 
 
 class PriorityQueue(object):
     def __init__(self) -> None:
-        self.elements: List[Tuple[float, T]] = []
+        self.elements = list()
 
     def empty(self) -> bool:
         return not self.elements
