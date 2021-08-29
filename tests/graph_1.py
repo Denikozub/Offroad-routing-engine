@@ -1,7 +1,5 @@
 import timeit
 
-import mplleaflet
-
 from visibility.visibility_graph import VisibilityGraph
 
 
@@ -19,7 +17,6 @@ def main():
 
     print('edges: ', G.number_of_edges())
     print('nodes: ', G.number_of_nodes())
-    mplleaflet.display(fig=fig)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)

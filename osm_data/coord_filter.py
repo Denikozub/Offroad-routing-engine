@@ -47,7 +47,7 @@ def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_c
             new_polygon = [tuple(point) for point in polygon] if epsilon is None or epsilon == 0 else \
                     [tuple(point) for point in rdp(polygon, epsilon=epsilon)]
 
-
+            # counter-clockwise polygons
             if len(new_polygon) >= 3 and cross_product(polygon[0], polygon[1], polygon[2]) < 0:
                 new_polygon.reverse()
             polygons.append(tuple(new_polygon))
