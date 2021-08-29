@@ -223,5 +223,5 @@ mplleaflet.display(fig=fig)
 
 ### Results
 Check out the [result vizualization](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet.  
-Computational time for an extremely dense area of 800 km<sup>2</sup> is about 27 seconds with multiprocessing.  
-Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 6 seconds.
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.  
+Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 3 seconds.

@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar, Tuple
 
-from geometry.algorithms import point_in_sector, cross_product, equal_points
+from geometry.algorithms import point_in_sector, turn, equal_points
 from geometry.ch_localization import localize_convex
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
@@ -33,15 +33,15 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
     while low <= high and mid < polygon_size:
 
         # supporting point separating 2 subsets is found
-        if cross_product(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0 and \
-                cross_product(polygon[(mid - 1) % polygon_size], polygon[mid], point) >= 0 or \
-                cross_product(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 and \
-                cross_product(polygon[(mid - 1) % polygon_size], polygon[mid], point) <= 0:
+        if turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0 and \
+                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) >= 0 or \
+                turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 and \
+                turn(polygon[(mid - 1) % polygon_size], polygon[mid], point) <= 0:
             return mid
 
         # update mid
-        if low_contains and cross_product(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 or \
-                not low_contains and cross_product(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0:
+        if low_contains and turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) >= 0 or \
+                not low_contains and turn(polygon[mid], polygon[(mid + 1) % polygon_size], point) <= 0:
             low = mid + 1
         else:
             high = mid - 1
@@ -62,7 +62,7 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
     if polygon_size == 3:
         return find_supporting_pair_cutoff(point, polygon, polygon_number)
 
-    assert cross_product(polygon[0], polygon[1], polygon[2]) >= 0
+    assert turn(polygon[0], polygon[1], polygon[2]) >= 0
 
     start_to_point = localize_convex(point, polygon, angles, False)
 
@@ -89,7 +89,7 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
         # polygon[0] is supporting point
         else:
             index1 = 0
-            index2 = find_supporting_point(point, polygon, 1, polygon_size - 1, cross_product(polygon[0], polygon[1], point) >= 0)
+            index2 = find_supporting_point(point, polygon, 1, polygon_size - 1, turn(polygon[0], polygon[1], point) >= 0)
             if index2 is None:
                 return None
 

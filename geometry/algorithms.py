@@ -2,7 +2,7 @@ from math import fabs, atan2, pi
 from typing import TypeVar
 
 from geopy.distance import geodesic
-from numpy import array, cross, dot, isclose
+from numpy import array, isclose
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -12,8 +12,12 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     return geodesic((a[1], a[0]), (b[1], b[0])).km
 
 
-def cross_product(a: TPoint, b: TPoint, c: TPoint) -> float:
-    return float(cross(array(b) - array(a), array(c) - array(b)))
+def cross_product(p: array, q: array) -> float:
+    return p[0] * q[1] - p[1] * q[0]
+
+
+def turn(a: TPoint, b: TPoint, c: TPoint) -> float:
+    return (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])
 
 
 # polar angle of vector ab (0 to 2*pi)
@@ -23,35 +27,26 @@ def polar_angle(a: TPoint, b: TPoint) -> float:
 
 # check if point is in sector (lpr < pi) formed by points
 def point_in_sector(point: TPoint, l: TPoint, p: TPoint, r: TPoint) -> bool:
-    if cross_product(l, p, r) > 0:
-        return cross_product(p, l, point) < 0 < cross_product(p, r, point)
-    return cross_product(p, r, point) < 0 < cross_product(p, l, point)
+    if turn(l, p, r) > 0:
+        return turn(p, l, point) < 0 < turn(p, r, point)
+    return turn(p, r, point) < 0 < turn(p, l, point)
 
 
-# ray a0b0 intersects line segment c0d0
-def ray_intersects_segment(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint, end_intersection: bool = False) -> bool:
-    delta = 1e-7
-    a = array(a0)
-    b, c, d = array(b0) - a, array(c0) - a, array(d0) - a
-    (x1, y1), (x2, y2) = c, d
+def segments_intersect(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -> bool:
+    return turn(a0, b0, c0) * turn(a0, b0, d0) < 0 and \
+           turn(c0, d0, a0) * turn(c0, d0, b0) < 0
 
-    k12 = 1e10 if x1 == x2 else (y1 - y2) / (x1 - x2)
-    b12 = y1 - k12 * x1
-    k = 1e10 if fabs(b[0]) < delta else b[1] / b[0]
 
-    # overlap is not an intersection
-    if fabs(k - k12) < delta:
+# ray ab intersects line segment cd
+def ray_intersects_segment(p: TPoint, b: TPoint, q: TPoint, d: TPoint, end_intersection: bool = False) -> bool:
+    r, s = (b[0] - p[0], b[1] - p[1]), (d[0] - q[0], d[1] - q[1])
+    pq = q[0] - p[0], q[1] - p[1]
+    r_cross_s = cross_product(r, s)
+    if fabs(r_cross_s) < 1e-8:
         return False
-
-    x = b12 / (k - k12)
-    y = k * x
-
-    if end_intersection:
-        if x < min(x1, x2) - delta or x > max(x1, x2) + delta or y < min(y1, y2) - delta or y > max(y1, y2) + delta:
-            return False
-    elif x < min(x1, x2) + delta or x > max(x1, x2) - delta or y < min(y1, y2) + delta or y > max(y1, y2) - delta:
-        return False
-    return dot(array([x, y]), b) > 0
+    t = cross_product(pq, s) / r_cross_s
+    u = cross_product(pq, r) / r_cross_s
+    return 0 <= t and 0 <= u <= 1 if end_intersection else 0 < t and 0 < u < 1
 
 
 def equal_points(p1: TPoint, p2: TPoint) -> bool:

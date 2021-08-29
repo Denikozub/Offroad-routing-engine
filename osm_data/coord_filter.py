@@ -4,7 +4,7 @@ from typing import Union, Optional, Tuple, TypeVar
 from rdp import rdp
 from shapely.geometry import mapping, Polygon, MultiLineString
 
-from geometry.algorithms import cross_product
+from geometry.algorithms import turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
@@ -48,7 +48,7 @@ def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_c
                     [tuple(point) for point in rdp(polygon, epsilon=epsilon)]
 
             # counter-clockwise polygons
-            if len(new_polygon) >= 3 and cross_product(polygon[0], polygon[1], polygon[2]) < 0:
+            if len(new_polygon) >= 3 and turn(polygon[0], polygon[1], polygon[2]) < 0:
                 new_polygon.reverse()
             polygons.append(tuple(new_polygon))
         return tuple(polygons)

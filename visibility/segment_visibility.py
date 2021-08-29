@@ -1,8 +1,6 @@
 from typing import Sequence, Optional, TypeVar, List, Tuple
 
-from shapely.geometry import LineString
-
-from geometry.algorithms import ray_intersects_segment, cross_product, point_in_sector, polar_angle
+from geometry.algorithms import ray_intersects_segment, turn, point_in_sector, polar_angle, segments_intersect
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
@@ -61,8 +59,8 @@ class SegmentVisibility(object):
                     continue
                 check_pair = self.__segments[j]
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
-                a_is_visible = not a_in_angle and not LineString([point, a_point]).crosses(LineString([check_a, check_b]))
-                b_is_visible = not b_in_angle and not LineString([point, b_point]).crosses(LineString([check_a, check_b]))
+                a_is_visible = not a_in_angle and not segments_intersect(point, a_point, check_a, check_b)
+                b_is_visible = not b_in_angle and not segments_intersect(point, b_point, check_a, check_b)
                 if not a_is_visible and not b_is_visible:
                     break
 
@@ -93,12 +91,12 @@ class SegmentVisibility(object):
             # check if any of the segments in intersected list crosses current segment
             crosses = False
             for segment in intersected:
-                if LineString([point, p[0][0]]).crosses(LineString([segment[0], segment[1]])):
+                if segments_intersect(point, p[0][0], segment[0], segment[1]):
                     crosses = True
                     break
 
             # update intersected list
-            if cross_product(point, p[0][0], p[1][0]) > 0:
+            if turn(point, p[0][0], p[1][0]) > 0:
                 intersected.insert(0, (p[0][0], p[1][0]))
             else:
                 try:
