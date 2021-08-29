@@ -6,7 +6,7 @@ ___
 by Denis Kozub
 - World discretization using _visibility graphs_
 - O(nh log n) _reduced_ visibility graph algorithm (see [algorithm explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/algorithm.pdf))
-- Pathfinding _without_ graph precomputing
+- A* pathfinding without graph precomputing
 - _Hierarchical approach_ for graph building
 - No projected crs, works in any part of the world
 - Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/OSM_data.ipynb))
@@ -24,11 +24,39 @@ Scope of application:
 
 
 # Documentation
+
+### PointData explanation
+
+In order to speed up computation, low-level data transfer approach is used.  
+Data about points, polylines and polygons is transferred using tuples instead of structures.
+
+~~~python
+TPoint = NewType("Point", Tuple[float, float])  
+~~~
+
+
+Node of the graph is unambiguously set either by its coordinates or by its position in an object.
+
+~~~python
+PointData = NewType("PointData", Tuple[TPoint,      # x, y - point coordinates
+                                 Optional[int],     # number of object where point belongs
+                                 Optional[int],     # number of point in object
+                                 Optional[bool],    # object is polygon (True) or linestring (False)
+                                 Optional[int]])    # surface type (0 - edge between objects,
+                                                    #               1 - edge inside polygon, 
+                                                    #               2 - road edge)
+~~~
+
+
+### VisibilityGraph
+
 VisibilityGraph is a class for building a visibility graph on a given area from OSM data  
+
 
 ~~~python
 compute_geometry(bbox, filename=None)
 ~~~
+
 Parse OSM file (area in bounding box) to retrieve information about roads and surface.  
 This method uses [pyrosm](https://pypi.org/project/pyrosm/), which requires [geopandas](https://geopandas.org/) to be installed.  
 What is more, curl and [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) are required for downloading the map.  
@@ -36,9 +64,11 @@ __bbox__: sequence in format min_lon, min_lat, max_lon, max_lat
 __filename__: None (map will be downloaded) or str in .osm.pbf format  
 __return__ None  
 
+
 ~~~python
 prune_geometry(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)
 ~~~
+
 Transform retrieved data:
 * transform geometry to tuple of points
 * run Ramer-Douglas-Peucker to geometry objects
@@ -53,38 +83,35 @@ __remove_inner__: bool - remove inner polygons for other polygons
 (currently their share of all polygon is too low due to lack of OSM data)  
 __return__ None  
 
+
 ~~~python
 save_geometry(filename)
 ~~~
+
 Save computed data to .h5 file  
+
 
 ~~~python
 load_geometry(filename)
 ~~~
-Load saved data from .h5 file  
+
+Load saved data from .h5 file
+
 
 ~~~python
 incident_vertices(point_data, inside_percent=1)
 ~~~
+
 Finds all incident vertices in visibility graph for given point.  
 __point_data__: PointData of given point  
 __inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
-__return__ list of PointData of all visible points  
-#### PointData explanation
-In order to speed up computation, low-level data transfer approach is used.  
-Data about points, polylines and polygons is transferred using tuples instead of structures.  
-TPoint = NewType("Point", Tuple[float, float])  
-PointData = NewType("PointData", Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])   
-* 0 element: tuple of x, y - point coordinates
-* 1 element: int - number of object where point belongs
-* 2 element: int - number of point in object
-* 3 element: bool - object is polygon (True) or linestring (False)
-* 4 element: int - surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+__return__ list of PointData of all visible points
 
 
 ~~~python
 build_graph(inside_percent=0.4, multiprocessing = True, graph=False, map_plot=None, crs='EPSG:4326')
 ~~~
+
 Compute [and build] [and plot] visibility graph  
 __inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
 __multiprocessing__: bool - speed up computation for dense areas using multiprocessing  
@@ -99,8 +126,11 @@ __map_plot__: None or tuple of colors to plot visibility graph
 __crs__: string - coordinate reference system  
 __return__ networkx.MultiGraph (None if graph is False), matplotlib.figure.Figure (None if map_plot is None)
 
+
 # Usage
+
 [ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/graph_usage.ipynb)
+
 
 ### Downloading and processing data
 
@@ -130,6 +160,7 @@ vgraph.compute_geometry(bbox=bbox)
 
 Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
 If not specified, optimal parameters will be computed by the algorithm.
+
 
 ```python
 vgraph.prune_geometry(epsilon_polygon=0.003,
@@ -189,7 +220,8 @@ for p in incidents:
 mplleaflet.display(fig=fig)
 ```
 
+
 ### Results
 Check out the [result vizualization](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet.  
-Computational time for an extremely dense area of 800 km<sup>2</sup> is about 50 seconds with multiprocessing.  
-Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 9 seconds.
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 35 seconds with multiprocessing.  
+Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 6 seconds.

@@ -21,14 +21,14 @@ def quad_equation(a, b, c):
 
 
 def find_pair_ellipse(point, polygon, polygon_number=None):
-    mult = 1e7
-    a, b = (polygon[2][0] - polygon[1][0]) / 2 * mult, (polygon[1][1] - polygon[0][1]) / 2 * mult
-    xc, yc = (polygon[2][0] + polygon[1][0]) / 2 * mult, (polygon[1][1] + polygon[0][1]) / 2 * mult
-    x0, y0 = point[0] * mult - xc, point[1] * mult - yc
+    scale = 1e7
+    a, b = (polygon[2][0] - polygon[1][0]) / 2 * scale, (polygon[1][1] - polygon[0][1]) / 2 * scale
+    xc, yc = (polygon[2][0] + polygon[1][0]) / 2 * scale, (polygon[1][1] + polygon[0][1]) / 2 * scale
+    x0, y0 = point[0] * scale - xc, point[1] * scale - yc
     y = quad_equation(b**2 + y0**2 * a**2 / x0**2, -2 * y0 * b**2 * a**2 / x0**2, -b**4 + a**2 * b**2 / x0**2)
     if y is None:
         return None
     x1, x2 = (1 - y0 * y[0] / b**2) * a**2 / x0, (1 - y0 * y[1] / b**2) * a**2 / x0
-    point1, point2 = ((x1 + xc) / mult, (y[0] + yc) / mult), ((x2 + xc) / mult, (y[1] + yc) / mult)
+    point1, point2 = ((x1 + xc) / scale, (y[0] + yc) / scale), ((x2 + xc) / scale, (y[1] + yc) / scale)
     seed(1)
     return (point1, polygon_number, randint(5000, 9999), True, 0), (point2, polygon_number, randint(5000, 9999), True, 0)

@@ -10,8 +10,8 @@ TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 
-def inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
-                polygon_number: int, inside_percent: float) -> List[PointData]:
+def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
+                     polygon_number: int, inside_percent: float) -> List[PointData]:
     """
     Finds segments from point to polygon vertices which are strictly inside polygon.
     If point is not a polygon vertex, finds all segments.
@@ -29,34 +29,23 @@ def inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TP
     assert 0 <= inside_percent <= 1
 
     edges_inside = list()
-    size = len(polygon[0]) - 1
+    polygon_size = len(polygon[0]) - 1
 
     # point is strictly in polygon
     if point_number is None:
-        for i in range(size):
+        for i in range(polygon_size):
             if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
-
-                # randomly choose segments to add with percentage
                 if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
                     edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
-
         return edges_inside
 
-    for i in range(size):
-
+    for i in range(polygon_size):
         if i == point_number:
             continue
-
-        # neighbour vertex in polygon
-        if fabs(i - point_number) in [1, size - 1]:
-            # print(polygon_number, i)
+        if fabs(i - point_number) in [1, polygon_size - 1]:
             edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
             continue
-
-        # check if a segment is inner with shapely
         if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
-
-            # randomly choose diagonals to add with percentage
             if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
                 edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
 
