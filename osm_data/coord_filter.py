@@ -27,7 +27,6 @@ def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_c
     assert epsilon >= 0
     assert bbox_comp is None or bbox_comp >= 0
 
-    # getting polygon bbox with shapely
     if bbox_comp is not None:
         bounds = obj.bounds
         bounds_size = (fabs(bounds[2] - bounds[0]), fabs(bounds[3] - bounds[1]))
@@ -35,7 +34,6 @@ def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_c
         if bounds_size[0] == 0 or bounds_size[1] == 0:
             return None
 
-        # comparing object sizes
         if bbox_size[0] / bounds_size[0] >= bbox_comp and bbox_size[1] / bounds_size[1] >= bbox_comp:
             return None
 

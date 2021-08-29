@@ -21,7 +21,6 @@ class OsmParser(object):
         :param filename: None (map will be downloaded) or in .osm.pbf format
         """
 
-        # download .osm.pbf map        
         if filename is None:
             converter = OsmConverter(bbox)
             filename = converter.filename
@@ -29,7 +28,6 @@ class OsmParser(object):
         # for Windows compilation
         from pyrosm import OSM
 
-        # parsing OMS map with pyrosm
         osm = OSM(filename, bounding_box=bbox)
         multipolygons = DataFrame(columns=['tag', 'geometry'])
         
@@ -53,12 +51,10 @@ class OsmParser(object):
             for polygon in multipolygons.geometry.iloc[i].geoms:
                 self.polygons = self.polygons.append({'tag': tag, 'geometry': polygon}, ignore_index=True)
 
-        # getting road network data with pyrosm
         roads = osm.get_network()
         if roads is not None:
             self.multilinestrings = DataFrame(roads.loc[:, ['highway', 'geometry']]
                     .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
             roads.drop(roads.index, inplace=True)
-        
-        # bounding box size
+
         self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))

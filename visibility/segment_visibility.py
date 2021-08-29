@@ -2,7 +2,7 @@ from typing import Sequence, Optional, TypeVar, List, Tuple
 
 from shapely.geometry import LineString
 
-from geometry.algorithm import ray_intersects_segment, turn, point_in_angle, angle
+from geometry.algorithms import ray_intersects_segment, cross_product, point_in_sector, polar_angle
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
@@ -30,13 +30,6 @@ class SegmentVisibility(object):
 
     def set_restriction_angle(self, restriction_pair: Sequence[TPoint],
                               restriction_point: TPoint, reverse_angle: bool) -> None:
-        """
-        Set restrictions for visibility graph to be built due to edges of own polygon.
-
-        :param restriction_pair: restricting points - neighbours in polygon
-        :param restriction_point: starting point of restriction angle - current point in polygon
-        :param reverse_angle: restriction angle < pi (True) or >= pi (false)
-        """
         assert len(restriction_pair) == 2
 
         self.__restriction_pair = restriction_pair
@@ -44,12 +37,6 @@ class SegmentVisibility(object):
         self.__reverse_angle = reverse_angle
 
     def get_edges_brute(self, point: TPoint) -> List[PointData]:
-        """
-        Build visibility graph for line segments from point, brute force O(n^2).
-
-        :param point: visibility point
-        :return: list of PointData of all visible points
-        """
         segment_number = len(self.__segments)
         visible_edges = list()
 
@@ -60,8 +47,8 @@ class SegmentVisibility(object):
 
             if self.__restriction_pair is not None:
                 l_point, r_point = self.__restriction_pair
-                a_in_angle = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                b_in_angle = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                a_in_angle = not point_in_sector(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                b_in_angle = not point_in_sector(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
                 if a_in_angle and b_in_angle:
                     continue
             else:
@@ -79,7 +66,6 @@ class SegmentVisibility(object):
                 if not a_is_visible and not b_is_visible:
                     break
 
-            # if only one of the points is visible it will be added
             if a_is_visible:
                 visible_edges.append(a)
             if b_is_visible:
@@ -88,18 +74,12 @@ class SegmentVisibility(object):
         return visible_edges
 
     def get_edges_sweepline(self, point: TPoint) -> List[PointData]:
-        """
-        Build visibility graph for line segments from point, rotational sweep line O(n log n).
-
-        :param point: visibility point
-        :return: list of PointData of all visible points
-        """
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:
             points.append((edge[0], edge[1]))
             points.append((edge[1], edge[0]))
-        points.sort(key=lambda x: angle(point, x[0][0]))
+        points.sort(key=lambda x: polar_angle(point, x[0][0]))
 
         # list of segments intersected by 0-angle ray
         intersected = list()
@@ -107,7 +87,6 @@ class SegmentVisibility(object):
             if ray_intersects_segment(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
                 intersected.insert(0, (edge[0][0], edge[1][0]))
 
-        # sweep line algorithm
         visible_edges = list()
         for p in points:
 
@@ -119,7 +98,7 @@ class SegmentVisibility(object):
                     break
 
             # update intersected list
-            if turn(point, p[0][0], p[1][0]) > 0:
+            if cross_product(point, p[0][0], p[1][0]) > 0:
                 intersected.insert(0, (p[0][0], p[1][0]))
             else:
                 try:
@@ -133,7 +112,7 @@ class SegmentVisibility(object):
                 # if a point is inside a restriction angle, it will not be returned
                 if self.__restriction_pair is not None:
                     l_point, r_point = self.__restriction_pair
-                    p_in_angle = not point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                    p_in_angle = not point_in_sector(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle
                     if p_in_angle:
                         continue
 

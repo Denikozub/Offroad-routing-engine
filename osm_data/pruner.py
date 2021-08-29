@@ -2,8 +2,8 @@ from typing import Optional
 
 from pandas import DataFrame
 
-from geometry.algorithm import compare_points
-from geometry.convex_hull import convex_hull
+from geometry.algorithms import equal_points
+from geometry.convex_hull import build_convex_hull
 from osm_data.coord_filter import get_coordinates
 from osm_data.parser import OsmParser
 
@@ -37,12 +37,10 @@ class Pruner(OsmParser):
 
         if epsilon_linestring is None:
             epsilon_linestring = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
-        
-        # polygon coordinates
+
         self.polygons.geometry = \
             self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
 
-        # delete None elements
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
         self.polygons = self.polygons.reset_index().drop(columns='index')
         
@@ -62,7 +60,7 @@ class Pruner(OsmParser):
                                 self.polygons.tag.iloc[i].append(None)
                             continue
                         new_point = self.polygons.geometry.iloc[k][0][0]
-                        if compare_points(point, new_point):
+                        if equal_points(point, new_point):
                             self.polygons.tag.iloc[i].append(self.polygons.tag.iloc[k])
                             self.polygons.geometry.iloc[k] = None
                         elif k == polygon_number - 1:
@@ -73,13 +71,11 @@ class Pruner(OsmParser):
         # add info about convex hull
         if self.polygons.shape[0] > 0:
             self.polygons = self.polygons.join(DataFrame(self.polygons.geometry)
-                                               .apply(lambda x: convex_hull(x[0][0]), axis=1, result_type='expand')
+                                               .apply(lambda x: build_convex_hull(x[0][0]), axis=1, result_type='expand')
                                                .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
-        # multilinestring coordinates
         self.multilinestrings.geometry = self.multilinestrings.geometry\
             .apply(get_coordinates, args=[epsilon_linestring, bbox_comp, self.bbox_size, False])
 
-        # delete None elements
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
         self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')

@@ -1,6 +1,6 @@
 from typing import TypeVar, Optional
 
-from geometry.algorithm import dist, compare_points
+from geometry.algorithms import point_distance, equal_points
 from pathfinding.path import Path
 from visibility.visibility_graph import VisibilityGraph
 from pathfinding.priority_queue import PriorityQueue
@@ -15,7 +15,7 @@ class AStar(object):
 
     @staticmethod
     def heuristic(node: TPoint, goal: TPoint) -> float:
-        return dist(node, goal)
+        return point_distance(node, goal)
 
     def find(self, start: TPoint, goal: TPoint) -> Optional[Path]:
 
@@ -39,7 +39,7 @@ class AStar(object):
             current = frontier.get()
             current_point = current[0]
 
-            if compare_points(current_point, goal):
+            if equal_points(current_point, goal):
                 break
 
             neighbours = self.vgraph.incident_vertices(current)
@@ -51,7 +51,7 @@ class AStar(object):
 
             for neighbour in neighbours:
                 neighbour_point = neighbour[0]
-                new_cost = cost_so_far[current_point] + dist(current_point, neighbour_point)
+                new_cost = cost_so_far[current_point] + point_distance(current_point, neighbour_point)
 
                 # neighbour not visited or shorter path found
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:
