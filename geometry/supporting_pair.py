@@ -27,9 +27,6 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
     :param low_contains: angle formed by polygon[low] contains point (True) or not (False)
     :return: index of supporting point from point to polygon
     """
-    assert equal_points(polygon[0], polygon[-1])
-    assert len(polygon) >= 3
-    assert cross_product(polygon[0], polygon[1], polygon[2]) >= 0
 
     polygon_size = len(polygon) - 1
     mid = (high + low) // 2

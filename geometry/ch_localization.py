@@ -41,8 +41,7 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
         return True, None
 
     assert equal_points(polygon[0], polygon[-1])
-    assert len(polygon) >= 3
-    assert cross_product(polygon[0], polygon[1], polygon[2]) >= 0
+    assert len(polygon) == 2 or cross_product(polygon[0], polygon[1], polygon[2]) >= 0
 
     point_angle = polar_angle(point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
 
