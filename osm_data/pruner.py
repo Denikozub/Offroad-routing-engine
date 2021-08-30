@@ -43,8 +43,7 @@ class Pruner(OsmParser):
 
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
         self.polygons = self.polygons.reset_index().drop(columns='index')
-        
-        # delete inner polygons
+
         if remove_inner:
             polygon_number = self.polygons.shape[0]
             for i in range(polygon_number):
