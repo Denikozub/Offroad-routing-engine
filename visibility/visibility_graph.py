@@ -88,7 +88,7 @@ class VisibilityGraph(GeometrySaver):
             else:
                 line = find_supporting_line(point, polygon.geometry[0], i)
                 if line is None:
-                    continue
+                    return list()
                 visible_vertices.add_line(line)
 
         # loop over all linestrings
@@ -105,6 +105,13 @@ class VisibilityGraph(GeometrySaver):
                 elif point_number + 1 < linestring_point_count:
                     following = point_number + 1
                     edges_inside.append((linestring[following], i, following, False, 2))
+
+            else:
+                # add whole linestring
+                line = list()
+                for j in range(linestring_point_count):
+                    line.append((linestring[j], i, j, False, 0))
+                visible_vertices.add_line(line)
 
         # building visibility graph of segments
         visible_edges = visible_vertices.get_edges_sweepline(point)
@@ -197,5 +204,5 @@ class VisibilityGraph(GeometrySaver):
                 fill(x, y, color=map_plot[0])
 
         self.__process_points_of_objects(True, G, map_plot, inside_percent, multiprocessing)
-        self.__process_points_of_objects(False, G, map_plot, inside_percent, multiprocessing)
+        # self.__process_points_of_objects(False, G, map_plot, inside_percent, multiprocessing)
         return G, fig

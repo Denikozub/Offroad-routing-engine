@@ -20,13 +20,13 @@ def find_supporting_pair_brute(point: TPoint, polygon: TPolygon, point_number: O
         # cannot be supporting point
         if turn(point, pi, polygon[(i - 1) % polygon_size]) * turn(point, pi, polygon[(i + 1) % polygon_size]) < 0:
             continue
-        found = True
 
         # check intersection with all other points
+        found = True
         for j in range(polygon_size):
             if j in (i - 1, i) or (point_number is not None and j in (point_number - 1, point_number)):
                 continue
-            if ray_intersects_segment(point, pi, polygon[j], polygon[j + 1]):
+            if ray_intersects_segment(point, pi, polygon[j], polygon[j + 1], True):
                 found = False
                 break
         if found:
