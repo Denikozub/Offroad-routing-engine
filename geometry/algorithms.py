@@ -2,7 +2,7 @@ from math import fabs, atan2, pi
 from typing import TypeVar
 
 from geopy.distance import geodesic
-from numpy import array, isclose
+from numpy import isclose
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -12,7 +12,7 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     return geodesic((a[1], a[0]), (b[1], b[0])).km
 
 
-def cross_product(p: array, q: array) -> float:
+def cross_product(p: TPoint, q: TPoint) -> float:
     return p[0] * q[1] - p[1] * q[0]
 
 
