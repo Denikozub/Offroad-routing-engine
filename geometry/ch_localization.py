@@ -15,7 +15,7 @@ def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
         return False
     polygon_cross = turn(polygon[0], polygon[1], polygon[2])
     for i in range(polygon_size):
-        if turn(polygon[i], polygon[i + 1], point) * polygon_cross < 0:
+        if turn(polygon[i], polygon[i + 1], point) * polygon_cross <= 0:
             return False
     return True
 
@@ -47,9 +47,9 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
 
     # point angle not between angles
     if angles[-1] < pi < angles[0]:
-        if angles[-1] < point_angle < angles[0]:
+        if angles[-1] <= point_angle <= angles[0]:
             return False, None
-    elif point_angle < angles[0] or point_angle > angles[-1]:
+    elif point_angle <= angles[0] or point_angle >= angles[-1]:
         return False, None
 
     mid = (len(angles) - 1) // 2
@@ -64,14 +64,14 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
         # 2 angles contain zero-angle
         if angle1 > pi > angle2:
             if point_angle >= angle1 or point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 2
+                return turn(polygon[mid + 1], polygon[mid + 2], point) > 0, mid + 2
             if point_angle > pi:
                 high = mid - 1
             if point_angle < pi:
                 low = mid + 1
         else:
             if angle1 <= point_angle <= angle2:
-                return turn(polygon[mid + 1], polygon[mid + 2], point) >= 0, mid + 2
+                return turn(polygon[mid + 1], polygon[mid + 2], point) > 0, mid + 2
             if point_angle - pi > angle2:
                 high = mid - 1
             elif point_angle + pi < angle1:
