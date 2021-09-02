@@ -14,7 +14,7 @@ def main():
     map_plot = ('r', {0: "royalblue", 1: "r", 2: "k"})
     with cProfile.Profile() as pr:
         G, fig = vgraph.build_graph(inside_percent=0,
-                                    multiprocessing=True,
+                                    multiprocessing=False,
                                     graph=True,
                                     map_plot=map_plot)
 

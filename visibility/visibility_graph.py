@@ -204,5 +204,5 @@ class VisibilityGraph(GeometrySaver):
                 fill(x, y, color=map_plot[0])
 
         self.__process_points_of_objects(True, G, map_plot, inside_percent, multiprocessing)
-        # self.__process_points_of_objects(False, G, map_plot, inside_percent, multiprocessing)
+        self.__process_points_of_objects(False, G, map_plot, inside_percent, multiprocessing)
         return G, fig
