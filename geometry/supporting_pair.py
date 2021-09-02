@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar, Tuple
 
-from geometry.algorithms import point_in_sector, turn, equal_points
+from geometry.algorithms import point_in_angle, turn, compare_points
 from geometry.ch_localization import localize_convex
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
@@ -52,7 +52,7 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
 
 def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
                          angles: Optional[TAngles]) -> Optional[Tuple[PointData, PointData]]:
-    assert equal_points(polygon[0], polygon[-1])
+    assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
     if angles is None:
         if polygon_size == 1:
@@ -107,7 +107,7 @@ def find_supporting_pair_array(point: TPoint, polygon: TPolygon, polygon_number:
 
     # fill an array of angles containing (1) or not containing (0) point (2 subsets)
     for i in range(n):
-        if not point_in_sector(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
+        if not point_in_angle(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
             b[i] = 0
             count += 1
     if count in (0, n):
@@ -146,7 +146,7 @@ def find_supporting_pair_cutoff(point: TPoint, polygon: TPolygon, polygon_number
     for i in range(n):
 
         # angle contains point
-        if not point_in_sector(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
+        if not point_in_angle(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
             if i == 0:
                 start_zero = True
             if begin == -1 and not start_zero:

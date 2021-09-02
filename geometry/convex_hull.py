@@ -2,7 +2,7 @@ from typing import TypeVar, Tuple, Optional
 
 from scipy.spatial import ConvexHull
 
-from geometry.algorithms import polar_angle, equal_points, turn
+from geometry.algorithms import polar_angle, compare_points, turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
@@ -30,7 +30,7 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
         3. tuple of polar angles from first point to others or None if polygon is a segment or a point
     """
 
-    assert equal_points(polygon[0], polygon[-1])
+    assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
     if polygon_size <= 2:
         check_polygon_direction(polygon)

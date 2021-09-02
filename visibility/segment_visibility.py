@@ -1,6 +1,6 @@
 from typing import Sequence, Optional, TypeVar, List, Tuple
 
-from geometry.algorithms import ray_intersects_segment, turn, point_in_sector, polar_angle, segments_intersect
+from geometry.algorithms import check_ray_segment_intersection, turn, point_in_angle, polar_angle, check_segment_intersection
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
@@ -45,8 +45,8 @@ class SegmentVisibility(object):
 
             if self.__restriction_pair is not None:
                 l_point, r_point = self.__restriction_pair
-                a_in_angle = not point_in_sector(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                b_in_angle = not point_in_sector(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                a_in_angle = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                b_in_angle = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
                 if a_in_angle and b_in_angle:
                     continue
             else:
@@ -59,8 +59,8 @@ class SegmentVisibility(object):
                     continue
                 check_pair = self.__segments[j]
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
-                a_is_visible = not a_in_angle and not segments_intersect(point, a_point, check_a, check_b)
-                b_is_visible = not b_in_angle and not segments_intersect(point, b_point, check_a, check_b)
+                a_is_visible = not a_in_angle and not check_segment_intersection(point, a_point, check_a, check_b)
+                b_is_visible = not b_in_angle and not check_segment_intersection(point, b_point, check_a, check_b)
                 if not a_is_visible and not b_is_visible:
                     break
 
@@ -82,7 +82,7 @@ class SegmentVisibility(object):
         # list of segments intersected by 0-angle ray
         intersected = list()
         for edge in self.__segments:
-            if ray_intersects_segment(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
+            if check_ray_segment_intersection(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
                 intersected.insert(0, (edge[0][0], edge[1][0]))
 
         visible_edges = list()
@@ -91,7 +91,7 @@ class SegmentVisibility(object):
             # check if any of the segments in intersected list crosses current segment
             crosses = False
             for segment in intersected:
-                if segments_intersect(point, p[0][0], segment[0], segment[1]):
+                if check_segment_intersection(point, p[0][0], segment[0], segment[1]):
                     crosses = True
                     break
 
@@ -110,7 +110,7 @@ class SegmentVisibility(object):
                 # if a point is inside a restriction angle, it will not be returned
                 if self.__restriction_pair is not None:
                     l_point, r_point = self.__restriction_pair
-                    p_in_angle = not point_in_sector(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                    p_in_angle = not point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle
                     if p_in_angle:
                         continue
 

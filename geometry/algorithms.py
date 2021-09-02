@@ -26,19 +26,19 @@ def polar_angle(a: TPoint, b: TPoint) -> float:
 
 
 # check if point is in sector (lpr < pi) formed by points
-def point_in_sector(point: TPoint, l: TPoint, p: TPoint, r: TPoint) -> bool:
+def point_in_angle(point: TPoint, l: TPoint, p: TPoint, r: TPoint) -> bool:
     if turn(l, p, r) > 0:
         return turn(p, l, point) < 0 < turn(p, r, point)
     return turn(p, r, point) < 0 < turn(p, l, point)
 
 
-def segments_intersect(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -> bool:
+def check_segment_intersection(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -> bool:
     return turn(a0, b0, c0) * turn(a0, b0, d0) < 0 and \
            turn(c0, d0, a0) * turn(c0, d0, b0) < 0
 
 
 # ray ab intersects line segment cd
-def ray_intersects_segment(p: TPoint, b: TPoint, q: TPoint, d: TPoint, end_intersection: bool = False) -> bool:
+def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint, end_intersection: bool = False) -> bool:
     r, s = (b[0] - p[0], b[1] - p[1]), (d[0] - q[0], d[1] - q[1])
     pq = q[0] - p[0], q[1] - p[1]
     r_cross_s = cross_product(r, s)
@@ -49,5 +49,5 @@ def ray_intersects_segment(p: TPoint, b: TPoint, q: TPoint, d: TPoint, end_inter
     return 0 <= t and 0 <= u <= 1 if end_intersection else 0 < t and 0 < u < 1
 
 
-def equal_points(p1: TPoint, p2: TPoint) -> bool:
+def compare_points(p1: TPoint, p2: TPoint) -> bool:
     return isclose(p1, p2).all()

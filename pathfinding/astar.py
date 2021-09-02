@@ -1,6 +1,6 @@
 from typing import TypeVar, Optional
 
-from geometry.algorithms import point_distance, equal_points
+from geometry.algorithms import point_distance, compare_points
 from pathfinding.path import Path
 from visibility.visibility_graph import VisibilityGraph
 from pathfinding.priority_queue import PriorityQueue
@@ -39,7 +39,7 @@ class AStar(object):
             current = frontier.get()
             current_point = current[0]
 
-            if equal_points(current_point, goal):
+            if compare_points(current_point, goal):
                 break
 
             neighbours = self.vgraph.incident_vertices(current)

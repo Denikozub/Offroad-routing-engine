@@ -1,4 +1,4 @@
-from geometry.algorithms import equal_points
+from geometry.algorithms import compare_points
 
 
 class Path(object):
@@ -11,7 +11,7 @@ class Path(object):
     def retrace(self):
         current = self.goal
         self.path = list()
-        while not equal_points(current, self.start):
+        while not compare_points(current, self.start):
             self.path.append(current)
             try:
                 current = self.came_from[current]

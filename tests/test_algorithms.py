@@ -46,49 +46,49 @@ class TestPolarAngle(unittest.TestCase):
         self.assertAlmostEqual(polar_angle((11, -5), (11, -6)), 3 * pi / 2)
 
 
-class TestPointInSector(unittest.TestCase):
+class TestPointInAngle(unittest.TestCase):
     def test_in(self):
-        self.assertTrue(point_in_sector((5, 5), (1, 7), (1, 1), (7, 1)))
+        self.assertTrue(point_in_angle((5, 5), (1, 7), (1, 1), (7, 1)))
 
     def test_out(self):
-        self.assertFalse(point_in_sector((5, 5), (-7, -1), (1, 1), (-1, -7)))
+        self.assertFalse(point_in_angle((5, 5), (-7, -1), (1, 1), (-1, -7)))
 
     def test_border(self):
-        self.assertFalse(point_in_sector((0, 0), (5, 4), (0, 0), (9, -8)))
-        self.assertFalse(point_in_sector((0, 10), (0, 5), (0, 0), (5, 0)))
+        self.assertFalse(point_in_angle((0, 0), (5, 4), (0, 0), (9, -8)))
+        self.assertFalse(point_in_angle((0, 10), (0, 5), (0, 0), (5, 0)))
 
 
-class TestSegmentsIntersect(unittest.TestCase):
+class TestSegmentIntersection(unittest.TestCase):
     def test_intersect(self):
-        self.assertTrue(segments_intersect((-1, 0), (1, 0), (0, 1), (0, -1)))
-        self.assertTrue(segments_intersect((1, 2), (-1, -2), (2, 1), (-2, -1)))
+        self.assertTrue(check_segment_intersection((-1, 0), (1, 0), (0, 1), (0, -1)))
+        self.assertTrue(check_segment_intersection((1, 2), (-1, -2), (2, 1), (-2, -1)))
 
     def test_not_intersect(self):
-        self.assertFalse(segments_intersect((-1, -1), (0, 0), (0, 1), (1, 0)))
-        self.assertFalse(segments_intersect((0, 0), (0, 1), (1, 0), (1, 1)))
+        self.assertFalse(check_segment_intersection((-1, -1), (0, 0), (0, 1), (1, 0)))
+        self.assertFalse(check_segment_intersection((0, 0), (0, 1), (1, 0), (1, 1)))
 
     def test_border(self):
-        self.assertFalse(segments_intersect((0, 0), (0, 1), (-1, 1), (1, 1)))
-        self.assertFalse(segments_intersect((1, 1), (3, 3), (1, 1), (3, 3)))
+        self.assertFalse(check_segment_intersection((0, 0), (0, 1), (-1, 1), (1, 1)))
+        self.assertFalse(check_segment_intersection((1, 1), (3, 3), (1, 1), (3, 3)))
 
 
-class TestRayIntersectsSegment(unittest.TestCase):
+class TestRaySegmentIntersection(unittest.TestCase):
     def test_intersect(self):
-        self.assertTrue(ray_intersects_segment((-1, 0), (1, 0), (0, 1), (0, -1)))
-        self.assertTrue(ray_intersects_segment((1, 2), (-1, -2), (2, 1), (-2, -1)))
-        self.assertTrue(ray_intersects_segment((-1, -1), (0, 0), (0, 1), (1, 0)))
-        self.assertTrue(ray_intersects_segment((-1, 0), (1, 0), (2, 2), (2, -2)))
+        self.assertTrue(check_ray_segment_intersection((-1, 0), (1, 0), (0, 1), (0, -1)))
+        self.assertTrue(check_ray_segment_intersection((1, 2), (-1, -2), (2, 1), (-2, -1)))
+        self.assertTrue(check_ray_segment_intersection((-1, -1), (0, 0), (0, 1), (1, 0)))
+        self.assertTrue(check_ray_segment_intersection((-1, 0), (1, 0), (2, 2), (2, -2)))
 
     def test_not_intersect(self):
-        self.assertFalse(ray_intersects_segment((0, 0), (0, -1), (-1, 1), (1, 1)))
-        self.assertFalse(ray_intersects_segment((0, 0), (0, 1), (1, 0), (1, 1)))
-        self.assertFalse(ray_intersects_segment((0, 0), (0, 1), (2, 2), (2, 3)))
+        self.assertFalse(check_ray_segment_intersection((0, 0), (0, -1), (-1, 1), (1, 1)))
+        self.assertFalse(check_ray_segment_intersection((0, 0), (0, 1), (1, 0), (1, 1)))
+        self.assertFalse(check_ray_segment_intersection((0, 0), (0, 1), (2, 2), (2, 3)))
 
     def test_border(self):
-        self.assertTrue(ray_intersects_segment((0, 0), (0, 1), (-1, 0), (1, 0), True))
-        self.assertTrue(ray_intersects_segment((0, 0), (0, 1), (0, 2), (2, 2), True))
-        self.assertFalse(ray_intersects_segment((0, 0), (0, 1), (-1, 0), (1, 0), False))
-        self.assertFalse(ray_intersects_segment((0, 0), (0, 1), (0, 2), (2, 2), False))
+        self.assertTrue(check_ray_segment_intersection((0, 0), (0, 1), (-1, 0), (1, 0), True))
+        self.assertTrue(check_ray_segment_intersection((0, 0), (0, 1), (0, 2), (2, 2), True))
+        self.assertFalse(check_ray_segment_intersection((0, 0), (0, 1), (-1, 0), (1, 0), False))
+        self.assertFalse(check_ray_segment_intersection((0, 0), (0, 1), (0, 2), (2, 2), False))
 
 
 if __name__ == '__main__':

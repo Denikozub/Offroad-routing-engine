@@ -1,7 +1,7 @@
 from math import pi
 from typing import Tuple, Optional, TypeVar
 
-from geometry.algorithms import polar_angle, equal_points, turn
+from geometry.algorithms import polar_angle, compare_points, turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
@@ -9,7 +9,7 @@ TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
 def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
-    assert equal_points(polygon[0], polygon[-1])
+    assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
     if polygon_size <= 2:
         return False
@@ -37,10 +37,10 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
     if angles is None:
         return False, None
 
-    if equal_points(point, polygon[0]):
+    if compare_points(point, polygon[0]):
         return True, None
 
-    assert equal_points(polygon[0], polygon[-1])
+    assert compare_points(polygon[0], polygon[-1])
     assert len(polygon) == 2 or turn(polygon[0], polygon[1], polygon[2]) >= 0
 
     point_angle = polar_angle(point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)

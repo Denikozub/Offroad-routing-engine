@@ -2,7 +2,7 @@ from typing import Optional
 
 from pandas import DataFrame
 
-from geometry.algorithms import equal_points
+from geometry.algorithms import compare_points
 from geometry.convex_hull import build_convex_hull
 from osm_data.coord_filter import get_coordinates
 from osm_data.parser import OsmParser
@@ -28,7 +28,7 @@ class Pruner(OsmParser):
                             self.polygons.tag.iloc[i].append(None)
                         continue
                     new_point = self.polygons.geometry.iloc[k][0][0]
-                    if equal_points(point, new_point):
+                    if compare_points(point, new_point):
                         self.polygons.tag.iloc[i].append(self.polygons.tag.iloc[k])
                         self.polygons.geometry.iloc[k] = None
                     elif k == polygon_number - 1:

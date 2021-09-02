@@ -1,6 +1,6 @@
 from typing import Optional, List, TypeVar, Tuple
 
-from geometry.algorithms import ray_intersects_segment, turn, equal_points
+from geometry.algorithms import check_ray_segment_intersection, turn, compare_points
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
@@ -8,7 +8,7 @@ PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], 
 
 
 def find_supporting_pair_brute(point: TPoint, polygon: TPolygon, point_number: Optional[int]):
-    assert equal_points(polygon[0], polygon[-1])
+    assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
     result = list()
 
@@ -26,7 +26,7 @@ def find_supporting_pair_brute(point: TPoint, polygon: TPolygon, point_number: O
         for j in range(polygon_size):
             if j in (i - 1, i) or (point_number is not None and j in (point_number - 1, point_number)):
                 continue
-            if ray_intersects_segment(point, pi, polygon[j], polygon[j + 1], True):
+            if check_ray_segment_intersection(point, pi, polygon[j], polygon[j + 1], True):
                 found = False
                 break
         if found:
