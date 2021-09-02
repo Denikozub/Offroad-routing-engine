@@ -6,7 +6,7 @@ from numpy.random import choice
 from shapely.geometry import Polygon, LineString
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 

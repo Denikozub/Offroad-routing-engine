@@ -5,13 +5,21 @@ from scipy.spatial import ConvexHull
 from geometry.algorithms import polar_angle, equal_points, turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
-TAngles = TypeVar("TAngles")  # Sequence[float]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
+TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
 def check_polygon_direction(polygon: TPolygon) -> None:
     if len(polygon) >= 3 and turn(polygon[0], polygon[1], polygon[2]) < 0:
         polygon.reverse()
+
+
+def calculate_angles(polygon: TPolygon) -> TAngles:
+    starting_point = polygon[0]
+    angles = [polar_angle(starting_point, point) for point in polygon]
+    angles.pop(0)
+    angles.pop()
+    return tuple(angles)
 
 
 def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Optional[TAngles]]:
@@ -43,9 +51,4 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
     points = tuple([tuple(point) for point in points])
     vertices.pop()
 
-    # calculating angles
-    starting_point = points[0]
-    angles = [polar_angle(starting_point, point) for point in points]
-    angles.pop(0)
-    angles.pop()
-    return points, tuple(vertices), tuple(angles)
+    return points, tuple(vertices), calculate_angles(points)

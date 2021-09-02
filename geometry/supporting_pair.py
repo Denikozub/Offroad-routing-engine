@@ -4,8 +4,8 @@ from geometry.algorithms import point_in_sector, turn, equal_points
 from geometry.ch_localization import localize_convex
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
-TAngles = TypeVar("TAngles")  # Sequence[float]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
+TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 """

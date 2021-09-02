@@ -6,7 +6,7 @@ from shapely.geometry import mapping, Polygon, MultiLineString
 
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 
 
 def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_comp: Optional[int],

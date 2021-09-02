@@ -4,8 +4,8 @@ from typing import Tuple, Optional, TypeVar
 from geometry.algorithms import polar_angle, equal_points, turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
-TAngles = TypeVar("TAngles")  # Sequence[float]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
+TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
 def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:

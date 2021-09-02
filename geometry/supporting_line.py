@@ -3,7 +3,7 @@ from typing import Optional, List, TypeVar, Tuple
 from geometry.algorithms import ray_intersects_segment, turn, equal_points
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Sequence[TPoint]
+TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
 
 
