@@ -9,16 +9,12 @@ def main():
 
     start = timeit.default_timer()
 
-    G, fig = vgraph.build_graph(inside_percent=0,
-                                multiprocessing=False,
-                                graph=True,
-                                map_plot=None)
+    vgraph.build_graph(inside_percent=1,
+                       multiprocessing=False,
+                       graph=False,
+                       map_plot=False)
 
     stop = timeit.default_timer()
-
-    print('edges: ', G.number_of_edges())
-    print('nodes: ', G.number_of_nodes())
-
     print('Time: ', stop - start)
 
 
