@@ -1,4 +1,4 @@
-from typing import TypeVar, Optional
+from typing import TypeVar
 
 from geometry.algorithms import point_distance, compare_points
 from pathfinding.path import Path
@@ -14,10 +14,10 @@ class AStar(object):
         self.__vgraph = vgraph
 
     @staticmethod
-    def heuristic(node: TPoint, goal: TPoint) -> float:
-        return point_distance(node, goal)
+    def heuristic(node: TPoint, goal: TPoint, heuristic_multiplier: int) -> float:
+        return point_distance(node, goal) * heuristic_multiplier
 
-    def find(self, start: TPoint, goal: TPoint) -> Optional[Path]:
+    def find(self, start: TPoint, goal: TPoint, default_weight: int = 10, heuristic_multiplier: int = 10) -> Path:
         """
         Find route from point start to point goal.
         """
@@ -27,9 +27,11 @@ class AStar(object):
         goal_data = (goal, None, None, None, None)
 
         # vgraph nodes incident to goal point (defined by object and position in the object)
-        goal_neighbours = [(i[1], i[2], i[3]) for i in self.__vgraph.incident_vertices(goal_data)]
-        if not goal_neighbours:
-            return None
+        goal_neighbours = self.__vgraph.incident_vertices(goal_data)
+        if len(goal_neighbours) == 0:
+            raise Exception("Goal point has no neighbours on the graph")
+        goal_data = (goal, None, None, None, goal_neighbours[0][4])
+        goal_neighbours = [(i[1], i[2], i[3]) for i in goal_neighbours]
 
         frontier = PriorityQueue()
         frontier.put(start_data, 0)
@@ -54,12 +56,13 @@ class AStar(object):
 
             for neighbour in neighbours:
                 neighbour_point = neighbour[0]
-                new_cost = cost_so_far[current_point] + point_distance(current_point, neighbour_point)
+                neighbour_weight = neighbour[4] if neighbour[4] > 0 else default_weight
+                new_cost = cost_so_far[current_point] + point_distance(current_point, neighbour_point) * neighbour_weight
 
                 # neighbour not visited or shorter path found
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:
                     cost_so_far[neighbour_point] = new_cost
-                    priority = new_cost + self.heuristic(goal, neighbour_point)
+                    priority = new_cost + self.heuristic(goal, neighbour_point, heuristic_multiplier)
                     frontier.put(neighbour, priority)
                     came_from[neighbour_point] = current_point
 
