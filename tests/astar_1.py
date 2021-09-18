@@ -12,13 +12,13 @@ def main():
     start = timeit.default_timer()
 
     pathfinder = AStar(vgraph)
-    path = pathfinder.find((34.02, 59.01), (34.12, 59.09))
+    path = pathfinder.find((34.02, 59.01), (34.12, 59.09), default_weight=10, heuristic_multiplier=10)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)
 
     track = GpxTrack(path)
-    track.write_file("track.gpx")
+    # track.write_file("track.gpx")
     track.visualize()
 
 
