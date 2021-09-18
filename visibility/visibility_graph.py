@@ -51,14 +51,14 @@ class VisibilityGraph(GeometrySaver):
             # if a point is not a part of an object
             if obj_number is None or point_number is None or is_polygon is None:
                 if Polygon(polygon.geometry[0]).contains(Point(point)):
-                    return find_inner_edges(point, None, polygon.geometry, i, inside_percent)
+                    return find_inner_edges(point, None, polygon.geometry, i, inside_percent, polygon.tag)
                 else:
                     continue
 
             # if a point is a part of a current polygon
             if is_polygon and i == obj_number:
 
-                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent)
+                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent, polygon.tag)
 
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
@@ -95,16 +95,17 @@ class VisibilityGraph(GeometrySaver):
         multilinestring_count = self.multilinestrings.shape[0]
         for i in range(multilinestring_count):
             linestring = self.multilinestrings.geometry[i]
+            weight = self.multilinestrings.tag[i]
             linestring_point_count = len(linestring)
 
             # if a point is a part of a current linestring
             if not is_polygon and i == obj_number:
                 if point_number > 0:
                     previous = point_number - 1
-                    edges_inside.append((linestring[previous], i, previous, False, 2))
+                    edges_inside.append((linestring[previous], i, previous, False, weight))
                 elif point_number + 1 < linestring_point_count:
                     following = point_number + 1
-                    edges_inside.append((linestring[following], i, following, False, 2))
+                    edges_inside.append((linestring[following], i, following, False, weight))
 
             else:
                 # add whole linestring

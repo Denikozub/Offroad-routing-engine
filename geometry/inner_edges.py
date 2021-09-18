@@ -11,7 +11,7 @@ PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], 
 
 
 def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
-                     polygon_number: int, inside_percent: float) -> List[PointData]:
+                     polygon_number: int, inside_percent: float, weight: int) -> List[PointData]:
     """
     Finds segments from point to polygon vertices which are strictly inside polygon.
     If point is not a polygon vertex, finds all segments.
@@ -36,17 +36,17 @@ def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequen
         for i in range(polygon_size):
             if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
                 if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
-                    edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
+                    edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
         return edges_inside
 
     for i in range(polygon_size):
         if i == point_number:
             continue
         if fabs(i - point_number) in [1, polygon_size - 1]:
-            edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
+            edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
             continue
         if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
             if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
-                edges_inside.append((polygon[0][i], polygon_number, i, True, 1))
+                edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
 
     return edges_inside

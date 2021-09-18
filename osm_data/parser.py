@@ -3,6 +3,7 @@ from typing import Sequence, Optional
 
 from pandas import DataFrame
 
+from osm_data.tag_value import TagValue
 from osm_data.osm_converter import OsmConverter
 
 
@@ -11,8 +12,9 @@ class OsmParser(object):
     def __init__(self):
         self.polygons = DataFrame(columns=['tag', 'geometry'])
         self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
+        self.tag_value = TagValue()
         self.bbox_size = None
-    
+
     def compute_geometry(self, bbox: Sequence[float], filename: Optional[str] = None) -> None:
         """
         Parse OSM file (area in bbox) to retrieve information about needed tags.
@@ -20,7 +22,6 @@ class OsmParser(object):
         :param bbox: in format min_lon, min_lat, max_lon, max_lat
         :param filename: None (map will be downloaded) or in .osm.pbf format
         """
-
         if filename is None:
             converter = OsmConverter(bbox)
             filename = converter.filename
@@ -57,4 +58,5 @@ class OsmParser(object):
                     .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
             roads.drop(roads.index, inplace=True)
 
+        self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
         self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
