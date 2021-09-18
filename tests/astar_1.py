@@ -13,7 +13,6 @@ def main():
 
     pathfinder = AStar(vgraph)
     path = pathfinder.find((34.02, 59.01), (34.12, 59.09))
-    path.retrace()
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)

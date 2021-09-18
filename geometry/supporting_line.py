@@ -16,8 +16,6 @@ def find_supporting_pair_brute(point: TPoint, polygon: TPolygon, point_number: O
         pi = polygon[i]
         if point_number is not None and i == point_number:
             continue
-
-        # cannot be supporting point
         if turn(point, pi, polygon[(i - 1) % polygon_size]) * turn(point, pi, polygon[(i + 1) % polygon_size]) < 0:
             continue
 
@@ -34,7 +32,6 @@ def find_supporting_pair_brute(point: TPoint, polygon: TPolygon, point_number: O
 
     if len(result) != 2:
         return None
-
     point1, point2 = result
     return point1, point2
 

@@ -11,20 +11,23 @@ PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], 
 
 class AStar(object):
     def __init__(self, vgraph: VisibilityGraph) -> None:
-        self.vgraph = vgraph
+        self.__vgraph = vgraph
 
     @staticmethod
     def heuristic(node: TPoint, goal: TPoint) -> float:
         return point_distance(node, goal)
 
     def find(self, start: TPoint, goal: TPoint) -> Optional[Path]:
+        """
+        Find route from point start to point goal.
+        """
 
         # PointData format
         start_data = (start, None, None, None, None)
         goal_data = (goal, None, None, None, None)
 
         # vgraph nodes incident to goal point (defined by object and position in the object)
-        goal_neighbours = [(i[1], i[2], i[3]) for i in self.vgraph.incident_vertices(goal_data)]
+        goal_neighbours = [(i[1], i[2], i[3]) for i in self.__vgraph.incident_vertices(goal_data)]
         if not goal_neighbours:
             return None
 
@@ -42,7 +45,7 @@ class AStar(object):
             if compare_points(current_point, goal):
                 break
 
-            neighbours = self.vgraph.incident_vertices(current)
+            neighbours = self.__vgraph.incident_vertices(current)
 
             # if current is goal neighbour add it to neighbour list
             goal_neighbour = (current[1], current[2], current[3]) in goal_neighbours

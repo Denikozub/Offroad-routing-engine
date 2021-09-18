@@ -125,7 +125,7 @@ class SegmentVisibility(object):
         return visible_edges
 
     """
-    Angle approximation Denis denikozub Kozub O(n) algorithm
+    Angle approximation Denis Kozub O(n) algorithm
     - only parameter is view_angle=1, it shows the calculation error
     - angle_count = math.floor(360 / view_angle) is the number of angles the surface is divided into
     - crosses = [None for angle in range(angle_count)] is an array to store minimal distances to points for each angle

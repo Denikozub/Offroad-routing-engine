@@ -2,7 +2,6 @@ from math import fabs, atan2, pi
 from typing import TypeVar
 
 from geopy.distance import geodesic
-from numpy import isclose
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -50,4 +49,4 @@ def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint, e
 
 
 def compare_points(p1: TPoint, p2: TPoint) -> bool:
-    return isclose(p1, p2).all()
+    return fabs(p1[0] - p2[0]) < 1e-8 and fabs(p1[1] - p2[1]) < 1e-8
