@@ -9,9 +9,8 @@ TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
-def check_polygon_direction(polygon: TPolygon) -> None:
-    if len(polygon) >= 3 and turn(polygon[0], polygon[1], polygon[2]) < 0:
-        polygon.reverse()
+def check_polygon_direction(polygon: TPolygon) -> TPolygon:
+    return tuple(reversed(polygon)) if len(polygon) >= 3 and turn(polygon[0], polygon[1], polygon[2]) < 0 else polygon
 
 
 def calculate_angles(polygon: TPolygon) -> TAngles:
@@ -33,10 +32,9 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
     assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
     if polygon_size <= 2:
-        check_polygon_direction(polygon)
         return polygon, tuple([i for i in range(len(polygon) - 1)]), None
     if polygon_size == 3:
-        check_polygon_direction(polygon)
+        polygon = check_polygon_direction(polygon)
         starting_point = polygon[0]
         angles = [polar_angle(starting_point, vertex) for vertex in polygon]
         angles.pop(0)
@@ -47,7 +45,7 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
     vertices = list(ch.vertices)
     vertices.append(vertices[0])
     points = ch.points[vertices]
-    check_polygon_direction(points)
+    points = check_polygon_direction(points)
     points = tuple([tuple(point) for point in points])
     vertices.pop()
 
