@@ -171,7 +171,7 @@ If the map is downloaded you can specify the filename:
 
 
 ```python
-from visibility.visibility_graph import VisibilityGraph
+from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 vgraph = VisibilityGraph()
 filename = "../maps/kozlovo.osm.pbf"
@@ -208,7 +208,7 @@ vgraph.save_geometry("../maps/user_area.h5")
 
 
 ```python
-from visibility.visibility_graph import VisibilityGraph
+from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 vgraph = VisibilityGraph()
 vgraph.load_geometry("../maps/user_area.h5")
@@ -256,8 +256,8 @@ mplleaflet.display(fig=fig)
 
 
 ```python
-from visibility.visibility_graph import VisibilityGraph
-from pathfinding.astar import AStar
+from offroad_routing.visibility.visibility_graph import VisibilityGraph
+from offroad_routing.pathfinding.astar import AStar
 
 vgraph = VisibilityGraph()
 vgraph.load_geometry("../maps/user_area.h5")
@@ -279,7 +279,7 @@ The following code saves the path to a gpx file and generates a link to view it 
 
 
 ```python
-from pathfinding.gpx_track import GpxTrack
+from offroad_routing.pathfinding.gpx_track import GpxTrack
 
 track = GpxTrack(path)
 track.write_file("track.gpx")
