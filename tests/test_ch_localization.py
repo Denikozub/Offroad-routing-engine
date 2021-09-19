@@ -1,11 +1,11 @@
 import unittest
+
 from geometry.ch_localization import *
 from geometry.convex_hull import build_convex_hull
 
 
 polygon = ((0, 0), (1, -1), (3, -1), (6, 1), (5, 3), (1, 3), (0, 0))
-angles = build_convex_hull(polygon)[2]
-ch = build_convex_hull(polygon)[0]
+ch, _, angles = build_convex_hull(polygon)
 p1 = (2, 1)
 p2 = (5, 1)
 p3 = (-1, 2)
