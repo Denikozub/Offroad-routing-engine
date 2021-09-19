@@ -7,7 +7,7 @@ from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 def main():
     vgraph = VisibilityGraph()
-    vgraph.load_geometry("../maps/kozlovo.h5")
+    vgraph.load_geometry("../../maps/kozlovo.h5")
 
     start = timeit.default_timer()
 
