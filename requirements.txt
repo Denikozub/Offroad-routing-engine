@@ -10,5 +10,4 @@ mplleaflet==0.0.5
 tqdm==4.61.2
 geopy==2.2.0
 rdp==0.8
-geopandas
-pyrosm
+pyrosm==0.6.0

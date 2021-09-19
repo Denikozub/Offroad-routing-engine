@@ -1,9 +1,9 @@
 import unittest
 from os import remove
 
-from visibility.visibility_graph import VisibilityGraph
-from pathfinding.astar import AStar
-from pathfinding.gpx_track import GpxTrack
+from offroad_routing.visibility.visibility_graph import VisibilityGraph
+from offroad_routing.pathfinding.astar import AStar
+from offroad_routing.pathfinding.gpx_track import GpxTrack
 
 
 class TestAstar(unittest.TestCase):

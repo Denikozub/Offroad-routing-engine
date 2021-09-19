@@ -1,6 +1,6 @@
 import unittest
 
-from visibility.visibility_graph import VisibilityGraph
+from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 
 class TestGraph(unittest.TestCase):

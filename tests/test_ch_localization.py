@@ -1,7 +1,7 @@
 import unittest
 
-from geometry.ch_localization import *
-from geometry.convex_hull import build_convex_hull
+from offroad_routing.geometry.ch_localization import *
+from offroad_routing.geometry.convex_hull import build_convex_hull
 
 
 polygon = ((0, 0), (1, -1), (3, -1), (6, 1), (5, 3), (1, 3), (0, 0))

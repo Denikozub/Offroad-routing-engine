@@ -1,6 +1,6 @@
 import unittest
 
-from geometry.algorithms import *
+from offroad_routing.geometry.algorithms import *
 
 
 class TestPointDistance(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from geometry.convex_hull import build_convex_hull
+from offroad_routing.geometry.convex_hull import build_convex_hull
 
 polygon0 = ((0, 0), (1, 1), (0, 0))
 polygon1 = ((0, 0), (0, 1), (1, 1), (0, 0))

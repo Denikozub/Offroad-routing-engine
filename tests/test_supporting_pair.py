@@ -1,7 +1,8 @@
 import unittest
 
-from geometry.supporting_pair import find_supporting_pair, find_supporting_pair_cutoff, find_supporting_pair_array
-from geometry.convex_hull import build_convex_hull
+from offroad_routing.geometry.supporting_pair import \
+    find_supporting_pair, find_supporting_pair_cutoff, find_supporting_pair_array
+from offroad_routing.geometry.convex_hull import build_convex_hull
 
 polygon = ((0, 1), (2, 0), (6, 1), (5, 5), (1, 4), (0, 1))
 polygon, _, angles = build_convex_hull(polygon)
