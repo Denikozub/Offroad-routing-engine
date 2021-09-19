@@ -1,7 +1,8 @@
 from math import fabs
 from typing import Sequence, Optional
 
-from pandas import DataFrame
+from pandas import DataFrame, Series
+from shapely.geometry import mapping
 
 from osm_data.tag_value import TagValue
 from osm_data.osm_converter import OsmConverter
@@ -14,6 +15,44 @@ class OsmParser(object):
         self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
         self.tag_value = TagValue()
         self.bbox_size = None
+
+    @staticmethod
+    def get_first_point(line):
+        coords = mapping(line)['coordinates']
+        return coords[0][0] if isinstance(coords[0][0], tuple) else coords[0]
+
+    @staticmethod
+    def get_last_point(line):
+        coords = mapping(line)['coordinates']
+        return coords[-1][1] if isinstance(coords[0][0], tuple) else coords[1]
+
+    def dissolve(self, src_roads):
+        roads = src_roads.copy()
+        roads["id"] = Series(dtype="int64")
+        current = 1
+        points = dict()
+        for index, row in roads.iterrows():
+            start = self.get_first_point(row.geometry)
+            end = self.get_last_point(row.geometry)
+            found = False
+            for number, borders in points.items():
+                if start in borders:
+                    roads.at[index, "id"] = number
+                    borders.add(end)
+                    found = True
+                    break
+                if end in borders:
+                    roads.at[index, "id"] = number
+                    borders.add(start)
+                    found = True
+                    break
+            if not found:
+                roads.at[index, "id"] = current
+                points[current] = set()
+                points[current].add(start)
+                points[current].add(end)
+                current += 1
+        return roads.dissolve(by="id").reset_index().drop(columns=["id"])
 
     def compute_geometry(self, bbox: Sequence[float], filename: Optional[str] = None) -> None:
         """
@@ -54,9 +93,9 @@ class OsmParser(object):
 
         roads = osm.get_network()
         if roads is not None:
-            self.multilinestrings = DataFrame(roads.loc[:, ['highway', 'geometry']]
+            roads = self.dissolve(roads[["highway", "geometry"]])
+            self.multilinestrings = DataFrame(roads
                     .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
-            roads.drop(roads.index, inplace=True)
 
         self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
         self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
