@@ -14,7 +14,7 @@ by Denis Kozub
 - Saving and loading precomputed map data
 - Multiprocessing and visualization tools support
 
-<img src="docs/VGraph.png" alt="" width="800"/>
+<img src="docs/Route.png" alt="" width="800"/>
 
 Scope of application:
 - Extending functionality of other routing engines  
@@ -42,9 +42,7 @@ PointData = NewType("PointData", Tuple[TPoint,      # x, y - point coordinates
                                  Optional[int],     # number of object where point belongs
                                  Optional[int],     # number of point in object
                                  Optional[bool],    # object is polygon (True) or linestring (False)
-                                 Optional[int]])    # surface type (0 - edge between objects,
-                                                    #               1 - edge inside polygon, 
-                                                    #               2 - road edge)
+                                 Optional[int]])    # surface weight
 ~~~
 
 
@@ -89,13 +87,17 @@ save_geometry(filename)
 ~~~
 
 Save computed data to .h5 file  
+__filename__: .h5 string filename  
+__return__: None
 
 
 ~~~python
 load_geometry(filename)
 ~~~
 
-Load saved data from .h5 file
+Load saved data from .h5 file  
+__filename__: .h5 string filename  
+__return__: None
 
 
 ~~~python
@@ -109,22 +111,49 @@ __return__ list of PointData of all visible points
 
 
 ~~~python
-build_graph(inside_percent=0.4, multiprocessing = True, graph=False, map_plot=None, crs='EPSG:4326')
+build_graph(inside_percent=0.4, multiprocessing=True, graph=False, map_plot=False, crs='EPSG:4326')
 ~~~
 
 Compute [and build] [and plot] visibility graph  
 __inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
 __multiprocessing__: bool - speed up computation for dense areas using multiprocessing  
-__graph__: bool - build a networkx.MultiGraph  
-__map_plot__: None or tuple of colors to plot visibility graph
-* 0 element: color to plot polygons  
-* 1 element: dict of colors to plot edges  
-    * 0: edges between objects
-    * 1: edges inside polygon
-    * 2: road edges  
-
+__graph__: bool - build a networkx.MultiGraph (True) or not (False)  
+__map_plot__: plot visibility graph (True) or not (False)  
 __crs__: string - coordinate reference system  
 __return__ networkx.MultiGraph (None if graph is False), matplotlib.figure.Figure (None if map_plot is None)
+
+
+### Astar
+
+~~~python
+find(start, goal, default_weight=10, heuristic_multiplier=10)
+~~~
+
+Run A* algorithm to find path from start to goal.  
+__default_weight__: weight for unmapped OSM areas  
+__heuristic_multiplier__: variable to alter heuristic value due to total weights  
+__return__ path.Path object
+
+
+### GpxTrack
+
+GpxTrack is a class to help visualize and save computed paths.
+
+
+~~~python
+write_file(filename)
+~~~
+
+Save path to .gpx file.  
+__filename__: .gpx string filename  
+__return__: None
+
+
+~~~python
+visualize()
+~~~
+Generate link to visualize path using https://nakarte.me  
+__return__: None
 
 
 # Usage
@@ -146,7 +175,7 @@ from visibility.visibility_graph import VisibilityGraph
 
 vgraph = VisibilityGraph()
 filename = "../maps/kozlovo.osm.pbf"
-bbox = [36.2, 56.5, 36.7, 57]
+bbox = [36.2, 56.5, 36.7, 56.7]
 vgraph.compute_geometry(bbox=bbox, filename=filename)
 ```
 
@@ -182,25 +211,28 @@ vgraph.save_geometry("../maps/user_area.h5")
 from visibility.visibility_graph import VisibilityGraph
 
 vgraph = VisibilityGraph()
-vgraph.load_geometry("../maps/kozlovo.h5")
+vgraph.load_geometry("../maps/user_area.h5")
 ```
 
-Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using [mplleaflet](https://pypi.org/project/mplleaflet/):
+Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using mplleaflet:
 
 
 ```python
 %%time
 import mplleaflet
 
-map_plot=('r', {0: "royalblue", 1: "r", 2: "k"})
 G, fig = vgraph.build_graph(inside_percent=0,
+                            multiprocessing=False,
                             graph=True,
-                            map_plot=map_plot)
+                            map_plot=True)
 
 print('edges: ', G.number_of_edges())
 print('nodes: ', G.number_of_nodes())
 mplleaflet.display(fig=fig)
 ```
+
+<img src="docs/VGraph.png" alt="" width="800"/>
+
 
 VisibilityGraph may also be used to find incident edges for a single point.  
 This feature is used for pathfinding without graph building:
@@ -210,7 +242,7 @@ This feature is used for pathfinding without graph building:
 import matplotlib.pyplot as plt
 import mplleaflet
 
-start = ([36.35, 56.57], None, None, None, None)
+start = ((34.02, 59.01), None, None, None, None)
 incidents = vgraph.incident_vertices(start)
 
 fig = plt.figure()
@@ -220,8 +252,44 @@ for p in incidents:
 mplleaflet.display(fig=fig)
 ```
 
+### Building routes
+
+
+```python
+from visibility.visibility_graph import VisibilityGraph
+from pathfinding.astar import AStar
+
+vgraph = VisibilityGraph()
+vgraph.load_geometry("../maps/user_area.h5")
+
+pathfinder = AStar(vgraph)
+path = pathfinder.find((34.02, 59.01), (34.12, 59.09), default_weight=10, heuristic_multiplier=10)
+```
+
+Path can be viewed in coordinate format:
+
+
+```python
+print(path.path())
+```
+
+However, specialized tools can be used to save and visualize the path:
+
+The following code saves the path to a gpx file and generates a link to view it online.
+
+
+```python
+from pathfinding.gpx_track import GpxTrack
+
+track = GpxTrack(path)
+track.write_file("track.gpx")
+track.visualize()
+```
+
+You can check the route [here](https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5IiwgInAiOiBbeyJuIjogIlN0YXJ0IiwgImx0IjogNTkuMDEsICJsbiI6IDM0LjAyfSwgeyJuIjogIkdvYWwiLCAibHQiOiA1OS4wOSwgImxuIjogMzQuMTJ9XSwgInQiOiBbW1s1OS4wMSwgMzQuMDJdLCBbNTkuMDA3NzI1NSwgMzQuMDEyMDA2M10sIFs1OS4wMDI3NDk4LCAzNC4wMDY1MTM5XSwgWzU5LjAwMDE5NSwgMzQuMDA4MDM1N10sIFs1OS4wMDE1NTg5LCAzNC4wMzA4NDMyXSwgWzU5LjAwMDI3ODcsIDM0LjA0MTcxOV0sIFs1OS4wMDAzNzc2LCAzNC4wNDk3MTU2XSwgWzU5LjAwNjc2NDEsIDM0LjA2MzMzNjFdLCBbNTkuMDA5NzI2MywgMzQuMDY0NTAxMl0sIFs1OS4wMTExMDE4LCAzNC4wNzA5MjAzXSwgWzU5LjAxOTExNjcsIDM0LjA5Nzk1NzZdLCBbNTkuMDE4MjgyOCwgMzQuMTA1MTg4OF0sIFs1OS4wMjM0ODk5LCAzNC4xMTgxNjY5XSwgWzU5LjA0ODE3MDMsIDM0LjE0Mzg1NjldLCBbNTkuMDcwNjk4NSwgMzQuMTQzMDg0NF0sIFs1OS4wNzc1NDY3LCAzNC4xMzM4NzkxXSwgWzU5LjA4MjI2OTEsIDM0LjExNDU5MjRdLCBbNTkuMDg2NDQxNiwgMzQuMTIxNDY4M10sIFs1OS4wOSwgMzQuMTJdXV19XQ==).
+    
 
 ### Results
 Check out the [result vizualization](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet.  
-Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.  
-Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is just above 3 seconds.
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 17 seconds with multiprocessing.  
+Computational time for a much freer area or 120 km<sup>2</sup> (see [another example](https://github.com/Denikozub/Offroad-routing-engine/tree/main/docs/another%20example)) is 1.1 seconds.
