@@ -13,7 +13,7 @@ class Pruner(OsmParser):
     def __init__(self):
         super().__init__()
 
-    def remove_inner_polygons(self):
+    def __remove_inner_polygons(self):
         polygon_number = self.polygons.shape[0]
         for i in range(polygon_number):
             if self.polygons.geometry.iloc[i] is None:
@@ -37,15 +37,15 @@ class Pruner(OsmParser):
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
     @staticmethod
-    def compare_polygons(p1, p2):
+    def __compare_polygons(p1, p2):
         outer1, outer2 = p1[0], p2[0]
         return outer1 == outer2 or outer1 == tuple(reversed(outer2))
 
-    def remove_equal_polygons(self):
+    def __remove_equal_polygons(self):
         to_delete = list()
         for p1 in self.polygons.geometry:
             for p2 in self.polygons.geometry:
-                if (p1 is not p2) and self.compare_polygons(p1, p2) and p1 not in to_delete and p2 not in to_delete:
+                if (p1 is not p2) and self.__compare_polygons(p1, p2) and p1 not in to_delete and p2 not in to_delete:
                     to_delete.append(p2)
         self.polygons = self.polygons[~self.polygons.geometry.isin(to_delete)]
 
@@ -78,11 +78,11 @@ class Pruner(OsmParser):
             self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
 
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
-        self.remove_equal_polygons()
+        self.__remove_equal_polygons()
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
         if remove_inner:
-            self.remove_inner_polygons()
+            self.__remove_inner_polygons()
 
         # add info about convex hull
         if self.polygons.shape[0] > 0:

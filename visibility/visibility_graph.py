@@ -28,7 +28,7 @@ class VisibilityGraph(GeometrySaver):
         1: number of object where point belongs
         2: number of point in object
         3: object is polygon (True) or linestring (False)
-        4: surface type (0 - edge between objects, 1 - edge inside polygon, 2 - road edge)
+        4: surface weight
 
         :param point_data: information about point
         :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
