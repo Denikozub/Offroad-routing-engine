@@ -7,12 +7,12 @@ from offroad_routing.pathfinding.gpx_track import GpxTrack
 
 def main():
     vgraph = VisibilityGraph()
-    vgraph.load_geometry("../../maps/kozlovo.h5")
+    vgraph.load_geometry("../maps/kozlovo.h5")
 
     start = timeit.default_timer()
 
     pathfinder = AStar(vgraph)
-    path = pathfinder.find((36.21, 56.51), (36.5, 56.69), default_weight=10, heuristic_multiplier=10)
+    path = pathfinder.find((36.21, 56.51), (36.69, 56.69), default_weight=10, heuristic_multiplier=10)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)

@@ -51,14 +51,14 @@ class VisibilityGraph(GeometrySaver):
             # if a point is not a part of an object
             if obj_number is None or point_number is None or is_polygon is None:
                 if Polygon(polygon.geometry[0]).contains(Point(point)):
-                    return find_inner_edges(point, None, polygon.geometry, i, inside_percent, polygon.tag)
+                    return find_inner_edges(point, None, polygon.geometry, i, inside_percent, polygon.tag[0])
                 else:
                     continue
 
             # if a point is a part of a current polygon
             if is_polygon and i == obj_number:
 
-                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent, polygon.tag)
+                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent, polygon.tag[0])
 
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
@@ -95,7 +95,7 @@ class VisibilityGraph(GeometrySaver):
         multilinestring_count = self.multilinestrings.shape[0]
         for i in range(multilinestring_count):
             linestring = self.multilinestrings.geometry[i]
-            weight = self.multilinestrings.tag[i]
+            weight = self.multilinestrings.tag[i][0]
             linestring_point_count = len(linestring)
 
             # if a point is a part of a current linestring

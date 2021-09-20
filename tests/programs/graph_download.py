@@ -10,7 +10,7 @@ def main():
                           epsilon_linestring=0.001,
                           bbox_comp=10)
 
-    vgraph.save_geometry("../../maps/user_area.h5")
+    vgraph.save_geometry("../maps/user_area.h5")
 
 
 if __name__ == "__main__":

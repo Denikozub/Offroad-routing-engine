@@ -1,6 +1,6 @@
 from typing import Optional, TypeVar, Tuple
 
-from offroad_routing.geometry.algorithms import point_in_angle, turn, compare_points
+from offroad_routing.geometry.algorithms import turn, compare_points
 from offroad_routing.geometry.ch_localization import localize_convex
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
@@ -60,7 +60,7 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
         return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
 
     if polygon_size == 3:
-        return find_supporting_pair_cutoff(point, polygon, polygon_number)
+        return find_supporting_pair_semiplanes(point, polygon, polygon_number)
 
     assert turn(polygon[0], polygon[1], polygon[2]) >= 0
 
@@ -96,84 +96,27 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
     return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
 
 
-def find_supporting_pair_array(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
-    n = len(polygon) - 1
-    if n == 1:
+def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
+    polygon_size = len(polygon) - 1
+    if polygon_size == 1:
         return None
-    if n == 2:
+    if polygon_size == 2:
         return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
-    b = [1 for _ in range(n)]
+    semiplanes = [1] * polygon_size
     count = 0
+    polygon_turn = turn(polygon[0], polygon[1], polygon[2])
 
     # fill an array of angles containing (1) or not containing (0) point (2 subsets)
-    for i in range(n):
-        if not point_in_angle(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
-            b[i] = 0
+    for i in range(polygon_size):
+        if turn(polygon[i % polygon_size], polygon[(i + 1) % polygon_size], point) * polygon_turn < 0:
+            semiplanes[i] = 0
             count += 1
-    if count in (0, n):
+    
+    if count in (0, polygon_size):
         return None
 
-    # find points separating 2 subsets of 0 and 1 in array - supporting points
-    if b[0] == 1:
-        start = b.index(0, 1)
-        if b[n-1] == 0:
-            end = n-1
-        else:
-            end = b.index(1, start + 1)
-            end -= 1
-    else:
-        start = b.index(1, 1)
-        start -= 1
-        if b[n-1] == 1:
-            end = n
-        else:
-            end = b.index(0, start + 1)
+    start = semiplanes.index(1) if semiplanes[0] == 0 else semiplanes.index(0)
+    end = (len(semiplanes) - semiplanes[::-1].index(1)) % polygon_size if semiplanes[0] == 0 else \
+        (len(semiplanes) - semiplanes[::-1].index(0)) % polygon_size
                 
     return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
-
-
-def find_supporting_pair_cutoff(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
-    n = len(polygon) - 1
-    if n == 1:
-        return None
-    if n == 2:
-        return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
-
-    # loop over all angles containing or not containing point (2 subsets)
-    # find points separating 2 subsets - supporting points without storing them in array
-    begin = end = -1
-    found = False
-    for i in range(n):
-
-        # angle contains point
-        if not point_in_angle(point, polygon[(i - 1) % n], polygon[i % n], polygon[(i + 1) % n]):
-            if i == 0:
-                start_zero = True
-            if begin == -1 and not start_zero:
-                begin = i
-            if start_zero and end != -1:
-                begin = i
-                found = True
-                break
-            if not start_zero and i == n - 1:
-                end = n - 1
-                found = True
-                break
-
-        # angle does not contain point
-        else:
-            if i == 0:
-                start_zero = False
-            if begin != -1 and not start_zero:
-                end = (i-1) % n
-                found = True
-                break
-            if start_zero and end == -1:
-                end = (i-1) % n
-            if start_zero and i == n - 1:
-                begin = n
-                found = True
-                break
-                    
-    return None if not found else ((polygon[begin], polygon_number, begin, True, 0),
-                                   (polygon[end], polygon_number, end, True, 0))

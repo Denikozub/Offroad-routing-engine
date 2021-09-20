@@ -2,8 +2,8 @@ from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 
 def main():
-    filename = "../../maps/kozlovo.osm.pbf"
-    bbox = [36.2, 56.5, 36.7, 57]
+    filename = "../maps/kozlovo.osm.pbf"
+    bbox = [36.2, 56.5, 36.7, 56.7]
 
     vgraph = VisibilityGraph()
     vgraph.compute_geometry(bbox=bbox, filename=filename)
@@ -12,7 +12,7 @@ def main():
                           bbox_comp=10,
                           remove_inner=True)
 
-    vgraph.save_geometry("../../maps/kozlovo.h5")
+    vgraph.save_geometry("../maps/kozlovo.h5")
 
 
 if __name__ == "__main__":

@@ -18,7 +18,6 @@ class Pruner(OsmParser):
         for i in range(polygon_number):
             if self.polygons.geometry.iloc[i] is None:
                 continue
-            self.polygons.tag.iloc[i] = [self.polygons.tag.iloc[i]]
             polygon = self.polygons.geometry.iloc[i]
             for j in range(1, len(polygon)):
                 point = polygon[j][0]
