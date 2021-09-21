@@ -92,5 +92,15 @@ class TestRaySegmentIntersection(unittest.TestCase):
         self.assertFalse(check_ray_segment_intersection((0, 0), (0, 1), (0, 2), (2, 2), False))
 
 
+class TestComparePoints(unittest.TestCase):
+    def test_equals(self):
+        self.assertTrue(compare_points((0, 0), (0, 0)))
+        self.assertTrue(compare_points((0, 0.3), (0, 0.1 + 0.2)))
+
+    def test_not_equals(self):
+        self.assertFalse(compare_points((0, 1), (0, 0)))
+        self.assertFalse(compare_points((1, 0), (0, 0)))
+
+
 if __name__ == '__main__':
     unittest.main()

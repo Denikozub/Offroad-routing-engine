@@ -45,11 +45,9 @@ def get_coordinates(obj: Union[Polygon, MultiLineString], epsilon: float, bbox_c
         for polygon in coordinates:
             polygons.append(tuple([tuple(point) for point in polygon] if epsilon is None or epsilon == 0 else
                                   [tuple(point) for point in rdp(polygon, epsilon=epsilon)]))
-        return tuple(polygons)
-    else:
-        coordinates = mapping(obj)['coordinates']
-        points = [pair[0] for pair in coordinates]
-        points.append(coordinates[-1][1])
-        coordinates = points
-    return tuple([tuple(point) for point in coordinates]) if epsilon is None or epsilon == 0 else \
-        tuple([tuple(point) for point in rdp(coordinates, epsilon=epsilon)])
+        return tuple(polygons) if len(polygons[0]) >= 3 else None
+    coordinates = mapping(obj)['coordinates']
+    points = [pair[0] for pair in coordinates]
+    points.append(coordinates[-1][1])
+    return tuple([tuple(point) for point in points]) if epsilon is None or epsilon == 0 else \
+        tuple([tuple(point) for point in rdp(points, epsilon=epsilon)])

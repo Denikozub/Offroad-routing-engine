@@ -9,8 +9,16 @@ TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
 def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
-    assert compare_points(polygon[0], polygon[-1])
+    """
+    Localize point inside convex polygon in linear time.
+
+    :param point: point to be localized (x, y)
+    :param polygon: convex, given counter-clockwise, first and last points must be equal
+    """
+
     polygon_size = len(polygon) - 1
+    assert polygon_size >= 2
+    assert compare_points(polygon[0], polygon[-1])
     if polygon_size <= 2:
         return False
     polygon_cross = turn(polygon[0], polygon[1], polygon[2])
@@ -23,26 +31,27 @@ def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
 def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
                     reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
-    Localizing point inside convex polygon O(log n) Preparata-Shamos algorithm.
+    Localize point inside convex polygon in log time (Preparata-Shamos algorithm).
 
-    :param point: point to be localized
-    :param polygon: given counter-clockwise, first and last points must be equal
-    :param angles: polar angles from first point to others or None if polygon is a segment or a point
-    :param reverse_angle: point_angle should be turned on pi (True) or not (False)
+    :param point: point to be localized (x, y)
+    :param polygon: convex, given counter-clockwise, first and last points must be equal
+    :param angles: tuple of polar angles from #0 point of polygon to all others except itself
+    :param reverse_angle: point angles should be turned on pi (True) or not (False)
     :return: tuple of 2 elements:
         1. bool - point is inside polygon
         2. None if point is inside polygon else int - number of polygon vertex where point_angle is located
     """
 
-    if angles is None:
+    polygon_size = len(polygon) - 1
+    assert polygon_size >= 2
+    assert compare_points(polygon[0], polygon[-1])
+    if polygon_size <= 2:
         return False, None
+    assert turn(polygon[0], polygon[1], polygon[2]) >= 0
+    assert len(angles) == polygon_size - 1
 
     if compare_points(point, polygon[0]):
         return True, None
-
-    assert compare_points(polygon[0], polygon[-1])
-    assert len(polygon) == 2 or turn(polygon[0], polygon[1], polygon[2]) >= 0
-
     point_angle = polar_angle(point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
 
     # point angle not between angles
@@ -52,11 +61,12 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
     elif point_angle <= angles[0] or point_angle >= angles[-1]:
         return False, None
 
-    mid = (len(angles) - 1) // 2
+    angles_len = len(angles)
+    mid = (angles_len - 1) // 2
     low = 0
-    high = len(angles) - 1
+    high = angles_len - 1
     while low <= high:
-        if mid + 1 == len(angles):
+        if mid + 1 == angles_len:
             return False, None
         angle1 = angles[mid]
         angle2 = angles[mid + 1]

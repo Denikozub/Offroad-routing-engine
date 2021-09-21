@@ -5,6 +5,8 @@ from numpy import arange
 from numpy.random import choice
 from shapely.geometry import Polygon, LineString
 
+from offroad_routing.geometry.algorithms import compare_points
+
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
@@ -19,17 +21,21 @@ def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequen
     We should not add fully outer segments because they may intersect other polygons!
     Currently only outer polygon is processed => everywhere polygon[0] is used.
 
-    :param point: point strictly inside outer polygon
+    :param point: point strictly inside outer polygon (x, y)
     :param point_number: None if point is not a polygon vertex else number or vertex
     :param polygon: polygons (polygon[0] is outer, rest are inner), for each polygon first and last points must be equal
-    :param polygon_number: additional info which will be returned in PointData
-    :param inside_percent: probability of an inner edge to be added (from 0 to 1)
+    :param polygon_number: sequence number of polygon for PointData
+    :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
+    :param weight: surface weight for PointData
     :return: list of PointData tuples of each point forming an inner edge with point
     """
+
     assert 0 <= inside_percent <= 1
+    polygon_size = len(polygon[0]) - 1
+    assert polygon_size >= 2
+    assert compare_points(polygon[0][0], polygon[0][-1])
 
     edges_inside = list()
-    polygon_size = len(polygon[0]) - 1
 
     # point is strictly in polygon
     if point_number is None:

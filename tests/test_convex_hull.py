@@ -31,6 +31,14 @@ class TestConvexHull(unittest.TestCase):
         self.assertEqual(set(build_convex_hull(polygon2)[1]), {0, 2, 3, 5})
         self.assertEqual(len(build_convex_hull(polygon2)[2]), len(polygon2) - 2 - 2)
 
+    def test_exception(self):
+        with self.assertRaises(Exception):
+            build_convex_hull(((0, 0),))
+        with self.assertRaises(Exception):
+            build_convex_hull(((0, 0), (0, 0)))
+        with self.assertRaises(Exception):
+            build_convex_hull(((0, 0), (1, 1), (2, 2)))
+
 
 if __name__ == '__main__':
     unittest.main()

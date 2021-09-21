@@ -23,16 +23,20 @@ def calculate_angles(polygon: TPolygon) -> TAngles:
 
 def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Optional[TAngles]]:
     """
+    :param polygon: first and last points must be equal
     :return: tuple of 3 elements:
         1. tuple of convex hull points
         2. tuple of their indexes in initial polygon
-        3. tuple of polar angles from first point to others or None if polygon is a segment or a point
+        3. tuple of polar angles from first point to others except itself or None if polygon is a segment or a point
     """
 
-    assert compare_points(polygon[0], polygon[-1])
     polygon_size = len(polygon) - 1
-    if polygon_size <= 2:
+    assert polygon_size >= 2
+    assert compare_points(polygon[0], polygon[-1])
+
+    if polygon_size == 2:
         return polygon, tuple([i for i in range(len(polygon) - 1)]), None
+
     if polygon_size == 3:
         polygon = check_polygon_direction(polygon)
         starting_point = polygon[0]

@@ -20,15 +20,19 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
     """
     Find supporting point from point to polygon (index between low and high) with binary search.
 
-    :param point: visibility point
-    :param polygon: given counter-clockwise, first and last points must be equal
+    :param point: visibility point (x, y)
+    :param polygon: convex, given counter-clockwise, first and last points must be equal
     :param low: binary search algorithm parameter (polygon min index)
     :param high: binary search algorithm parameter (polygon max index)
     :param low_contains: angle formed by polygon[low] contains point (True) or not (False)
-    :return: index of supporting point from point to polygon
+    :return: index of supporting point from point to polygon or None if unable to find
     """
 
     polygon_size = len(polygon) - 1
+    assert polygon_size >= 3
+    assert compare_points(polygon[0], polygon[-1])
+    assert turn(polygon[0], polygon[1], polygon[2]) >= 0
+
     mid = (high + low) // 2
     while low <= high and mid < polygon_size:
 
@@ -52,17 +56,23 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
 
 def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
                          angles: Optional[TAngles]) -> Optional[Tuple[PointData, PointData]]:
-    assert compare_points(polygon[0], polygon[-1])
+    """
+        Find pair of supporting points from point to polygon in log time (binary search).
+
+        :param point: visibility point (x, y)
+        :param polygon: convex, given counter-clockwise, first and last points must be equal
+        :param polygon_number: sequence number of polygon for PointData
+        :param angles: tuple of polar angles from #0 point of polygon to all others except itself
+        :return: pair of PointData of supporting points or None if unable to find
+    """
+
     polygon_size = len(polygon) - 1
-    if angles is None:
-        if polygon_size == 1:
-            return None
-        return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
-
-    if polygon_size == 3:
+    assert polygon_size >= 2
+    assert compare_points(polygon[0], polygon[-1])
+    if polygon_size <= 3:
         return find_supporting_pair_semiplanes(point, polygon, polygon_number)
-
     assert turn(polygon[0], polygon[1], polygon[2]) >= 0
+    assert len(angles) == polygon_size - 1
 
     start_to_point = localize_convex(point, polygon, angles, False)
 
@@ -97,11 +107,21 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
 
 
 def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
+    """
+        Find pair of supporting points from point to polygon in linear line.
+
+        :param point: visibility point (x, y)
+        :param polygon: convex, first and last points must be equal
+        :param polygon_number: sequence number of polygon for PointData
+        :return: pair of PointData of supporting points or None if unable to find
+    """
+
     polygon_size = len(polygon) - 1
-    if polygon_size == 1:
-        return None
+    assert polygon_size >= 2
+    assert compare_points(polygon[0], polygon[-1])
     if polygon_size == 2:
         return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
+
     semiplanes = [1] * polygon_size
     count = 0
     polygon_turn = turn(polygon[0], polygon[1], polygon[2])
@@ -111,12 +131,11 @@ def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon, polygon_nu
         if turn(polygon[i % polygon_size], polygon[(i + 1) % polygon_size], point) * polygon_turn < 0:
             semiplanes[i] = 0
             count += 1
-    
+
     if count in (0, polygon_size):
         return None
 
     start = semiplanes.index(1) if semiplanes[0] == 0 else semiplanes.index(0)
     end = (len(semiplanes) - semiplanes[::-1].index(1)) % polygon_size if semiplanes[0] == 0 else \
         (len(semiplanes) - semiplanes[::-1].index(0)) % polygon_size
-                
     return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
