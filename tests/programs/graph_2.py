@@ -12,10 +12,7 @@ def main():
     start = timeit.default_timer()
 
     with cProfile.Profile() as pr:
-        vgraph.build_graph(inside_percent=1,
-                           multiprocessing=True,
-                           graph=False,
-                           map_plot=False)
+        vgraph.build_graph(inside_percent=1, multiprocessing=True)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)

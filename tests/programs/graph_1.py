@@ -9,10 +9,7 @@ def main():
 
     start = timeit.default_timer()
 
-    vgraph.build_graph(inside_percent=1,
-                       multiprocessing=False,
-                       graph=False,
-                       map_plot=False)
+    vgraph.build_graph(inside_percent=1, multiprocessing=False)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)

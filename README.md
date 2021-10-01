@@ -111,16 +111,14 @@ __return__ list of PointData of all visible points
 
 
 ~~~python
-build_graph(inside_percent=0.4, multiprocessing=True, graph=False, map_plot=False, crs='EPSG:4326')
+build_graph(inside_percent=0.4, multiprocessing=True, crs='EPSG:4326')
 ~~~
 
-Compute [and build] [and plot] visibility graph  
+Compute visibility graph  
 __inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
-__multiprocessing__: bool - speed up computation for dense areas using multiprocessing  
-__graph__: bool - build a networkx.MultiGraph (True) or not (False)  
-__map_plot__: plot visibility graph (True) or not (False)  
+__multiprocessing__: bool - speed up computation for dense areas using multiprocessing   
 __crs__: string - coordinate reference system  
-__return__ networkx.MultiGraph (None if graph is False), matplotlib.figure.Figure (None if map_plot is None)
+__return__ networkx.MultiGraph
 
 
 ### Astar
@@ -214,21 +212,14 @@ vgraph = VisibilityGraph()
 vgraph.load_geometry("../maps/user_area.h5")
 ```
 
-Visibility graph can be built and (optionally) saved as networkx graph and (optionally) visualised using mplleaflet:
+Visibility graph can be built and visualised using osmnx:
 
 
 ```python
-%%time
-import mplleaflet
+import osmnx as ox
 
-G, fig = vgraph.build_graph(inside_percent=0,
-                            multiprocessing=False,
-                            graph=True,
-                            map_plot=True)
-
-print('edges: ', G.number_of_edges())
-print('nodes: ', G.number_of_nodes())
-mplleaflet.display(fig=fig)
+G = vgraph.build_graph(inside_percent=0, multiprocessing=False)
+ox.plot_graph(G)
 ```
 
 <img src="docs/VGraph.png" alt="" width="800"/>

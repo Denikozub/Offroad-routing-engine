@@ -1,11 +1,8 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import Tuple, Optional, TypeVar, List
+from typing import Optional, TypeVar, List
 
-from matplotlib.figure import Figure
-from matplotlib.pyplot import plot, figure, fill
 from networkx import MultiGraph
 from shapely.geometry import Polygon, Point
-from tqdm import tqdm
 
 from offroad_routing.geometry.ch_localization import localize_convex
 from offroad_routing.geometry.inner_edges import find_inner_edges
@@ -58,7 +55,8 @@ class VisibilityGraph(GeometrySaver):
             # if a point is a part of a current polygon
             if is_polygon and i == obj_number:
 
-                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent, polygon.tag[0])
+                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent,
+                                                polygon.tag[0])
 
                 convex_hull_point_count = len(polygon.convex_hull) - 1
                 if convex_hull_point_count <= 2:
@@ -119,32 +117,27 @@ class VisibilityGraph(GeometrySaver):
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, map_plot, inside_percent, multiprocessing) -> None:
+    def __process_points_of_objects(self, is_polygon, G, inside_percent, multiprocessing) -> None:
         max_poly_len = 10000  # for graph indexing
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
         futures = list()
         with ProcessPoolExecutor() as executor:
-            for i in tqdm(range(object_count)):
+            for i in range(object_count):
                 obj = self.polygons.geometry[i][0] if is_polygon else self.multilinestrings.geometry[i]
                 point_count = len(obj) - 1 if is_polygon else len(obj)
                 for j in range(point_count):
                     point = obj[j]
-                    point_data = (point, i, j, is_polygon, None)
-                    point_index = None
 
                     # adding a vertex in networkx graph
-                    if G is not None:
-                        px, py = point
-                        point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
-                        G.add_node(point_index, x=px, y=py)
+                    px, py = point
+                    point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
+                    G.add_node(point_index, x=px, y=py)
 
                     # getting incident vertices
+                    point_data = (point, i, j, is_polygon, None)
                     future = self.incident_vertices(point_data, inside_percent) if not multiprocessing else \
                         executor.submit(self.incident_vertices, point_data, inside_percent)
                     futures.append((future, point, point_index))
-
-        if G is None and not map_plot:
-            return
 
         for future_data in futures:
             future, point, point_index = future_data
@@ -153,39 +146,25 @@ class VisibilityGraph(GeometrySaver):
                 continue
             for vertex in vertices:
                 vx, vy = vertex[0]
-                if G is not None:
-                    vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
-                            else (vertex[1] + 0.5) * max_poly_len + vertex[2]
-                    G.add_node(vertex_index, x=vx, y=vy)
-                    G.add_edge(point_index, vertex_index)
-                if map_plot:
-                    px, py = point
-                    plot([px, vx], [py, vy], color='k', linewidth=0.3)
+                vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
+                    else (vertex[1] + 0.5) * max_poly_len + vertex[2]
+                G.add_node(vertex_index, x=vx, y=vy)
+                G.add_edge(point_index, vertex_index)
 
-    def build_graph(self, inside_percent: float = 0.4, multiprocessing: bool = True, graph: bool = False,
-                    map_plot: bool = False, crs: str = 'EPSG:4326') -> Tuple[Optional[MultiGraph], Optional[Figure]]:
+    def build_graph(self, inside_percent: float = 0.4, multiprocessing: bool = True,
+                    crs: str = 'EPSG:4326') -> Optional[MultiGraph]:
         """
         Compute [and build] [and plot] visibility graph.
 
         :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
         :param multiprocessing: bool - speed up computation for dense areas using multiprocessing
-        :param graph: build a networkx.MultiGraph (True) or not (False)
-        :param map_plot: plot visibility graph (True) or not (False)
         :param crs: coordinate reference system
-        :return: networkx.MultiGraph (None if graph is False), matplotlib.figure.Figure (None if map_plot is False)
+        :return: networkx.MultiGraph
         """
         if inside_percent < 0 or inside_percent > 1:
             raise ValueError("inside_percent should be from 1 to 0")
 
-        G = MultiGraph(crs=crs) if graph else None
-        fig = None
-
-        if map_plot:
-            fig = figure()
-            for p in self.polygons.geometry:
-                x, y = zip(*list(p[0]))
-                fill(x, y, color="r")
-
-        self.__process_points_of_objects(True, G, map_plot, inside_percent, multiprocessing)
-        self.__process_points_of_objects(False, G, map_plot, inside_percent, multiprocessing)
-        return G, fig
+        G = MultiGraph(crs=crs)
+        self.__process_points_of_objects(True, G, inside_percent, multiprocessing)
+        self.__process_points_of_objects(False, G, inside_percent, multiprocessing)
+        return G

@@ -1,7 +1,7 @@
 from math import fabs
 from typing import Sequence, Optional
 
-from pandas import DataFrame, Series
+from pandas import DataFrame
 from shapely.geometry import mapping
 
 from offroad_routing.osm_data.tag_value import TagValue
@@ -12,9 +12,8 @@ class OsmParser(object):
 
     def __init__(self):
         self.polygons = DataFrame(columns=['tag', 'geometry'])
-        self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
         self.tag_value = TagValue()
-        self.bbox_size = None
+        self.multilinestrings = self.bbox_size = None
 
     @staticmethod
     def get_first_point(line):
@@ -28,7 +27,6 @@ class OsmParser(object):
 
     def dissolve(self, src_roads):
         roads = src_roads.copy()
-        roads["id"] = Series(dtype="int64")
         current = 1
         points = dict()
         for index, row in roads.iterrows():
@@ -74,15 +72,15 @@ class OsmParser(object):
         natural = osm.get_natural()
         if natural is not None:
             natural = natural.loc[:, ['natural', 'geometry']].rename(columns={'natural': 'tag'})
-            self.polygons = self.polygons.append(DataFrame(natural.loc[natural.geometry.type == 'Polygon']))
-            multipolygons = multipolygons.append((natural.loc[natural.geometry.type == 'MultiPolygon']))
+            self.polygons = self.polygons.append(natural.loc[natural.geometry.type == 'Polygon'])
+            multipolygons = multipolygons.append(natural.loc[natural.geometry.type == 'MultiPolygon'])
             natural.drop(natural.index, inplace=True)
         
         landuse = osm.get_landuse()
         if landuse is not None:
             landuse = landuse.loc[:, ['landuse', 'geometry']].rename(columns={'landuse': 'tag'})
-            self.polygons = self.polygons.append(DataFrame(landuse.loc[landuse.geometry.type == 'Polygon']))
-            multipolygons = multipolygons.append(DataFrame(landuse.loc[landuse.geometry.type == 'MultiPolygon']))
+            self.polygons = self.polygons.append(landuse.loc[landuse.geometry.type == 'Polygon'])
+            multipolygons = multipolygons.append(landuse.loc[landuse.geometry.type == 'MultiPolygon'])
             landuse.drop(landuse.index, inplace=True)
         
         # splitting multipolygons to polygons
