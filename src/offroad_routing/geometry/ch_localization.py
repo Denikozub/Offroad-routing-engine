@@ -39,7 +39,7 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
     :param reverse_angle: point angles should be turned on pi (True) or not (False)
     :return: tuple of 2 elements:
         1. bool - point is inside polygon
-        2. None if point is inside polygon else int - number of polygon vertex where point_angle is located
+        2. None if point is inside polygon else int - number of polygon vertex where point_angle is located.
     """
 
     polygon_size = len(polygon) - 1
