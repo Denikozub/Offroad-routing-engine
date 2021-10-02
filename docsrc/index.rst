@@ -2,6 +2,16 @@ Offroad Routing Engine
 ======================
 
 
+Installation
+------------
+
+Install from repository::
+
+	pip install "git+https://github.com/Denikozub/Offroad-routing-engine.git#egg=offroad_routing"
+
+Warning: package requires GeoPandas to be installed, which can be problematic on Windows. `This <https://towardsdatascience.com/geopandas-installation-the-easy-way-for-windows-31a666b3610f/>`_ article may help.
+
+
 VisibilityGraph
 ---------------
 

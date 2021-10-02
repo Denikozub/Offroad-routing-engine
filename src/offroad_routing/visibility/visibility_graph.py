@@ -31,7 +31,7 @@ Node of the graph is unambiguously set either by its coordinates or by its posit
 
 class VisibilityGraph(GeometrySaver):
     """
-    Input: .OSM.PBF map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
+    Input: .osm.pbf map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
     To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
     forming geographical objects on the map. They are used as obstacles for visibility graph.
     VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.

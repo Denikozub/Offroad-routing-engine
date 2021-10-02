@@ -40,12 +40,20 @@
             
   <section id="offroad-routing-engine">
 <h1>Offroad Routing Engine<a class="headerlink" href="#offroad-routing-engine" title="Permalink to this headline">¶</a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Install from repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;git+https://github.com/Denikozub/Offroad-routing-engine.git#egg=offroad_routing&quot;</span>
+</pre></div>
+</div>
+<p>Warning: package requires GeoPandas to be installed, which can be problematic on Windows. <a class="reference external" href="https://towardsdatascience.com/geopandas-installation-the-easy-way-for-windows-31a666b3610f/">This</a> article may help.</p>
+</section>
 <section id="visibilitygraph">
 <h2>VisibilityGraph<a class="headerlink" href="#visibilitygraph" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="offroad_routing.visibility.visibility_graph.VisibilityGraph">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">offroad_routing.visibility.visibility_graph.</span></span><span class="sig-name descname"><span class="pre">VisibilityGraph</span></span><a class="headerlink" href="#offroad_routing.visibility.visibility_graph.VisibilityGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Input: .OSM.PBF map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
+<dd><p>Input: .osm.pbf map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
 To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
 forming geographical objects on the map. They are used as obstacles for visibility graph.
 VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.
@@ -280,6 +288,7 @@ Data about points, polylines and polygons is transferred using tuples instead of
   <h3><a href="#">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Offroad Routing Engine</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#visibilitygraph">VisibilityGraph</a></li>
 <li><a class="reference internal" href="#astar">AStar</a></li>
 <li><a class="reference internal" href="#gpxtrack">GpxTrack</a></li>
