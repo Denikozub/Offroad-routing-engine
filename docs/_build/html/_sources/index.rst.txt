@@ -37,7 +37,7 @@ GpxTrack
 Usage
 -----
 
-Check usage example on `GitHub <https://github.com/Denikozub/Offroad-routing-engine#usage/>`_ or in `IPython notebook<https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb/>`_.
+Check usage example on `GitHub <https://github.com/Denikozub/Offroad-routing-engine#usage/>`_ or in `IPython notebook <https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb/>`_.
 
 
 PointData Explanation

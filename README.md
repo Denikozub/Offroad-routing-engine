@@ -1,7 +1,6 @@
 # Off-road Navigation System
-[__Documentation__](https://github.com/Denikozub/Offroad-routing-engine#documentation)  
-[__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)  
-[__Graph visualization__](https://denikozub.github.io/Offroad-routing-engine/)
+[__Documentation__](https://denikozub.github.io/Offroad-routing-engine/)  
+[__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)
 ___
 by Denis Kozub
 - World discretization using _visibility graphs_
