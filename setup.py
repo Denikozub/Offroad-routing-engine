@@ -1,4 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if __name__ == "__main__":
-    setup()
+    setup(
+        packages=find_packages(
+            where='src',
+            include=['offroad_routing'],
+        )
+    )
