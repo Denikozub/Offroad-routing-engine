@@ -12,26 +12,27 @@ class OsmParser(object):
 
     def __init__(self):
         self.polygons = DataFrame(columns=['tag', 'geometry'])
+        self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
         self.tag_value = TagValue()
-        self.multilinestrings = self.bbox_size = None
+        self.bbox_size = None
 
     @staticmethod
-    def get_first_point(line):
+    def __get_first_point(line):
         coords = mapping(line)['coordinates']
         return coords[0][0] if isinstance(coords[0][0], tuple) else coords[0]
 
     @staticmethod
-    def get_last_point(line):
+    def __get_last_point(line):
         coords = mapping(line)['coordinates']
         return coords[-1][1] if isinstance(coords[0][0], tuple) else coords[1]
 
-    def dissolve(self, src_roads):
+    def __dissolve(self, src_roads):
         roads = src_roads.copy()
         current = 1
         points = dict()
         for index, row in roads.iterrows():
-            start = self.get_first_point(row.geometry)
-            end = self.get_last_point(row.geometry)
+            start = self.__get_first_point(row.geometry)
+            end = self.__get_last_point(row.geometry)
             found = False
             for number, borders in points.items():
                 if start in borders:
@@ -52,13 +53,16 @@ class OsmParser(object):
                 current += 1
         return roads.dissolve(by="id").reset_index().drop(columns=["id"])
 
-    def compute_geometry(self, bbox: Sequence[float], filename: Optional[str] = None) -> None:
+    def compute_geometry(self, bbox, filename=None):
         """
-        Parse OSM file (area in bbox) to retrieve information about needed tags.
+        Parse OSM file (area in bbox) to retrieve information about geometry.
 
-        :param bbox: in format min_lon, min_lat, max_lon, max_lat
-        :param filename: None (map will be downloaded) or in .osm.pbf format
+        :param Sequence[float] bbox: area to be parsed in format (min_lon, min_lat, max_lon, max_lat)
+        :param Optional[str] filename: map file in .osm.pbf format or None (map will be downloaded)
         """
+        assert len(bbox) == 4
+        self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))
+
         if filename is None:
             converter = OsmConverter(bbox)
             filename = converter.filename
@@ -91,9 +95,8 @@ class OsmParser(object):
 
         roads = osm.get_network()
         if roads is not None:
-            roads = self.dissolve(roads[["highway", "geometry"]])
+            roads = self.__dissolve(roads[["highway", "geometry"]])
             self.multilinestrings = DataFrame(roads
                     .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
 
         self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
-        self.bbox_size = (fabs(bbox[2] - bbox[0]), fabs(bbox[3] - bbox[1]))

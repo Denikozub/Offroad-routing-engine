@@ -1,5 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import Optional, TypeVar, List
+from typing import TypeVar, List
 
 from networkx import MultiGraph
 from shapely.geometry import Polygon, Point
@@ -11,33 +11,49 @@ from offroad_routing.geometry.supporting_pair import find_supporting_pair
 from offroad_routing.osm_data.geometry_saver import GeometrySaver
 from offroad_routing.visibility.segment_visibility import SegmentVisibility
 
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
+TPoint = TypeVar("TPoint")
+"""
+Tuple[float, float] - point coordinates in format (lon, lat).
+"""
+PointData = TypeVar("PointData")
+"""
+Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
+
+0. point coordinates (lon, lat)
+1. number of object where point belongs
+2. number of point in object
+3. object is polygon (True) or polyline (False)
+4. surface weight
+
+Node of the graph is unambiguously set either by its coordinates or by its position in an object.
+"""
 
 
 class VisibilityGraph(GeometrySaver):
+    """
+    Input: .OSM.PBF map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
+    To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
+    forming geographical objects on the map. They are used as obstacles for visibility graph.
+    VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.
+    Optionally, it prunes geometry to achieve hierarchical approach to speed up computations.
+    Computed and pruned data can be saved into a file to avoid repeating computations.
+    Computed geometry can be used for graph building and pathfinding.
 
-    def incident_vertices(self, point_data: PointData, inside_percent: float = 1) -> List[PointData]:
+    """
+
+    def incident_vertices(self, point_data, inside_percent=1):
         """
         Find all incident vertices in visibility graph for given point.
-        PointData is a tuple with elements
-        0: point coordinates x, y
-        1: number of object where point belongs
-        2: number of point in object
-        3: object is polygon (True) or linestring (False)
-        4: surface weight
 
-        :param point_data: information about point
-        :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
-        :return: list of PointData of all visible points
+        :param PointData point_data: point on the map to find incident vertices from
+        :param float inside_percent: (from 0 to 1) - controls the number of inner polygon edges
+        :return: All visible points from given point on the map.
+        :rtype: List[PointData]
         """
         if inside_percent < 0 or inside_percent > 1:
             raise ValueError("inside_percent should be from 1 to 0")
 
-        point = point_data[0]
-        obj_number = point_data[1]
-        point_number = point_data[2]
-        is_polygon = point_data[3]
+        point, obj_number, point_number, is_polygon = point_data[0:4]
         visible_vertices = SegmentVisibility()
         polygon_count = self.polygons.shape[0]
         edges_inside = list()
@@ -151,15 +167,14 @@ class VisibilityGraph(GeometrySaver):
                 G.add_node(vertex_index, x=vx, y=vy)
                 G.add_edge(point_index, vertex_index)
 
-    def build_graph(self, inside_percent: float = 0.4, multiprocessing: bool = True,
-                    crs: str = 'EPSG:4326') -> Optional[MultiGraph]:
+    def build_graph(self, inside_percent=0.4, multiprocessing=True, crs='EPSG:4326'):
         """
-        Compute [and build] [and plot] visibility graph.
+        Compute visibility graph for a set of polygons and polylines.
 
-        :param inside_percent: (from 0 to 1) - controls the number of inner polygon edges
-        :param multiprocessing: bool - speed up computation for dense areas using multiprocessing
-        :param crs: coordinate reference system
-        :return: networkx.MultiGraph
+        :param float inside_percent: (from 0 to 1) - controls the number of inner polygon edges
+        :param bool multiprocessing: speed up computation for dense areas using multiprocessing
+        :param str crs: coordinate reference system
+        :rtype: networkx.MultiGraph
         """
         if inside_percent < 0 or inside_percent > 1:
             raise ValueError("inside_percent should be from 1 to 0")

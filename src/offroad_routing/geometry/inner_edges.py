@@ -18,7 +18,6 @@ def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequen
     Finds segments from point to polygon vertices which are strictly inside polygon.
     If point is not a polygon vertex, finds all segments.
     If point is a polygon vertex, finds diagonals to further vertices.
-    We should not add fully outer segments because they may intersect other polygons!
     Currently only outer polygon is processed => everywhere polygon[0] is used.
 
     :param point: point strictly inside outer polygon (x, y)

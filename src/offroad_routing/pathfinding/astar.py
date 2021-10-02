@@ -10,16 +10,29 @@ PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], 
 
 
 class AStar(object):
-    def __init__(self, vgraph: VisibilityGraph) -> None:
+    """
+    Find off-road routes using A* algorithm and visibility graph.
+    """
+
+    def __init__(self, vgraph: VisibilityGraph):
+        """
+        :param VisibilityGraph vgraph: visibility graph with computed geometry
+        """
         self.__vgraph = vgraph
 
     @staticmethod
     def __heuristic(node: TPoint, goal: TPoint, heuristic_multiplier: int) -> float:
         return point_distance(node, goal) * heuristic_multiplier
 
-    def find(self, start: TPoint, goal: TPoint, default_weight: int = 10, heuristic_multiplier: int = 10) -> Path:
+    def find(self, start, goal, default_weight=10, heuristic_multiplier=10):
         """
         Find route from point start to point goal.
+
+        :param TPoint start: start point
+        :param TPoint goal: goal point
+        :param int default_weight: default weight for unfilled areas
+        :param int heuristic_multiplier: multiplier to weight heuristic (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
+        :rtype: offroad_routing.pathfinding.path.Path
         """
 
         # PointData format

@@ -8,14 +8,24 @@ class GeometrySaver(Pruner):
     def __init__(self):
         super().__init__()
 
-    def save_geometry(self, filename: str) -> None:
+    def save_geometry(self, filename: str):
+        """
+        Save computed geometry to .H5 file.
+
+        :param filename: .H5 filename to be created.
+        """
         if filename[-3:] != ".h5":
             raise ValueError("Wrong file format")
         with HDFStore(filename) as store:
             store["polygons"] = self.polygons
             store["multilinestrings"] = self.multilinestrings
 
-    def load_geometry(self, filename: str) -> None:
+    def load_geometry(self, filename: str):
+        """
+        Load saved geometry from .H5 file.
+
+        :param filename: .H5 filename with saved geometry.
+        """
         if filename[-3:] != ".h5":
             raise ValueError("Wrong file format")
         with HDFStore(filename) as store:

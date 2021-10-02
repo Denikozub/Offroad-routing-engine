@@ -20,143 +20,12 @@ Scope of application:
 - Extending functionality of other routing engines  
 - Road and facilities design  
 - Rescue and military operations planning  
-- Route planning for hiking and tourism  
-
-
-# Documentation
-
-### PointData explanation
-
-In order to speed up computation, low-level data transfer approach is used.  
-Data about points, polylines and polygons is transferred using tuples instead of structures.
-
-~~~python
-TPoint = NewType("Point", Tuple[float, float])  
-~~~
-
-
-Node of the graph is unambiguously set either by its coordinates or by its position in an object.
-
-~~~python
-PointData = NewType("PointData", Tuple[TPoint,      # x, y - point coordinates
-                                 Optional[int],     # number of object where point belongs
-                                 Optional[int],     # number of point in object
-                                 Optional[bool],    # object is polygon (True) or linestring (False)
-                                 Optional[int]])    # surface weight
-~~~
-
-
-### VisibilityGraph
-
-VisibilityGraph is a class for building a visibility graph on a given area from OSM data  
-
-
-~~~python
-compute_geometry(bbox, filename=None)
-~~~
-
-Parse OSM file (area in bounding box) to retrieve information about roads and surface.  
-This method uses [pyrosm](https://pypi.org/project/pyrosm/), which requires [geopandas](https://geopandas.org/) to be installed.  
-What is more, curl and [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) are required for downloading the map.  
-__bbox__: sequence in format min_lon, min_lat, max_lon, max_lat  
-__filename__: None (map will be downloaded) or str in .osm.pbf format  
-__return__ None  
-
-
-~~~python
-prune_geometry(epsilon_polygon=None, epsilon_linestring=None, bbox_comp=15, remove_inner=False)
-~~~
-
-Transform retrieved data:
-* transform geometry to tuple of points
-* run Ramer-Douglas-Peucker to geometry objects
-* get rid of small objects with bbox_comp parameter
-* add data about convex hull for polygons  
-
-Default parameters will be computed for the given area to provide best performance.  
-__epsilon_polygon__: None or Ramer-Douglas-Peucker algorithm parameter for polygons  
-__epsilon_linestring__: None or Ramer-Douglas-Peucker algorithm parameter for linestrings  
-__bbox_comp__: None or int - scale polygon comparison parameter (to size of map bbox)  
-__remove_inner__: bool - remove inner polygons for other polygons  
-(currently their share of all polygon is too low due to lack of OSM data)  
-__return__ None  
-
-
-~~~python
-save_geometry(filename)
-~~~
-
-Save computed data to .h5 file  
-__filename__: .h5 string filename  
-__return__: None
-
-
-~~~python
-load_geometry(filename)
-~~~
-
-Load saved data from .h5 file  
-__filename__: .h5 string filename  
-__return__: None
-
-
-~~~python
-incident_vertices(point_data, inside_percent=1)
-~~~
-
-Finds all incident vertices in visibility graph for given point.  
-__point_data__: PointData of given point  
-__inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
-__return__ list of PointData of all visible points
-
-
-~~~python
-build_graph(inside_percent=0.4, multiprocessing=True, crs='EPSG:4326')
-~~~
-
-Compute visibility graph  
-__inside_percent__: float (from 0 to 1) - controls the number of inner polygon edges  
-__multiprocessing__: bool - speed up computation for dense areas using multiprocessing   
-__crs__: string - coordinate reference system  
-__return__ networkx.MultiGraph
-
-
-### Astar
-
-~~~python
-find(start, goal, default_weight=10, heuristic_multiplier=10)
-~~~
-
-Run A* algorithm to find path from start to goal.  
-__default_weight__: weight for unmapped OSM areas  
-__heuristic_multiplier__: variable to alter heuristic value due to total weights  
-__return__ path.Path object
-
-
-### GpxTrack
-
-GpxTrack is a class to help visualize and save computed paths.
-
-
-~~~python
-write_file(filename)
-~~~
-
-Save path to .gpx file.  
-__filename__: .gpx string filename  
-__return__: None
-
-
-~~~python
-visualize()
-~~~
-Generate link to visualize path using https://nakarte.me  
-__return__: None
+- Route planning for hiking and tourism
 
 
 # Usage
 
-[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/graph_usage.ipynb)
+[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb)
 
 
 ### Downloading and processing data
@@ -188,10 +57,9 @@ vgraph.compute_geometry(bbox=bbox)
 Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
 If not specified, optimal parameters will be computed by the algorithm.
 
-
 ```python
 vgraph.prune_geometry(epsilon_polygon=0.003,
-                      epsilon_linestring=0.001,
+                      epsilon_polyline=0.001,
                       bbox_comp=10)
 ```
 
@@ -281,7 +149,7 @@ You can check the route [here](https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5
     
 
 ### Results
-Check out the [graph vizualization](https://denikozub.github.io/Offroad-routing-engine/) provided by mplleaflet.  
+
 Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.  
 Computational time for a much freer area or 120 km<sup>2</sup> is 1 second.  
 Since A* pathfinding does not require building the whole graph, computational time is even lower:

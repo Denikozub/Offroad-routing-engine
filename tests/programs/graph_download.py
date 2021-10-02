@@ -7,7 +7,7 @@ def main():
     vgraph = VisibilityGraph()
     vgraph.compute_geometry(bbox=bbox)
     vgraph.prune_geometry(epsilon_polygon=0.003,
-                          epsilon_linestring=0.001,
+                          epsilon_polyline=0.001,
                           bbox_comp=10)
 
     vgraph.save_geometry("../maps/user_area.h5")

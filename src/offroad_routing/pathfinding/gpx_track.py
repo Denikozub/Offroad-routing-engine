@@ -5,7 +5,14 @@ from offroad_routing.pathfinding.path import Path
 
 
 class GpxTrack(object):
+    """
+    Save and visualize off-road path on the map.
+    """
+
     def __init__(self, path: Path):
+        """
+        :param Path path: initialised and retraced path
+        """
         self.__path = path
 
     @staticmethod
@@ -28,12 +35,11 @@ class GpxTrack(object):
             print('\t\t\t<trkpt lat="%f" lon="%f"></trkpt>' % (point[1], point[0]), file=file)
         print('\t\t</trkseg>\n\t</trk>', file=file)
 
-    def write_file(self, filename: str) -> None:
+    def write_file(self, filename):
         """
         Save path to gpx file.
 
-        :param str filename: name of the file (.gpx)
-        :return: None
+        :param str filename: name of the file to save track into (.gpx)
         """
         assert filename[-4:] == ".gpx"
         file = open(filename, 'w')
@@ -43,9 +49,9 @@ class GpxTrack(object):
         print('</gpx>', file=file)
         file.close()
 
-    def visualize(self) -> None:
+    def visualize(self):
         """
-        Generate link to visualize path using nakarte.me
+        Generate link to visualize path using https://nakarte.me
         """
         start, goal = self.__path.start(), self.__path.goal()
         xml = str([{"n": str(datetime.today().strftime('%Y-%m-%d')),
