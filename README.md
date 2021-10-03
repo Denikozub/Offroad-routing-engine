@@ -1,5 +1,5 @@
 # Off-road Navigation System
-[__Installation__](https://denikozub.github.io/Offroad-routing-engine/#installation)
+[__Installation__](https://denikozub.github.io/Offroad-routing-engine/#installation)  
 [__Documentation__](https://denikozub.github.io/Offroad-routing-engine/#documentation)  
 [__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)
 ___
