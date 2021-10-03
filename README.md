@@ -152,5 +152,5 @@ You can check the route [here](https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5
 
 Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.  
 Computational time for a much freer area or 120 km<sup>2</sup> is 1 second.  
-Since A* pathfinding does not require building the whole graph, computational time is even lower:
+Since A* pathfinding does not require building the whole graph, computational time is even lower:  
 The last example (see above) took only 0.6 seconds, which is 40% faster than building a graph.
