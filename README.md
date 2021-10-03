@@ -1,5 +1,6 @@
 # Off-road Navigation System
-[__Documentation__](https://denikozub.github.io/Offroad-routing-engine/)  
+[__Installation__](https://denikozub.github.io/Offroad-routing-engine/#installation)
+[__Documentation__](https://denikozub.github.io/Offroad-routing-engine/#documentation)  
 [__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)
 ___
 by Denis Kozub
@@ -33,7 +34,7 @@ There are two ways you can obtain OSM data in osm.pbf format:
 - Download it yourself: [parts of the world](https://download.geofabrik.de/), [cities](https://download.bbbike.org/osm/bbbike/), [adjustable area](https://extract.bbbike.org/) (via mail), [adjustable area](https://export.hotosm.org/en/v3/) (online), [planet](https://planet.maps.mail.ru/pbf/)
 - Let the program download it for you
 
-If the map is downloaded you can specify the filename:
+If the map is downloaded, you can specify the filename and parse it:
 
 
 ```python
@@ -53,7 +54,7 @@ bbox = [34, 59, 34.2, 59.1]
 vgraph.compute_geometry(bbox=bbox)
 ```
 
-Data inside this area can be processed using VisibilityGraph with chosen or default parameters.  
+Parsed data can be pruned with chosen or default parameters.
 If not specified, optimal parameters will be computed by the algorithm.
 
 ```python
@@ -79,7 +80,7 @@ vgraph = VisibilityGraph()
 vgraph.load_geometry("../maps/user_area.h5")
 ```
 
-Visibility graph can be built and visualised using osmnx:
+Visibility graph can be built and visualized using osmnx:
 
 
 ```python
