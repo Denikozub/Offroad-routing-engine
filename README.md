@@ -25,7 +25,7 @@ Scope of application:
 
 # Usage
 
-[ipynb notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb)
+[IPython notebook](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb)
 
 
 ### Downloading and processing data
