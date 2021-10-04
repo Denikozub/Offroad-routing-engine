@@ -95,3 +95,6 @@ class Pruner(OsmParser):
 
         self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
         self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
+
+        self.multilinestrings = self.multilinestrings.to_records(index=False)
+        self.polygons = self.polygons.to_records(index=False)

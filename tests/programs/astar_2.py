@@ -7,7 +7,7 @@ from offroad_routing.pathfinding.gpx_track import GpxTrack
 
 def main():
     vgraph = VisibilityGraph()
-    vgraph.load_geometry("../maps/kozlovo.h5")
+    vgraph.load_geometry("../maps/kozlovo.npy")
 
     start = timeit.default_timer()
 

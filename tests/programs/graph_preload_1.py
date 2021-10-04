@@ -12,7 +12,7 @@ def main():
                           bbox_comp=10,
                           remove_inner=True)
 
-    vgraph.save_geometry("../maps/user_area.h5")
+    vgraph.save_geometry("../maps/user_area.npy")
 
 
 if __name__ == "__main__":

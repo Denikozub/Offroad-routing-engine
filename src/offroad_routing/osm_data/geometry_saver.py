@@ -1,4 +1,4 @@
-from pandas import HDFStore
+from numpy import save, load, array
 
 from offroad_routing.osm_data.pruner import Pruner
 
@@ -10,24 +10,20 @@ class GeometrySaver(Pruner):
 
     def save_geometry(self, filename: str):
         """
-        Save computed geometry to .H5 file.
+        Save computed geometry to .npy binary file.
 
-        :param filename: .H5 filename to be created.
+        :param filename: .npy filename to be created.
         """
-        if filename[-3:] != ".h5":
+        if filename[-4:] != ".npy":
             raise ValueError("Wrong file format")
-        with HDFStore(filename) as store:
-            store["polygons"] = self.polygons
-            store["multilinestrings"] = self.multilinestrings
+        save(filename, [self.polygons, self.multilinestrings])
 
     def load_geometry(self, filename: str):
         """
-        Load saved geometry from .H5 file.
+        Load saved geometry from .npy file.
 
-        :param filename: .H5 filename with saved geometry.
+        :param filename: .npy filename with saved geometry.
         """
-        if filename[-3:] != ".h5":
+        if filename[-4:] != ".npy":
             raise ValueError("Wrong file format")
-        with HDFStore(filename) as store:
-            self.polygons = store["polygons"]
-            self.multilinestrings = store["multilinestrings"]
+        self.polygons, self.multilinestrings = load(filename, allow_pickle=True)

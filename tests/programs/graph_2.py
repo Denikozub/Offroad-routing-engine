@@ -7,15 +7,17 @@ from offroad_routing.visibility.visibility_graph import VisibilityGraph
 
 def main():
     vgraph = VisibilityGraph()
-    vgraph.load_geometry("../maps/kozlovo.h5")
+    vgraph.load_geometry("../maps/kozlovo.npy")
 
     start = timeit.default_timer()
 
     with cProfile.Profile() as pr:
-        vgraph.build_graph(inside_percent=1, multiprocessing=True)
+        G = vgraph.build_graph(inside_percent=0, multiprocessing=False)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)
+
+    print(G.number_of_edges(), G.number_of_nodes())
 
     stats = pstats.Stats(pr)
     stats.sort_stats(pstats.SortKey.TIME)

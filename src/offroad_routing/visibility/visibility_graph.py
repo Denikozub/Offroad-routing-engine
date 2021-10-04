@@ -59,48 +59,47 @@ class VisibilityGraph(GeometrySaver):
         edges_inside = list()
 
         for i in range(polygon_count):
-            polygon = self.polygons.iloc[i]
+            polygon = self.polygons[i]
 
             # if a point is not a part of an object
             if obj_number is None or point_number is None or is_polygon is None:
-                if Polygon(polygon.geometry[0]).contains(Point(point)):
-                    return find_inner_edges(point, None, polygon.geometry, i, inside_percent, polygon.tag[0])
+                if Polygon(polygon["geometry"][0]).contains(Point(point)):
+                    return find_inner_edges(point, None, polygon["geometry"], i, inside_percent, polygon["tag"][0])
                 else:
                     continue
 
             # if a point is a part of a current polygon
             if is_polygon and i == obj_number:
 
-                edges_inside = find_inner_edges(point, point_number, polygon.geometry, i, inside_percent,
-                                                polygon.tag[0])
+                edges_inside = find_inner_edges(point, point_number, polygon["geometry"], i, inside_percent, polygon["tag"][0])
 
-                convex_hull_point_count = len(polygon.convex_hull) - 1
+                convex_hull_point_count = len(polygon["convex_hull"]) - 1
                 if convex_hull_point_count <= 2:
                     continue
 
                 # if a point is a part of convex hull
-                if point_number in polygon.convex_hull_points:
-                    position = polygon.convex_hull_points.index(point_number)
-                    left = polygon.convex_hull_points[(position - 1) % convex_hull_point_count]
-                    right = polygon.convex_hull_points[(position + 1) % convex_hull_point_count]
-                    restriction_pair = (polygon.geometry[0][left], polygon.geometry[0][right])
+                if point_number in polygon["convex_hull_points"]:
+                    position = polygon["convex_hull_points"].index(point_number)
+                    left = polygon["convex_hull_points"][(position - 1) % convex_hull_point_count]
+                    right = polygon["convex_hull_points"][(position + 1) % convex_hull_point_count]
+                    restriction_pair = (polygon["geometry"][0][left], polygon["geometry"][0][right])
                     visible_vertices.set_restriction_angle(restriction_pair, point, True)
 
                 # if a point is strictly inside a convex hull and a part of polygon
                 else:
-                    restriction_pair = find_restriction_pair(point, polygon.geometry[0], point_number)
+                    restriction_pair = find_restriction_pair(point, polygon["geometry"][0], point_number)
                     if restriction_pair is None:
                         return edges_inside
                     visible_vertices.set_restriction_angle(restriction_pair, point, False)
 
             # if a point not inside convex hull
-            elif not localize_convex(point, polygon.convex_hull, polygon.angles)[0]:
-                pair = find_supporting_pair(point, polygon.convex_hull, i, polygon.angles)
+            elif not localize_convex(point, polygon["convex_hull"], polygon["angles"])[0]:
+                pair = find_supporting_pair(point, polygon["convex_hull"], i, polygon["angles"])
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon
             else:
-                line = find_supporting_line(point, polygon.geometry[0], i)
+                line = find_supporting_line(point, polygon["geometry"][0], i)
                 if line is None:
                     return list()
                 visible_vertices.add_line(line)
@@ -108,8 +107,8 @@ class VisibilityGraph(GeometrySaver):
         # loop over all linestrings
         multilinestring_count = self.multilinestrings.shape[0]
         for i in range(multilinestring_count):
-            linestring = self.multilinestrings.geometry[i]
-            weight = self.multilinestrings.tag[i][0]
+            linestring = self.multilinestrings["geometry"][i]
+            weight = self.multilinestrings["tag"][i][0]
             linestring_point_count = len(linestring)
 
             # if a point is a part of a current linestring
@@ -137,9 +136,10 @@ class VisibilityGraph(GeometrySaver):
         max_poly_len = 10000  # for graph indexing
         object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
         futures = list()
+        from tqdm import tqdm
         with ProcessPoolExecutor() as executor:
-            for i in range(object_count):
-                obj = self.polygons.geometry[i][0] if is_polygon else self.multilinestrings.geometry[i]
+            for i in tqdm(range(object_count)):
+                obj = self.polygons["geometry"][i][0] if is_polygon else self.multilinestrings["geometry"][i]
                 point_count = len(obj) - 1 if is_polygon else len(obj)
                 for j in range(point_count):
                     point = obj[j]
