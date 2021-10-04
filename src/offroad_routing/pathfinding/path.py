@@ -21,7 +21,7 @@ class Path(object):
             try:
                 current = self.__came_from[current]
             except KeyError:
-                return
+                raise Exception("Could not retrace path!")
         self.__path.append(self.__start)
         self.__path.reverse()
 

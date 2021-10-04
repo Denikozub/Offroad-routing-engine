@@ -33,19 +33,16 @@ class OsmParser(object):
         for index, row in roads.iterrows():
             start = self.__get_first_point(row.geometry)
             end = self.__get_last_point(row.geometry)
-            found = False
             for number, borders in points.items():
                 if start in borders:
                     roads.at[index, "id"] = number
                     borders.add(end)
-                    found = True
                     break
                 if end in borders:
                     roads.at[index, "id"] = number
                     borders.add(start)
-                    found = True
                     break
-            if not found:
+            else:
                 roads.at[index, "id"] = current
                 points[current] = set()
                 points[current].add(start)
