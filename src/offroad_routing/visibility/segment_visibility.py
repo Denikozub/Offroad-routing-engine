@@ -1,4 +1,5 @@
 from typing import Sequence, Optional, TypeVar, List, Tuple
+from collections import OrderedDict
 
 from offroad_routing.geometry.algorithms import \
     check_ray_segment_intersection, turn, point_in_angle, polar_angle, check_segment_intersection
@@ -76,54 +77,42 @@ class SegmentVisibility(object):
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:
-            points.append((edge[0], edge[1]))
-            points.append((edge[1], edge[0]))
+            points.append((edge[0], edge[1]))  # keep info about pair and PointData
+            points.append((edge[1], edge[0]))  # keep info about pair and PointData
         points.sort(key=lambda x: polar_angle(point, x[0][0]))
 
         # list of segments intersected by 0-angle ray
-        intersected = list()
+        intersected = OrderedDict()
         for edge in self.__segments:
             if check_ray_segment_intersection(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
-                intersected.insert(0, (edge[0][0], edge[1][0]))
+                index1 = str((edge[0][1], edge[0][2], edge[0][3] | 0))
+                index2 = str((edge[1][1], edge[1][2], edge[1][3] | 0))
+                intersected[index1 + index2] = (edge[0][0], edge[1][0])
+        self.__segments.clear()
 
-        visible_edges = list()
+        visible_edges = dict()
         for p in points:
-
             # check if any of the segments in intersected list crosses current segment
-            crosses = False
-            for segment in intersected:
+            for segment in reversed(intersected.values()):
                 if check_segment_intersection(point, p[0][0], segment[0], segment[1]):
-                    crosses = True
                     break
+            else:
+                if self.__restriction_pair is None:
+                    visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
+                else:
+                    l_point, r_point = self.__restriction_pair
+                    if point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle:
+                        visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
 
             # update intersected list
+            index1 = str((p[0][1], p[0][2], p[0][3] | 0))
+            index2 = str((p[1][1], p[1][2], p[1][3] | 0))
             if turn(point, p[0][0], p[1][0]) > 0:
-                intersected.insert(0, (p[0][0], p[1][0]))
+                intersected[index1 + index2] = (p[0][0], p[1][0])
             else:
-                try:
-                    intersected.remove((p[0][0], p[1][0]))
-                except ValueError:
-                    pass
+                intersected.pop(index1 + index2, None)
 
-            # add suitable points
-            if not crosses:
-
-                # if a point is inside a restriction angle, it will not be returned
-                if self.__restriction_pair is not None:
-                    l_point, r_point = self.__restriction_pair
-                    p_in_angle = not point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                    if p_in_angle:
-                        continue
-
-                # do not add same points
-                try:
-                    visible_edges.remove(p[0])
-                except ValueError:
-                    pass
-                visible_edges.append(p[0])
-
-        self.__segments.clear()
-        return visible_edges
+        return list(visible_edges.values())
 
     """
     Angle approximation Denis Kozub O(n) algorithm
