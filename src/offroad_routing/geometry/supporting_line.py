@@ -17,14 +17,12 @@ def find_supporting_pair_brute(point, polygon, polygon_size, point_number):
             continue
 
         # check intersection with all other points
-        found = True
         for j in range(polygon_size):
             if j in (i - 1, i) or (point_number is not None and j in (point_number - 1, point_number)):
                 continue
             if check_ray_segment_intersection(point, pi, polygon[j], polygon[j + 1], False):
-                found = False
                 break
-        if found:
+        else:
             result.append(i)
 
     if len(result) != 2:
