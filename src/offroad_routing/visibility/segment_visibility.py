@@ -37,14 +37,11 @@ class SegmentVisibility(object):
         self.__reverse_angle = reverse_angle
 
     def get_edges_brute(self, point: TPoint) -> List[PointData]:
-        segment_number = len(self.__segments)
         visible_edges = list()
-
+        
         # check 2 points (of a segment) at a time
-        for i in range(segment_number):
-            a, b = self.__segments[i]
+        for i, (a, b) in enumerate(self.__segments):
             a_point, b_point = a[0], b[0]
-
             if self.__restriction_pair is not None:
                 l_point, r_point = self.__restriction_pair
                 a_in_angle = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
@@ -56,10 +53,9 @@ class SegmentVisibility(object):
 
             # for each of 2 points check intersection with all other segments
             a_is_visible, b_is_visible = not a_in_angle, not b_in_angle
-            for j in range(segment_number):
+            for j, check_pair in enumerate(self.__segments):
                 if j == i:
                     continue
-                check_pair = self.__segments[j]
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
                 a_is_visible = not a_in_angle and not check_segment_intersection(point, a_point, check_a, check_b)
                 b_is_visible = not b_in_angle and not check_segment_intersection(point, b_point, check_a, check_b)
