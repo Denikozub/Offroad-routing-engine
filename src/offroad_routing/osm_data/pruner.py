@@ -16,22 +16,22 @@ class Pruner(OsmParser):
     def __remove_inner_polygons(self):
         polygon_number = self.polygons.shape[0]
         for i in range(polygon_number):
-            if self.polygons.geometry.iloc[i] is None:
+            if self.polygons.loc[i, "geometry"] is None:
                 continue
-            polygon = self.polygons.geometry.iloc[i]
+            polygon = self.polygons.loc[i, "geometry"]
             for j in range(1, len(polygon)):
                 point = polygon[j][0]
                 for k in range(i + 1, polygon_number):
-                    if self.polygons.geometry.iloc[k] is None:
+                    if self.polygons.loc[k, "geometry"] is None:
                         if k == polygon_number - 1:
-                            self.polygons.tag.iloc[i].append(None)
+                            self.polygons.loc[i, "tag"].append(None)
                         continue
-                    new_point = self.polygons.geometry.iloc[k][0][0]
+                    new_point = self.polygons.loc[k, "geometry"][0][0]
                     if compare_points(point, new_point):
-                        self.polygons.tag.iloc[i].append(self.polygons.tag.iloc[k])
-                        self.polygons.geometry.iloc[k] = None
+                        self.polygons.loc[i, "tag"].append(self.polygons.loc[k, "tag"])
+                        self.polygons.loc[k, "geometry"] = None
                     elif k == polygon_number - 1:
-                        self.polygons.tag.iloc[i].append(None)
+                        self.polygons.loc[i, "tag"].append(None)
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
