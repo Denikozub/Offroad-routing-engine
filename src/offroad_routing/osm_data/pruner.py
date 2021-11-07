@@ -1,10 +1,12 @@
 from typing import Optional
+from math import fabs
 
 from pandas import DataFrame
+from shapely.geometry import mapping
+from rdp import rdp
 
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.convex_hull import build_convex_hull
-from offroad_routing.osm_data.coord_filter import get_coordinates
 from offroad_routing.osm_data.parser import OsmParser
 
 
@@ -48,6 +50,34 @@ class Pruner(OsmParser):
                     to_delete.append(p2)
         self.polygons = self.polygons[~self.polygons.geometry.isin(to_delete)]
 
+    @staticmethod
+    def __compare_bbox(obj, bbox_comp, bbox_size):
+        if bbox_comp is not None:
+            bounds = obj.bounds
+            bounds_size = (fabs(bounds[2] - bounds[0]), fabs(bounds[3] - bounds[1]))
+            if bounds_size[0] == 0 or bounds_size[1] == 0:
+                return None
+            if bbox_size[0] / bounds_size[0] >= bbox_comp and bbox_size[1] / bounds_size[1] >= bbox_comp:
+                return None
+        return obj
+
+    @staticmethod
+    def __polygon_coords(polygon, epsilon):
+        coordinates = mapping(polygon)['coordinates']
+        polygons = list()
+        for polygon in coordinates:
+            polygons.append(tuple([tuple(point) for point in polygon] if epsilon is None or epsilon == 0 else
+                                  [tuple(point) for point in rdp(polygon, epsilon=epsilon)]))
+        return tuple(polygons) if len(polygons[0]) >= 3 else None
+
+    @staticmethod
+    def __linestring_coords(linestring, epsilon):
+        coordinates = mapping(linestring)['coordinates']
+        points = [pair[0] for pair in coordinates]
+        points.append(coordinates[-1][1])
+        return tuple([tuple(point) for point in points]) if epsilon is None or epsilon == 0 else \
+            tuple([tuple(point) for point in rdp(points, epsilon=epsilon)])
+
     def prune_geometry(self, epsilon_polygon=None, epsilon_polyline=None, bbox_comp=15, remove_inner=False):
         """
         Transform retrieved map data:
@@ -68,19 +98,26 @@ class Pruner(OsmParser):
         for param in {epsilon_polygon, epsilon_polyline, bbox_comp}:
             assert param is None or param >= 0
 
+        # auto-compute parameters
         if epsilon_polygon is None:
             epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
 
         if epsilon_polyline is None:
             epsilon_polyline = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
 
+        # compare to bounding box
         self.polygons.geometry = \
-            self.polygons.geometry.apply(get_coordinates, args=[epsilon_polygon, bbox_comp, self.bbox_size, True])
+            self.polygons.geometry.apply(self.__compare_bbox, args=[bbox_comp, self.bbox_size])
+        self.polygons = DataFrame(self.polygons[self.polygons['geometry'].notna()])
 
-        self.polygons = self.polygons[self.polygons['geometry'].notna()]
+        # shapely.geometry.Polygon to tuple of points
+        self.polygons.geometry = self.polygons.geometry.apply(self.__polygon_coords, args=[epsilon_polygon])
+
+        # remove equal polygons
         self.__remove_equal_polygons()
         self.polygons = self.polygons.reset_index().drop(columns='index')
 
+        # remove polygons which are inner for other polygons
         if remove_inner:
             self.__remove_inner_polygons()
 
@@ -90,11 +127,14 @@ class Pruner(OsmParser):
                                                .apply(lambda x: build_convex_hull(x[0][0]), axis=1, result_type='expand')
                                                .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
-        self.multilinestrings.geometry = self.multilinestrings.geometry\
-            .apply(get_coordinates, args=[epsilon_polyline, bbox_comp, self.bbox_size, False])
+        # compare to bounding box
+        self.multilinestrings.geometry = \
+            self.multilinestrings.geometry.apply(self.__compare_bbox, args=[bbox_comp, self.bbox_size])
+        self.multilinestrings = DataFrame(self.multilinestrings[self.multilinestrings['geometry'].notna()]
+                                          .reset_index().drop(columns='index'))
 
-        self.multilinestrings = self.multilinestrings[self.multilinestrings['geometry'].notna()]
-        self.multilinestrings = self.multilinestrings.reset_index().drop(columns='index')
+        # shapely.geometry.MultiLineString to tuple of points and simplify
+        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__linestring_coords, args=[epsilon_polyline])
 
         self.multilinestrings = self.multilinestrings.to_records(index=False)
         self.polygons = self.polygons.to_records(index=False)

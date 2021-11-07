@@ -1,8 +1,9 @@
 from math import fabs
 from typing import Sequence, Optional
 
-from pandas import DataFrame
+from geopandas import GeoDataFrame
 from shapely.geometry import mapping
+from pyrosm import OSM
 
 from offroad_routing.osm_data.tag_value import TagValue
 from offroad_routing.osm_data.osm_converter import OsmConverter
@@ -11,8 +12,8 @@ from offroad_routing.osm_data.osm_converter import OsmConverter
 class OsmParser(object):
 
     def __init__(self):
-        self.polygons = DataFrame(columns=['tag', 'geometry'])
-        self.multilinestrings = DataFrame(columns=['tag', 'geometry'])
+        self.polygons = GeoDataFrame(columns=['tag', 'geometry'])
+        self.multilinestrings = GeoDataFrame(columns=['tag', 'geometry'])
         self.tag_value = TagValue()
         self.bbox_size = None
 
@@ -64,26 +65,23 @@ class OsmParser(object):
             converter = OsmConverter(bbox)
             filename = converter.filename
 
-        # for Windows compilation
-        from pyrosm import OSM
-
         osm = OSM(filename, bounding_box=bbox)
-        multipolygons = DataFrame(columns=['tag', 'geometry'])
-        
+        multipolygons = GeoDataFrame(columns=['tag', 'geometry'])
+
         natural = osm.get_natural()
         if natural is not None:
             natural = natural.loc[:, ['natural', 'geometry']].rename(columns={'natural': 'tag'})
             self.polygons = self.polygons.append(natural.loc[natural.geometry.type == 'Polygon'])
             multipolygons = multipolygons.append(natural.loc[natural.geometry.type == 'MultiPolygon'])
             natural.drop(natural.index, inplace=True)
-        
+
         landuse = osm.get_landuse()
         if landuse is not None:
             landuse = landuse.loc[:, ['landuse', 'geometry']].rename(columns={'landuse': 'tag'})
             self.polygons = self.polygons.append(landuse.loc[landuse.geometry.type == 'Polygon'])
             multipolygons = multipolygons.append(landuse.loc[landuse.geometry.type == 'MultiPolygon'])
             landuse.drop(landuse.index, inplace=True)
-        
+
         # splitting multipolygons to polygons
         for i in range(multipolygons.shape[0]):
             tag = multipolygons.tag.iloc[i]
@@ -93,7 +91,7 @@ class OsmParser(object):
         roads = osm.get_network()
         if roads is not None:
             roads = self.__dissolve(roads[["highway", "geometry"]])
-            self.multilinestrings = DataFrame(roads
+            self.multilinestrings = GeoDataFrame(roads
                     .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
 
         self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
