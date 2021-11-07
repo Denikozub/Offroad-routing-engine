@@ -55,11 +55,9 @@ class VisibilityGraph(GeometrySaver):
 
         point, obj_number, point_number, is_polygon = point_data[0:4]
         visible_vertices = SegmentVisibility()
-        polygon_count = self.polygons.shape[0]
         edges_inside = list()
 
-        for i in range(polygon_count):
-            polygon = self.polygons[i]
+        for i, polygon in enumerate(self.polygons):
 
             # if a point is not a part of an object
             if obj_number is None or point_number is None or is_polygon is None:
@@ -105,9 +103,7 @@ class VisibilityGraph(GeometrySaver):
                 visible_vertices.add_line(line)
 
         # loop over all linestrings
-        multilinestring_count = self.multilinestrings.shape[0]
-        for i in range(multilinestring_count):
-            linestring = self.multilinestrings["geometry"][i]
+        for i, linestring in enumerate(self.multilinestrings["geometry"]):
             weight = self.multilinestrings["tag"][i][0]
             linestring_point_count = len(linestring)
 
@@ -134,16 +130,12 @@ class VisibilityGraph(GeometrySaver):
 
     def __process_points_of_objects(self, is_polygon, G, inside_percent, multiprocessing) -> None:
         max_poly_len = 10000  # for graph indexing
-        object_count = self.polygons.shape[0] if is_polygon else self.multilinestrings.shape[0]
+        objects = self.polygons if is_polygon else self.multilinestrings
         futures = list()
-        from tqdm import tqdm
         with ProcessPoolExecutor() as executor:
-            for i in tqdm(range(object_count)):
-                obj = self.polygons["geometry"][i][0] if is_polygon else self.multilinestrings["geometry"][i]
-                point_count = len(obj) - 1 if is_polygon else len(obj)
-                for j in range(point_count):
-                    point = obj[j]
-
+            for i, obj in enumerate(objects["geometry"]):
+                for j, point in enumerate(obj[0][:-1] if is_polygon else obj):
+                
                     # adding a vertex in networkx graph
                     px, py = point
                     point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
