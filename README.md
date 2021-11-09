@@ -1,6 +1,6 @@
 # Off-road Navigation System
-[__Installation__](https://denikozub.github.io/Offroad-routing-engine/#installation)  
-[__Documentation__](https://denikozub.github.io/Offroad-routing-engine/#documentation)  
+[__Installation__](https://denikozub.github.io/Offroad-routing-engine/#installation)
+[__Documentation__](https://denikozub.github.io/Offroad-routing-engine/#documentation)
 [__Usage__](https://github.com/Denikozub/Offroad-routing-engine#usage)
 ___
 by Denis Kozub
@@ -17,9 +17,9 @@ by Denis Kozub
 <img src="docs/Route.png" alt="" width="800"/>
 
 Scope of application:
-- Extending functionality of other routing engines  
-- Road and facilities design  
-- Rescue and military operations planning  
+- Extending functionality of other routing engines
+- Road and facilities design
+- Rescue and military operations planning
 - Route planning for hiking and tourism
 
 
@@ -30,7 +30,7 @@ Scope of application:
 
 ### Downloading and processing data
 
-There are two ways you can obtain OSM data in osm.pbf format:  
+There are two ways you can obtain OSM data in osm.pbf format:
 - Download it yourself: [parts of the world](https://download.geofabrik.de/), [cities](https://download.bbbike.org/osm/bbbike/), [adjustable area](https://extract.bbbike.org/) (via mail), [adjustable area](https://export.hotosm.org/en/v3/) (online), [planet](https://planet.maps.mail.ru/pbf/)
 - Let the program download it for you
 
@@ -93,7 +93,7 @@ ox.plot_graph(G)
 <img src="docs/VGraph.png" alt="" width="800"/>
 
 
-VisibilityGraph may also be used to find incident edges for a single point.  
+VisibilityGraph may also be used to find incident edges for a single point.
 This feature is used for pathfinding without graph building:
 
 
@@ -145,11 +145,11 @@ track.visualize()
 ```
 
 You can check the route [here](https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5IiwgInAiOiBbeyJuIjogIlN0YXJ0IiwgImx0IjogNTkuMDEsICJsbiI6IDM0LjAyfSwgeyJuIjogIkdvYWwiLCAibHQiOiA1OS4wOSwgImxuIjogMzQuMTJ9XSwgInQiOiBbW1s1OS4wMSwgMzQuMDJdLCBbNTkuMDA3NzI1NSwgMzQuMDEyMDA2M10sIFs1OS4wMDI3NDk4LCAzNC4wMDY1MTM5XSwgWzU5LjAwMDE5NSwgMzQuMDA4MDM1N10sIFs1OS4wMDE1NTg5LCAzNC4wMzA4NDMyXSwgWzU5LjAwMDI3ODcsIDM0LjA0MTcxOV0sIFs1OS4wMDAzNzc2LCAzNC4wNDk3MTU2XSwgWzU5LjAwNjc2NDEsIDM0LjA2MzMzNjFdLCBbNTkuMDA5NzI2MywgMzQuMDY0NTAxMl0sIFs1OS4wMTExMDE4LCAzNC4wNzA5MjAzXSwgWzU5LjAxOTExNjcsIDM0LjA5Nzk1NzZdLCBbNTkuMDE4MjgyOCwgMzQuMTA1MTg4OF0sIFs1OS4wMjM0ODk5LCAzNC4xMTgxNjY5XSwgWzU5LjA0ODE3MDMsIDM0LjE0Mzg1NjldLCBbNTkuMDcwNjk4NSwgMzQuMTQzMDg0NF0sIFs1OS4wNzc1NDY3LCAzNC4xMzM4NzkxXSwgWzU5LjA4MjI2OTEsIDM0LjExNDU5MjRdLCBbNTkuMDg2NDQxNiwgMzQuMTIxNDY4M10sIFs1OS4wOSwgMzQuMTJdXV19XQ==).
-    
 
-### Results
 
-Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.  
-Computational time for a much freer area or 120 km<sup>2</sup> is 1 second.  
-Since A* pathfinding does not require building the whole graph, computational time is even lower:  
+### Performance
+
+Computational time for an extremely dense area of 800 km<sup>2</sup> is about 20 seconds with multiprocessing.
+Computational time for a much freer area or 120 km<sup>2</sup> is 1 second.
+Since A* pathfinding does not require building the whole graph, computational time is even lower:
 The last example (see above) took only 0.6 seconds, which is 40% faster than building a graph.
