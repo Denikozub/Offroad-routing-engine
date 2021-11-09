@@ -16,7 +16,7 @@ Install from repository::
 
 	pip install -e "git+https://github.com/Denikozub/Offroad-routing-engine.git#egg=offroad_routing"
 
-Warning: package requires GeoPandas to be installed, which can be problematic on Windows. `This <https://towardsdatascience.com/geopandas-installation-the-easy-way-for-windows-31a666b3610f/>`_ article may help.
+It is recommended to install packages using conda. Pip warning: package requires GeoPandas to be installed, which can be problematic on Windows. `This <https://towardsdatascience.com/geopandas-installation-the-easy-way-for-windows-31a666b3610f/>`_ article may help.
 
 
 Usage
@@ -35,7 +35,7 @@ There are two ways you can obtain OSM data in osm.pbf format:
 
 If the map is downloaded, you can specify the filename and parse it::
 
-	from offroad_routing.visibility.visibility_graph import VisibilityGraph
+	from offroad_routing import VisibilityGraph
 
 	vgraph = VisibilityGraph()
 	filename = "../maps/kozlovo.osm.pbf"
@@ -67,7 +67,7 @@ Building visibility graph
 
 Loading precomputed data::
 
-	from offroad_routing.visibility.visibility_graph import VisibilityGraph
+	from offroad_routing import VisibilityGraph
 	
 	vgraph = VisibilityGraph()
 	vgraph.load_geometry("../maps/user_area.h5")
@@ -101,8 +101,7 @@ Pathfinding and visualization
 
 Astar algorithm can be used to find paths between points on the map::
 
-	from offroad_routing.visibility.visibility_graph import VisibilityGraph
-	from offroad_routing.pathfinding.astar import AStar
+	from offroad_routing import VisibilityGraph, AStar
 
 	vgraph = VisibilityGraph()
 	vgraph.load_geometry("../maps/user_area.h5")
@@ -119,7 +118,7 @@ Path can be viewed in coordinate format::
 However, specialized tools can be used to save and visualize the path.
 The following code saves the path to a gpx file and generates a link to view it online::
 
-	from offroad_routing.pathfinding.gpx_track import GpxTrack
+	from offroad_routing import GpxTrack
 
 	track = GpxTrack(path)
 	track.write_file("track.gpx")
@@ -136,23 +135,23 @@ Documentation
 VisibilityGraph
 +++++++++++++++
 
-.. autoclass:: offroad_routing.visibility.visibility_graph.VisibilityGraph
+.. autoclass:: offroad_routing.VisibilityGraph
 
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.compute_geometry
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.prune_geometry
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.save_geometry
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.load_geometry
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.incident_vertices
+	.. automethod:: offroad_routing.VisibilityGraph.compute_geometry
+	.. automethod:: offroad_routing.VisibilityGraph.prune_geometry
+	.. automethod:: offroad_routing.VisibilityGraph.save_geometry
+	.. automethod:: offroad_routing.VisibilityGraph.load_geometry
+	.. automethod:: offroad_routing.VisibilityGraph.incident_vertices
 	
 	`PointData Explanation`_
 	
-	.. automethod:: offroad_routing.visibility.visibility_graph.VisibilityGraph.build_graph
+	.. automethod:: offroad_routing.VisibilityGraph.build_graph
 
 
 AStar
 +++++
 
-.. autoclass:: offroad_routing.pathfinding.astar.AStar
+.. autoclass:: offroad_routing.AStar
 	:members:
 	:special-members: __init__
 
@@ -160,7 +159,7 @@ AStar
 GpxTrack
 ++++++++
 
-.. autoclass:: offroad_routing.pathfinding.gpx_track.GpxTrack
+.. autoclass:: offroad_routing.GpxTrack
 	:members:
 	:special-members: __init__
 

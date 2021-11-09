@@ -25,11 +25,14 @@ class Path(object):
         self.__path.append(self.__start)
         self.__path.reverse()
 
+    @property
     def path(self) -> TPath:
         return self.__path.copy()
 
+    @property
     def start(self) -> TPoint:
         return self.__start
 
+    @property
     def goal(self) -> TPoint:
         return self.__goal

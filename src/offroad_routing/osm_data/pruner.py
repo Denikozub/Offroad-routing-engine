@@ -63,6 +63,8 @@ class Pruner(OsmParser):
 
     @staticmethod
     def __polygon_coords(polygon, epsilon):
+        if polygon is None:
+            return None
         coordinates = mapping(polygon)['coordinates']
         polygons = list()
         for polygon in coordinates:
@@ -72,6 +74,8 @@ class Pruner(OsmParser):
 
     @staticmethod
     def __linestring_coords(linestring, epsilon):
+        if linestring is None:
+            return None
         coordinates = mapping(linestring)['coordinates']
         points = [pair[0] for pair in coordinates]
         points.append(coordinates[-1][1])
@@ -112,6 +116,7 @@ class Pruner(OsmParser):
 
         # shapely.geometry.Polygon to tuple of points
         self.polygons.geometry = self.polygons.geometry.apply(self.__polygon_coords, args=[epsilon_polygon])
+        self.polygons = self.polygons[self.polygons['geometry'].notna()]
 
         # remove equal polygons
         self.__remove_equal_polygons()

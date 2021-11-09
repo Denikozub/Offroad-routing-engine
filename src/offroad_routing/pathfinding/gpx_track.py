@@ -25,13 +25,13 @@ class GpxTrack(object):
               'http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">', file=file)
 
     def __write_start_goal(self, file):
-        start, goal = self.__path.start(), self.__path.goal()
+        start, goal = self.__path.start, self.__path.goal
         print('\t<wpt lat="%f" lon="%f">\n\t\t<name>Start</name>\n\t</wpt>' % (start[1], start[0]), file=file)
         print('\t<wpt lat="%f" lon="%f">\n\t\t<name>Goal</name>\n\t</wpt>' % (goal[1], goal[0]), file=file)
 
     def __write_track(self, file):
         print('\t<trk>\n\t\t<name>%s</name>\n\t\t<trkseg>' % str(datetime.today().strftime('%Y-%m-%d')), file=file)
-        for point in self.__path.path():
+        for point in self.__path.path:
             print('\t\t\t<trkpt lat="%f" lon="%f"></trkpt>' % (point[1], point[0]), file=file)
         print('\t\t</trkseg>\n\t</trk>', file=file)
 
@@ -53,9 +53,9 @@ class GpxTrack(object):
         """
         Generate link to visualize path using https://nakarte.me
         """
-        start, goal = self.__path.start(), self.__path.goal()
+        start, goal = self.__path.start, self.__path.goal
         xml = str([{"n": str(datetime.today().strftime('%Y-%m-%d')),
                     "p": [{"n": "Start", "lt": start[1], "ln": start[0]}, {"n": "Goal", "lt": goal[1], "ln": goal[0]}],
-                    "t": [[[lat, lon] for lon, lat in self.__path.path()]]}]).replace("'", "\"")
+                    "t": [[[lat, lon] for lon, lat in self.__path.path]]}]).replace("'", "\"")
         base = base64.encodebytes(bytes(xml, 'utf-8')).decode("utf-8").replace("\n", "")
         print("Go to website: https://nakarte.me/#nktj=%s" % base)
