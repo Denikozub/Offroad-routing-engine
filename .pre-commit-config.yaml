@@ -1,9 +1,19 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.5.7
+    hooks:
+        - id: autopep8
+
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
+    -   id: pretty-format-json
+    -   id: check-merge-conflict
+    -   id: check-toml
+    -   id: check-yaml
+    -   id: requirements-txt-fixer
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: check-added-large-files
@@ -21,7 +31,7 @@ repos:
     rev: v2.6.0
     hooks:
     -   id: reorder-python-imports
-        args: [--application-directories=.:src, --py36-plus]
+        args: [--application-directories=.src, --py36-plus]
 
 -   repo: https://github.com/asottile/pyupgrade
     rev: v2.29.0

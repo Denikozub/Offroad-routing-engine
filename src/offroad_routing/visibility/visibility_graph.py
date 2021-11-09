@@ -1,15 +1,16 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import TypeVar, List
+from typing import TypeVar
 
 from networkx import MultiGraph
-from shapely.geometry import Polygon, Point
-
 from offroad_routing.geometry.ch_localization import localize_convex
 from offroad_routing.geometry.inner_edges import find_inner_edges
-from offroad_routing.geometry.supporting_line import find_restriction_pair, find_supporting_line
+from offroad_routing.geometry.supporting_line import find_restriction_pair
+from offroad_routing.geometry.supporting_line import find_supporting_line
 from offroad_routing.geometry.supporting_pair import find_supporting_pair
 from offroad_routing.osm_data.geometry_saver import GeometrySaver
 from offroad_routing.visibility.segment_visibility import SegmentVisibility
+from shapely.geometry import Point
+from shapely.geometry import Polygon
 
 TPoint = TypeVar("TPoint")
 """
@@ -77,22 +78,30 @@ class VisibilityGraph(GeometrySaver):
 
                 # if a point is a part of convex hull
                 if point_number in polygon["convex_hull_points"]:
-                    position = polygon["convex_hull_points"].index(point_number)
-                    left = polygon["convex_hull_points"][(position - 1) % convex_hull_point_count]
-                    right = polygon["convex_hull_points"][(position + 1) % convex_hull_point_count]
-                    restriction_pair = (polygon["geometry"][0][left], polygon["geometry"][0][right])
-                    visible_vertices.set_restriction_angle(restriction_pair, point, True)
+                    position = polygon["convex_hull_points"].index(
+                        point_number)
+                    left = polygon["convex_hull_points"][(
+                        position - 1) % convex_hull_point_count]
+                    right = polygon["convex_hull_points"][(
+                        position + 1) % convex_hull_point_count]
+                    restriction_pair = (
+                        polygon["geometry"][0][left], polygon["geometry"][0][right])
+                    visible_vertices.set_restriction_angle(
+                        restriction_pair, point, True)
 
                 # if a point is strictly inside a convex hull and a part of polygon
                 else:
-                    restriction_pair = find_restriction_pair(point, polygon["geometry"][0], point_number)
+                    restriction_pair = find_restriction_pair(
+                        point, polygon["geometry"][0], point_number)
                     if restriction_pair is None:
                         return edges_inside
-                    visible_vertices.set_restriction_angle(restriction_pair, point, False)
+                    visible_vertices.set_restriction_angle(
+                        restriction_pair, point, False)
 
             # if a point not inside convex hull
             elif not localize_convex(point, polygon["convex_hull"], polygon["angles"])[0]:
-                pair = find_supporting_pair(point, polygon["convex_hull"], i, polygon["angles"])
+                pair = find_supporting_pair(
+                    point, polygon["convex_hull"], i, polygon["angles"])
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon
@@ -111,10 +120,12 @@ class VisibilityGraph(GeometrySaver):
             if not is_polygon and i == obj_number:
                 if point_number > 0:
                     previous = point_number - 1
-                    edges_inside.append((linestring[previous], i, previous, False, weight))
+                    edges_inside.append(
+                        (linestring[previous], i, previous, False, weight))
                 elif point_number + 1 < linestring_point_count:
                     following = point_number + 1
-                    edges_inside.append((linestring[following], i, following, False, weight))
+                    edges_inside.append(
+                        (linestring[following], i, following, False, weight))
 
             else:
                 # add whole linestring
@@ -137,13 +148,15 @@ class VisibilityGraph(GeometrySaver):
                 for j, point in enumerate(obj[0][:-1] if is_polygon else obj):
                     # adding a vertex in networkx graph
                     px, py = point
-                    point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
+                    point_index = i * max_poly_len + \
+                        j if is_polygon else (i + 0.5) * max_poly_len + j
                     graph.add_node(point_index, x=px, y=py)
 
                     # getting incident vertices
                     point_data = (point, i, j, is_polygon, None)
                     future = self.incident_vertices(point_data, inside_percent) if not multiprocessing else \
-                        executor.submit(self.incident_vertices, point_data, inside_percent)
+                        executor.submit(self.incident_vertices,
+                                        point_data, inside_percent)
                     futures.append((future, point, point_index))
 
         for future_data in futures:
@@ -171,6 +184,8 @@ class VisibilityGraph(GeometrySaver):
             raise ValueError("inside_percent should be from 1 to 0")
 
         graph = MultiGraph(crs=crs)
-        self.__process_points_of_objects(True, graph, inside_percent, multiprocessing)
-        self.__process_points_of_objects(False, graph, inside_percent, multiprocessing)
+        self.__process_points_of_objects(
+            True, graph, inside_percent, multiprocessing)
+        self.__process_points_of_objects(
+            False, graph, inside_percent, multiprocessing)
         return graph
