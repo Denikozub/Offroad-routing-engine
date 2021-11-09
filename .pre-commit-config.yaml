@@ -28,13 +28,3 @@ repos:
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
-
--   repo: local
-    hooks:
-    -   id: tests
-        name: run tests
-        entry: python -m unittest discover
-        language: python
-        types: [python]
-        pass_filenames: false
-        stages: [commit]
