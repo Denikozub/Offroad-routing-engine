@@ -129,8 +129,10 @@ class Pruner(OsmParser):
         # add info about convex hull
         if self.polygons.shape[0] > 0:
             self.polygons = self.polygons.join(DataFrame(self.polygons.geometry)
-                                               .apply(lambda x: build_convex_hull(x[0][0]), axis=1, result_type='expand')
-                                               .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
+                                               .apply(lambda x: build_convex_hull(x[0][0]), axis=1,
+                                                      result_type='expand')
+                                               .rename(
+                columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         # compare to bounding box
         self.multilinestrings.geometry = \
@@ -139,7 +141,8 @@ class Pruner(OsmParser):
                                           .reset_index().drop(columns='index'))
 
         # shapely.geometry.MultiLineString to tuple of points and simplify
-        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__linestring_coords, args=[epsilon_polyline])
+        self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__linestring_coords,
+                                                                              args=[epsilon_polyline])
 
         self.multilinestrings = self.multilinestrings.to_records(index=False)
         self.polygons = self.polygons.to_records(index=False)

@@ -38,14 +38,16 @@ class SegmentVisibility(object):
 
     def get_edges_brute(self, point: TPoint) -> List[PointData]:
         visible_edges = list()
-        
+
         # check 2 points (of a segment) at a time
         for i, (a, b) in enumerate(self.__segments):
             a_point, b_point = a[0], b[0]
             if self.__restriction_pair is not None:
                 l_point, r_point = self.__restriction_pair
-                a_in_angle = not point_in_angle(a_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
-                b_in_angle = not point_in_angle(b_point, l_point, self.__restriction_point, r_point) != self.__reverse_angle
+                a_in_angle = not point_in_angle(a_point, l_point, self.__restriction_point,
+                                                r_point) != self.__reverse_angle
+                b_in_angle = not point_in_angle(b_point, l_point, self.__restriction_point,
+                                                r_point) != self.__reverse_angle
                 if a_in_angle and b_in_angle:
                     continue
             else:

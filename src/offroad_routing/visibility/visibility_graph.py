@@ -31,14 +31,13 @@ Node of the graph is unambiguously set either by its coordinates or by its posit
 
 class VisibilityGraph(GeometrySaver):
     """
-    Input: .osm.pbf map file including required area. It can be predownloaded (e.g. planet.osm) or downloaded in runtime.
+    Input: .osm.pbf map file including required area. It can be predownloaded (eg planet.osm) or downloaded in runtime.
     To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
     forming geographical objects on the map. They are used as obstacles for visibility graph.
     VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.
     Optionally, it prunes geometry to achieve hierarchical approach to speed up computations.
     Computed and pruned data can be saved into a file to avoid repeating computations.
     Computed geometry can be used for graph building and pathfinding.
-
     """
 
     def incident_vertices(self, point_data, inside_percent=1):
@@ -69,7 +68,8 @@ class VisibilityGraph(GeometrySaver):
             # if a point is a part of a current polygon
             if is_polygon and i == obj_number:
 
-                edges_inside = find_inner_edges(point, point_number, polygon["geometry"], i, inside_percent, polygon["tag"][0])
+                edges_inside = find_inner_edges(point, point_number, polygon["geometry"], i, inside_percent,
+                                                polygon["tag"][0])
 
                 convex_hull_point_count = len(polygon["convex_hull"]) - 1
                 if convex_hull_point_count <= 2:
@@ -128,18 +128,17 @@ class VisibilityGraph(GeometrySaver):
         visible_edges.extend(edges_inside)
         return visible_edges
 
-    def __process_points_of_objects(self, is_polygon, G, inside_percent, multiprocessing) -> None:
+    def __process_points_of_objects(self, is_polygon, graph, inside_percent, multiprocessing) -> None:
         max_poly_len = 10000  # for graph indexing
         objects = self.polygons if is_polygon else self.multilinestrings
         futures = list()
         with ProcessPoolExecutor() as executor:
             for i, obj in enumerate(objects["geometry"]):
                 for j, point in enumerate(obj[0][:-1] if is_polygon else obj):
-                
                     # adding a vertex in networkx graph
                     px, py = point
                     point_index = i * max_poly_len + j if is_polygon else (i + 0.5) * max_poly_len + j
-                    G.add_node(point_index, x=px, y=py)
+                    graph.add_node(point_index, x=px, y=py)
 
                     # getting incident vertices
                     point_data = (point, i, j, is_polygon, None)
@@ -156,8 +155,8 @@ class VisibilityGraph(GeometrySaver):
                 vx, vy = vertex[0]
                 vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
                     else (vertex[1] + 0.5) * max_poly_len + vertex[2]
-                G.add_node(vertex_index, x=vx, y=vy)
-                G.add_edge(point_index, vertex_index)
+                graph.add_node(vertex_index, x=vx, y=vy)
+                graph.add_edge(point_index, vertex_index)
 
     def build_graph(self, inside_percent=0.4, multiprocessing=True, crs='EPSG:4326'):
         """
@@ -171,7 +170,7 @@ class VisibilityGraph(GeometrySaver):
         if inside_percent < 0 or inside_percent > 1:
             raise ValueError("inside_percent should be from 1 to 0")
 
-        G = MultiGraph(crs=crs)
-        self.__process_points_of_objects(True, G, inside_percent, multiprocessing)
-        self.__process_points_of_objects(False, G, inside_percent, multiprocessing)
-        return G
+        graph = MultiGraph(crs=crs)
+        self.__process_points_of_objects(True, graph, inside_percent, multiprocessing)
+        self.__process_points_of_objects(False, graph, inside_percent, multiprocessing)
+        return graph

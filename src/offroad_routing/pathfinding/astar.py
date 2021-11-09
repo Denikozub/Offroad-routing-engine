@@ -70,7 +70,8 @@ class AStar(object):
             for neighbour in neighbours:
                 neighbour_point = neighbour[0]
                 neighbour_weight = neighbour[4] if neighbour[4] > 0 else default_weight
-                new_cost = cost_so_far[current_point] + point_distance(current_point, neighbour_point) * neighbour_weight
+                new_cost = cost_so_far[current_point] + point_distance(current_point,
+                                                                       neighbour_point) * neighbour_weight
 
                 # neighbour not visited or shorter path found
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:

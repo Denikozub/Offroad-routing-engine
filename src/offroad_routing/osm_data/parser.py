@@ -92,6 +92,7 @@ class OsmParser(object):
         if roads is not None:
             roads = self.__dissolve(roads[["highway", "geometry"]])
             self.multilinestrings = GeoDataFrame(roads
-                    .loc[roads.geometry.type == 'MultiLineString']).rename(columns={'highway': 'tag'})
+                                                 .loc[roads.geometry.type == 'MultiLineString']).rename(
+                columns={'highway': 'tag'})
 
         self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
