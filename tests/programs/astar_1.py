@@ -1,8 +1,6 @@
 import timeit
 
-from offroad_routing.visibility.visibility_graph import VisibilityGraph
-from offroad_routing.pathfinding.astar import AStar
-from offroad_routing.pathfinding.gpx_track import GpxTrack
+from offroad_routing import VisibilityGraph, AStar, GpxTrack
 
 
 def main():

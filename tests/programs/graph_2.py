@@ -2,7 +2,7 @@ import cProfile
 import pstats
 import timeit
 
-from offroad_routing.visibility.visibility_graph import VisibilityGraph
+from offroad_routing import VisibilityGraph
 
 
 def main():
