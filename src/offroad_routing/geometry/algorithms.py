@@ -1,7 +1,7 @@
 from math import fabs, atan2, pi
 from typing import TypeVar
 
-from geopy.distance import geodesic
+from numpy import radians, sin, cos, round, arctan2, sqrt
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -11,7 +11,12 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     Geodesic distance between points.
     Points a and b given in format (lon, lat).
     """
-    return geodesic((a[1], a[0]), (b[1], b[0])).km
+    (lon1, lat1), (lon2, lat2) = a, b
+    phi1, phi2 = radians(lat1), radians(lat2)
+    delta_phi = radians(lat2 - lat1)
+    delta_lambda = radians(lon2 - lon1)
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
+    return round(6371 * (2 * arctan2(sqrt(a), sqrt(1 - a))), 2)
 
 
 def cross_product(p: TPoint, q: TPoint) -> float:
