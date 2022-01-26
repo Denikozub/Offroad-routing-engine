@@ -50,7 +50,7 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
         else:
             high = mid - 1
         mid = (high + low) // 2
-        
+
     return None
 
 
@@ -99,7 +99,7 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
         # polygon[0] is supporting point
         else:
             index1 = 0
-            index2 = find_supporting_point(point, polygon, 1, polygon_size - 1, turn(polygon[0], polygon[1], point) >= 0)
+            index2 = find_supporting_point(point, polygon, 1, polygon_size-1, turn(polygon[0], polygon[1], point) >= 0)
             if index2 is None:
                 return None
 

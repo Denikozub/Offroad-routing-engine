@@ -1,7 +1,7 @@
 from math import fabs, atan2, pi
 from typing import TypeVar
 
-from geopy.distance import geodesic
+from numpy import radians, sin, cos, round, arctan2, sqrt
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -11,7 +11,12 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     Geodesic distance between points.
     Points a and b given in format (lon, lat).
     """
-    return geodesic((a[1], a[0]), (b[1], b[0])).km
+    (lon1, lat1), (lon2, lat2) = a, b
+    phi1, phi2 = radians(lat1), radians(lat2)
+    delta_phi = radians(lat2 - lat1)
+    delta_lambda = radians(lon2 - lon1)
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
+    return round(6371 * (2 * arctan2(sqrt(a), sqrt(1 - a))), 2)
 
 
 def cross_product(p: TPoint, q: TPoint) -> float:
@@ -29,13 +34,13 @@ def polar_angle(a: TPoint, b: TPoint) -> float:
     return (atan2(b[1] - a[1], b[0] - a[0]) + 2 * pi) % (2 * pi)
 
 
-def point_in_angle(point: TPoint, l: TPoint, p: TPoint, r: TPoint) -> bool:
+def point_in_angle(point: TPoint, lt: TPoint, pt: TPoint, rt: TPoint) -> bool:
     """
     Check if point is in sector (lpr < pi) formed by points.
     """
-    if turn(l, p, r) > 0:
-        return turn(p, l, point) < 0 < turn(p, r, point)
-    return turn(p, r, point) < 0 < turn(p, l, point)
+    if turn(lt, pt, rt) > 0:
+        return turn(pt, lt, point) < 0 < turn(pt, rt, point)
+    return turn(pt, rt, point) < 0 < turn(pt, lt, point)
 
 
 def check_segment_intersection(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -> bool:

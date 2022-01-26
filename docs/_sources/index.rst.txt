@@ -17,6 +17,7 @@ Install from repository::
 	pip install -e "git+https://github.com/Denikozub/Offroad-routing-engine.git#egg=offroad_routing"
 
 It is recommended to install packages using conda. Pip warning: package requires GeoPandas to be installed, which can be problematic on Windows. `This <https://towardsdatascience.com/geopandas-installation-the-easy-way-for-windows-31a666b3610f/>`_ article may help.
+Dependency warning: you may additionally need to pip install cykhash==1.0.2, rtree and reinstall pyproj with pip.
 
 
 Usage
@@ -49,7 +50,7 @@ Or, alternatively, you can only specify the bounding box, and the map will be do
 	vgraph.compute_geometry(bbox=bbox)
 
 
-Parsed data can be pruned with chosen or default parameters.  
+Parsed data can be pruned with chosen or default parameters.
 If not specified, optimal parameters will be computed by the algorithm::
 
 	vgraph.prune_geometry(epsilon_polygon=0.003,
@@ -68,7 +69,7 @@ Building visibility graph
 Loading precomputed data::
 
 	from offroad_routing import VisibilityGraph
-	
+
 	vgraph = VisibilityGraph()
 	vgraph.load_geometry("../maps/user_area.h5")
 
@@ -81,7 +82,7 @@ Visibility graph can be built and visualized using osmnx::
 	ox.plot_graph(G)
 
 
-VisibilityGraph may also be used to find incident edges for a single point.  
+VisibilityGraph may also be used to find incident edges for a single point.
 This feature is used for pathfinding without graph building::
 
 	import matplotlib.pyplot as plt
@@ -142,9 +143,9 @@ VisibilityGraph
 	.. automethod:: offroad_routing.VisibilityGraph.save_geometry
 	.. automethod:: offroad_routing.VisibilityGraph.load_geometry
 	.. automethod:: offroad_routing.VisibilityGraph.incident_vertices
-	
+
 	`PointData Explanation`_
-	
+
 	.. automethod:: offroad_routing.VisibilityGraph.build_graph
 
 
@@ -167,7 +168,7 @@ GpxTrack
 PointData Explanation
 +++++++++++++++++++++
 
-In order to speed up computation, low-level data transfer approach is used.  
+In order to speed up computation, low-level data transfer approach is used.
 Data about points, polylines and polygons is transferred using tuples instead of structures.
 
 .. autodata:: offroad_routing.visibility.visibility_graph.TPoint

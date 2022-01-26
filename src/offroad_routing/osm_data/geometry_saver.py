@@ -1,4 +1,4 @@
-from numpy import save, load, array
+from numpy import save, load
 
 from offroad_routing.osm_data.pruner import Pruner
 
