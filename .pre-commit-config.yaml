@@ -24,7 +24,9 @@ repos:
     rev: 3.9.2
     hooks:
     -   id: flake8
-        args: [--max-line-length=120]
+        args:
+        -   --max-line-length=120
+        -   --ignore=F405,F403,W504
         language_version: python3
 
 -   repo: https://github.com/asottile/reorder_python_imports

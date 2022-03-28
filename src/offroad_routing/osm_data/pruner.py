@@ -1,13 +1,11 @@
-from typing import Optional
 from math import fabs
-
-from pandas import DataFrame
-from shapely.geometry import mapping
-from rdp import rdp
 
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.convex_hull import build_convex_hull
 from offroad_routing.osm_data.parser import OsmParser
+from pandas import DataFrame
+from rdp import rdp
+from shapely.geometry import mapping
 
 
 class Pruner(OsmParser):
@@ -30,7 +28,8 @@ class Pruner(OsmParser):
                         continue
                     new_point = self.polygons.loc[k, "geometry"][0][0]
                     if compare_points(point, new_point):
-                        self.polygons.loc[i, "tag"].append(self.polygons.loc[k, "tag"])
+                        self.polygons.loc[i, "tag"].append(
+                            self.polygons.loc[k, "tag"])
                         self.polygons.loc[k, "geometry"] = None
                     elif k == polygon_number - 1:
                         self.polygons.loc[i, "tag"].append(None)
@@ -54,7 +53,8 @@ class Pruner(OsmParser):
     def __compare_bbox(obj, bbox_comp, bbox_size):
         if bbox_comp is not None:
             bounds = obj.bounds
-            bounds_size = (fabs(bounds[2] - bounds[0]), fabs(bounds[3] - bounds[1]))
+            bounds_size = (fabs(bounds[2] - bounds[0]),
+                           fabs(bounds[3] - bounds[1]))
             if bounds_size[0] == 0 or bounds_size[1] == 0:
                 return None
             if bbox_size[0] / bounds_size[0] >= bbox_comp and bbox_size[1] / bounds_size[1] >= bbox_comp:
@@ -79,10 +79,10 @@ class Pruner(OsmParser):
         coordinates = mapping(linestring)['coordinates']
         points = [pair[0] for pair in coordinates]
         points.append(coordinates[-1][1])
-        return tuple([tuple(point) for point in points]) if epsilon is None or epsilon == 0 else \
-            tuple([tuple(point) for point in rdp(points, epsilon=epsilon)])
+        return tuple(tuple(point) for point in points) if epsilon is None or epsilon == 0 else \
+            tuple(tuple(point) for point in rdp(points, epsilon=epsilon))
 
-    def prune_geometry(self, epsilon_polygon=None, epsilon_polyline=None, bbox_comp=15, remove_inner=False):
+    def prune_geometry(self, epsilon_polygon=None, epsilon_polyline=None, bbox_comp=15, *, remove_inner=False):
         """
         Transform retrieved map data:
 
@@ -104,18 +104,23 @@ class Pruner(OsmParser):
 
         # auto-compute parameters
         if epsilon_polygon is None:
-            epsilon_polygon = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
+            epsilon_polygon = (
+                self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
 
         if epsilon_polyline is None:
-            epsilon_polyline = (self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
+            epsilon_polyline = (
+                self.bbox_size[0] ** 2 + self.bbox_size[1] ** 2) ** 0.5 / bbox_comp / 10
 
         # compare to bounding box
         self.polygons.geometry = \
-            self.polygons.geometry.apply(self.__compare_bbox, args=[bbox_comp, self.bbox_size])
-        self.polygons = DataFrame(self.polygons[self.polygons['geometry'].notna()])
+            self.polygons.geometry.apply(self.__compare_bbox, args=[
+                                         bbox_comp, self.bbox_size])
+        self.polygons = DataFrame(
+            self.polygons[self.polygons['geometry'].notna()])
 
         # shapely.geometry.Polygon to tuple of points
-        self.polygons.geometry = self.polygons.geometry.apply(self.__polygon_coords, args=[epsilon_polygon])
+        self.polygons.geometry = self.polygons.geometry.apply(
+            self.__polygon_coords, args=[epsilon_polygon])
         self.polygons = self.polygons[self.polygons['geometry'].notna()]
 
         # remove equal polygons
@@ -136,7 +141,8 @@ class Pruner(OsmParser):
 
         # compare to bounding box
         self.multilinestrings.geometry = \
-            self.multilinestrings.geometry.apply(self.__compare_bbox, args=[bbox_comp, self.bbox_size])
+            self.multilinestrings.geometry.apply(self.__compare_bbox, args=[
+                                                 bbox_comp, self.bbox_size])
         self.multilinestrings = DataFrame(self.multilinestrings[self.multilinestrings['geometry'].notna()]
                                           .reset_index().drop(columns='index'))
 

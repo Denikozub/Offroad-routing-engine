@@ -40,7 +40,7 @@ class SegmentVisibility:
             self.add_pair((line[i], line[i + 1]))
 
     def set_restriction_angle(self, restriction_pair: Sequence[TPoint],
-                              restriction_point: TPoint, reverse_angle: bool) -> None:
+                              restriction_point: TPoint, *, reverse_angle: bool) -> None:
         assert len(restriction_pair) == 2
 
         self.__restriction_pair = restriction_pair
@@ -97,7 +97,8 @@ class SegmentVisibility:
         # list of segments intersected by 0-angle ray
         intersected = OrderedDict()
         for edge in self.__segments:
-            if check_ray_segment_intersection(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0], True):
+            if check_ray_segment_intersection(point, (point[0] + 1, point[1]), edge[0][0], edge[1][0],
+                                              end_intersection=True):
                 index1 = str((edge[0][1], edge[0][2], edge[0][3] | 0))
                 index2 = str((edge[1][1], edge[1][2], edge[1][3] | 0))
                 intersected[index1 + index2] = (edge[0][0], edge[1][0])

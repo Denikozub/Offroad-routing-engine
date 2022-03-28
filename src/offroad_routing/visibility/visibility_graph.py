@@ -87,7 +87,7 @@ class VisibilityGraph(GeometrySaver):
                     restriction_pair = (
                         polygon["geometry"][0][left], polygon["geometry"][0][right])
                     visible_vertices.set_restriction_angle(
-                        restriction_pair, point, True)
+                        restriction_pair, point, reverse_angle=True)
 
                 # if a point is strictly inside a convex hull and a part of polygon
                 else:
@@ -96,7 +96,7 @@ class VisibilityGraph(GeometrySaver):
                     if restriction_pair is None:
                         return edges_inside
                     visible_vertices.set_restriction_angle(
-                        restriction_pair, point, False)
+                        restriction_pair, point, reverse_angle=False)
 
             # if a point not inside convex hull
             elif not localize_convex(point, polygon["convex_hull"], polygon["angles"])[0]:

@@ -1,10 +1,16 @@
-from typing import Optional, List, TypeVar, Tuple
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TypeVar
 
-from offroad_routing.geometry.algorithms import check_ray_segment_intersection, turn, compare_points
+from offroad_routing.geometry.algorithms import check_ray_segment_intersection
+from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.algorithms import turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+PointData = TypeVar("PointData")
 
 
 def find_supporting_pair_brute(point, polygon, polygon_size, point_number):
@@ -20,7 +26,7 @@ def find_supporting_pair_brute(point, polygon, polygon_size, point_number):
         for j in range(polygon_size):
             if j in (i - 1, i) or (point_number is not None and j in (point_number - 1, point_number)):
                 continue
-            if check_ray_segment_intersection(point, pi, polygon[j], polygon[j + 1], False):
+            if check_ray_segment_intersection(point, pi, polygon[j], polygon[j + 1]):
                 break
         else:
             result.append(i)
@@ -45,7 +51,8 @@ def find_restriction_pair(point: TPoint, polygon: TPolygon, point_number: int) -
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
 
-    supporting_pair = find_supporting_pair_brute(point, polygon, polygon_size, point_number)
+    supporting_pair = find_supporting_pair_brute(
+        point, polygon, polygon_size, point_number)
     if supporting_pair is None:
         return None
     point1, point2 = supporting_pair
@@ -66,7 +73,8 @@ def find_supporting_line(point: TPoint, polygon: TPolygon, polygon_number: int) 
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
 
-    supporting_pair = find_supporting_pair_brute(point, polygon, polygon_size, None)
+    supporting_pair = find_supporting_pair_brute(
+        point, polygon, polygon_size, None)
     if supporting_pair is None:
         return None
     point1, point2 = supporting_pair
