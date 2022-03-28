@@ -1,14 +1,25 @@
-from typing import Sequence, Optional, TypeVar, List, Tuple
 from collections import OrderedDict
+from typing import List
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import TypeVar
 
-from offroad_routing.geometry.algorithms import \
-    check_ray_segment_intersection, turn, point_in_angle, polar_angle, check_segment_intersection
+from offroad_routing.geometry.algorithms import check_ray_segment_intersection
+from offroad_routing.geometry.algorithms import check_segment_intersection
+from offroad_routing.geometry.algorithms import point_in_angle
+from offroad_routing.geometry.algorithms import polar_angle
+from offroad_routing.geometry.algorithms import turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
-PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+PointData = TypeVar("PointData")
 
 
-class SegmentVisibility(object):
+class SegmentVisibility:
+
+    __slots__ = ("__segments", "__restriction_pair",
+                 "__restriction_point", "__reverse_angle")
 
     def __init__(self):
         self.__segments = list()
@@ -59,8 +70,10 @@ class SegmentVisibility(object):
                 if j == i:
                     continue
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
-                a_is_visible = not a_in_angle and not check_segment_intersection(point, a_point, check_a, check_b)
-                b_is_visible = not b_in_angle and not check_segment_intersection(point, b_point, check_a, check_b)
+                a_is_visible = not a_in_angle and not check_segment_intersection(
+                    point, a_point, check_a, check_b)
+                b_is_visible = not b_in_angle and not check_segment_intersection(
+                    point, b_point, check_a, check_b)
                 if not a_is_visible and not b_is_visible:
                     break
 
@@ -75,8 +88,10 @@ class SegmentVisibility(object):
         # list of points sorted by angle
         points = list()
         for edge in self.__segments:
-            points.append((edge[0], edge[1]))  # keep info about pair and PointData
-            points.append((edge[1], edge[0]))  # keep info about pair and PointData
+            # keep info about pair and PointData
+            points.append((edge[0], edge[1]))
+            # keep info about pair and PointData
+            points.append((edge[1], edge[0]))
         points.sort(key=lambda x: polar_angle(point, x[0][0]))
 
         # list of segments intersected by 0-angle ray
@@ -96,11 +111,13 @@ class SegmentVisibility(object):
                     break
             else:
                 if self.__restriction_pair is None:
-                    visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
+                    visible_edges[str(p[0][1]) + str(p[0][2]) +
+                                  str(p[0][3] | 0)] = p[0]
                 else:
                     l_point, r_point = self.__restriction_pair
                     if point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle:
-                        visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
+                        visible_edges[str(p[0][1]) + str(p[0]
+                                                         [2]) + str(p[0][3] | 0)] = p[0]
 
             # update intersected list
             index1 = str((p[0][1], p[0][2], p[0][3] | 0))

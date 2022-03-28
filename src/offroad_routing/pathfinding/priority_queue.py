@@ -3,7 +3,10 @@ from typing import TypeVar
 T = TypeVar("T")
 
 
-class PriorityQueue(object):
+class PriorityQueue:
+
+    __slots__ = ("__elements",)
+
     def __init__(self) -> None:
         self.__elements = list()
 

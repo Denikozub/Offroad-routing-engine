@@ -6,7 +6,10 @@ TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPath = TypeVar("TPath")  # List[TPoint]
 
 
-class Path(object):
+class Path:
+
+    __slots__ = ("__came_from", "__start", "__goal", "__path")
+
     def __init__(self, came_from: dict, start: TPoint, goal: TPoint):
         self.__came_from = came_from
         self.__start = start
