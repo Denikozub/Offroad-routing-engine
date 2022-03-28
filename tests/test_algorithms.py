@@ -100,13 +100,13 @@ class TestRaySegmentIntersection(unittest.TestCase):
 
     def test_border(self):
         self.assertTrue(check_ray_segment_intersection(
-            (0, 0), (0, 1), (-1, 0), (1, 0), end_intersection=True))
+            (0, 0), (0, 1), (-1, 0), (1, 0), True))
         self.assertTrue(check_ray_segment_intersection(
-            (0, 0), (0, 1), (0, 2), (2, 2), end_intersection=True))
+            (0, 0), (0, 1), (0, 2), (2, 2), True))
         self.assertFalse(check_ray_segment_intersection(
-            (0, 0), (0, 1), (-1, 0), (1, 0), end_intersection=False))
+            (0, 0), (0, 1), (-1, 0), (1, 0), False))
         self.assertFalse(check_ray_segment_intersection(
-            (0, 0), (0, 1), (0, 2), (2, 2), end_intersection=False))
+            (0, 0), (0, 1), (0, 2), (2, 2), False))
 
 
 class TestComparePoints(unittest.TestCase):

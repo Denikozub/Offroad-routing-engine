@@ -32,7 +32,7 @@ def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
     return True
 
 
-def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles], *,
+def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
                     reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
     Localize point inside convex polygon in log time (Preparata-Shamos algorithm).
