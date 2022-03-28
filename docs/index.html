@@ -181,7 +181,7 @@ Computed geometry can be used for graph building and pathfinding.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.prune_geometry">
-<span class="sig-name descname"><span class="pre">prune_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon_polygon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon_polyline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_inner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.prune_geometry" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">prune_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon_polygon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon_polyline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_inner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.prune_geometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform retrieved map data:</p>
 <ol class="arabic simple">
 <li><p>Transform geometry to tuple of points.</p></li>
@@ -292,13 +292,12 @@ Computed geometry can be used for graph building and pathfinding.</p>
 <li><p><strong>start</strong> (<em>TPoint</em>) – start point</p></li>
 <li><p><strong>goal</strong> (<em>TPoint</em>) – goal point</p></li>
 <li><p><strong>default_weight</strong> (<em>int</em>) – default weight for unfilled areas</p></li>
-<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic (<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)</p></li>
+<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>offroad_routing.pathfinding.path.Path</p>
-</dd>
 </dl>
+<p>(<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)
+:rtype: offroad_routing.pathfinding.path.Path</p>
 </dd></dl>
 
 </dd></dl>

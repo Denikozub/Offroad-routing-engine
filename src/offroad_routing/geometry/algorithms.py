@@ -1,7 +1,14 @@
-from math import fabs, atan2, pi
+from math import atan2
+from math import fabs
+from math import pi
 from typing import TypeVar
 
-from numpy import radians, sin, cos, round, arctan2, sqrt
+from numpy import arctan2
+from numpy import cos
+from numpy import radians
+from numpy import round
+from numpy import sin
+from numpy import sqrt
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 
@@ -15,7 +22,8 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     phi1, phi2 = radians(lat1), radians(lat2)
     delta_phi = radians(lat2 - lat1)
     delta_lambda = radians(lon2 - lon1)
-    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * \
+        cos(phi2) * sin(delta_lambda / 2) ** 2
     return round(6371 * (2 * arctan2(sqrt(a), sqrt(1 - a))), 2)
 
 
@@ -45,10 +53,11 @@ def point_in_angle(point: TPoint, lt: TPoint, pt: TPoint, rt: TPoint) -> bool:
 
 def check_segment_intersection(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -> bool:
     return turn(a0, b0, c0) * turn(a0, b0, d0) < 0 and \
-           turn(c0, d0, a0) * turn(c0, d0, b0) < 0
+        turn(c0, d0, a0) * turn(c0, d0, b0) < 0
 
 
-def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint, end_intersection: bool = False) -> bool:
+def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint, *,
+                                   end_intersection: bool = False) -> bool:
     """
     Ray ab intersects line segment cd.
     """

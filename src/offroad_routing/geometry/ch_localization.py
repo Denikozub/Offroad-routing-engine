@@ -1,7 +1,11 @@
 from math import pi
-from typing import Tuple, Optional, TypeVar
+from typing import Optional
+from typing import Tuple
+from typing import TypeVar
 
-from offroad_routing.geometry.algorithms import polar_angle, compare_points, turn
+from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.algorithms import polar_angle
+from offroad_routing.geometry.algorithms import turn
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
@@ -28,7 +32,7 @@ def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:
     return True
 
 
-def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
+def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles], *,
                     reverse_angle: bool = False) -> Tuple[bool, Optional[int]]:
     """
     Localize point inside convex polygon in log time (Preparata-Shamos algorithm).
@@ -52,7 +56,8 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
 
     if compare_points(point, polygon[0]):
         return True, None
-    point_angle = polar_angle(point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
+    point_angle = polar_angle(
+        point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
 
     # point angle not between angles
     if angles[-1] < pi < angles[0]:

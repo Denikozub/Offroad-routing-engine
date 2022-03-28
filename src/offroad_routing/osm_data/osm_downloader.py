@@ -1,8 +1,11 @@
-from os import system, remove
+from os import remove
+from os import system
 from typing import Sequence
 
 
-class OsmDownloader(object):
+class OsmDownloader:
+
+    __slots__ = ("bbox", "filename")
 
     def __init__(self, bbox: Sequence[float]) -> None:
         """
@@ -13,8 +16,9 @@ class OsmDownloader(object):
         self.bbox = bbox
         self.filename = "request_map.osm"
         addr = '"http://www.overpass-api.de/api/xapi_meta?*[bbox=' \
-            + str(bbox[0]) + ',' + str(bbox[1]) + ',' + str(bbox[2]) + ',' + str(bbox[3]) + ']"'
+            + str(bbox[0]) + ',' + str(bbox[1]) + ',' + \
+            str(bbox[2]) + ',' + str(bbox[3]) + ']"'
         system('curl -g -o ' + self.filename + ' ' + addr)
-        
+
     def __del__(self):
         remove(self.filename)

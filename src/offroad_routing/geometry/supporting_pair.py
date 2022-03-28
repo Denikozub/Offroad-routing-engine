@@ -1,12 +1,16 @@
-from typing import Optional, TypeVar, Tuple
+from typing import Optional
+from typing import Tuple
+from typing import TypeVar
 
-from offroad_routing.geometry.algorithms import turn, compare_points
+from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.algorithms import turn
 from offroad_routing.geometry.ch_localization import localize_convex
 
 TPoint = TypeVar("TPoint")  # Tuple[float, float]
 TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
 TAngles = TypeVar("TAngles")  # Tuple[float, ...]
-PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+PointData = TypeVar("PointData")
 
 """
 All algorithms work with quality of convex polygon in respect to a point:
@@ -74,32 +78,38 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
     assert turn(polygon[0], polygon[1], polygon[2]) >= 0
     assert len(angles) == polygon_size - 1
 
-    start_to_point = localize_convex(point, polygon, angles, False)
+    start_to_point = localize_convex(point, polygon, angles)
 
     # ray polygon[0], point intersects polygon
     if start_to_point[1] is not None:
-        index1 = find_supporting_point(point, polygon, 0, start_to_point[1], True)
+        index1 = find_supporting_point(
+            point, polygon, 0, start_to_point[1], True)
         if index1 is None:
             return None
-        index2 = find_supporting_point(point, polygon, start_to_point[1], polygon_size - 1, False)
+        index2 = find_supporting_point(
+            point, polygon, start_to_point[1], polygon_size - 1, False)
         if index2 is None:
             return None
     else:
-        point_to_start = localize_convex(point, polygon, angles, True)
+        point_to_start = localize_convex(
+            point, polygon, angles, reverse_angle=True)
 
         # ray polygon[0], point does not intersect polygon
         if point_to_start[1] is not None:
-            index1 = find_supporting_point(point, polygon, 0, point_to_start[1], False)
+            index1 = find_supporting_point(
+                point, polygon, 0, point_to_start[1], False)
             if index1 is None:
                 return None
-            index2 = find_supporting_point(point, polygon, point_to_start[1], polygon_size - 1, True)
+            index2 = find_supporting_point(
+                point, polygon, point_to_start[1], polygon_size - 1, True)
             if index2 is None:
                 return None
 
         # polygon[0] is supporting point
         else:
             index1 = 0
-            index2 = find_supporting_point(point, polygon, 1, polygon_size-1, turn(polygon[0], polygon[1], point) >= 0)
+            index2 = find_supporting_point(
+                point, polygon, 1, polygon_size - 1, turn(polygon[0], polygon[1], point) >= 0)
             if index2 is None:
                 return None
 
