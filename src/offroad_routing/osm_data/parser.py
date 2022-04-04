@@ -1,3 +1,4 @@
+from collections import deque
 from math import fabs
 
 from geopandas import GeoDataFrame
@@ -6,6 +7,7 @@ from offroad_routing.osm_data.tag_value import TagValue
 from pandas import concat
 from pandas import DataFrame
 from pyrosm import OSM
+from shapely.geometry import LineString
 from shapely.geometry import mapping
 
 
@@ -19,38 +21,50 @@ class OsmParser:
         self.bbox_size = None
 
     @staticmethod
-    def __get_first_point(line):
-        coords = mapping(line)['coordinates']
-        return coords[0][0] if isinstance(coords[0][0], tuple) else coords[0]
-
-    @staticmethod
-    def __get_last_point(line):
-        coords = mapping(line)['coordinates']
-        return coords[-1][1] if isinstance(coords[0][0], tuple) else coords[1]
-
-    def __dissolve(self, src_roads):
-        roads = src_roads.copy()
-        current = 1
-        points = dict()
-        for index, row in roads.iterrows():
-            start = self.__get_first_point(row.geometry)
-            end = self.__get_last_point(row.geometry)
-            for number, borders in points.items():
-                if start in borders:
-                    roads.at[index, "id"] = number
-                    borders.add(end)
+    def __dissolve(roads):
+        dissolved, tags = list(), list()
+        for _, row in roads.iterrows():
+            coords = mapping(row.geometry)['coordinates']
+            coords = [segment[0] for segment in coords] + [coords[-1][1]]
+            for i, line in enumerate(dissolved):
+                if line[-1] == coords[0] or line[-1] == coords[-1]:
+                    line.extend(
+                        coords) if line[-1] == coords[0] else line.extend(reversed(coords))
+                    for j, new_line in enumerate(dissolved):
+                        if i == j:
+                            continue
+                        if line[-1] == new_line[0]:
+                            line.extend(new_line)
+                            dissolved.pop(j)
+                            tags.pop(j)
+                            break
+                        if line[-1] == new_line[-1]:
+                            line.extend(reversed(new_line))
+                            dissolved.pop(j)
+                            tags.pop(j)
+                            break
                     break
-                if end in borders:
-                    roads.at[index, "id"] = number
-                    borders.add(start)
+                elif line[0] == coords[-1] or line[0] == coords[0]:
+                    line.extendleft(
+                        reversed(coords)) if line[0] == coords[-1] else line.extendleft(coords)
+                    for j, new_line in enumerate(dissolved):
+                        if i == j:
+                            continue
+                        if line[0] == new_line[0]:
+                            line.extendleft(new_line)
+                            dissolved.pop(j)
+                            tags.pop(j)
+                            break
+                        if line[0] == new_line[-1]:
+                            new_line.extend(line)
+                            dissolved.pop(i)
+                            tags.pop(i)
+                            break
                     break
             else:
-                roads.at[index, "id"] = current
-                points[current] = set()
-                points[current].add(start)
-                points[current].add(end)
-                current += 1
-        return roads.dissolve(by="id").reset_index().drop(columns=["id"])
+                dissolved.append(deque(coords))
+                tags.append(row.highway)
+        return GeoDataFrame({'tag': tags, 'geometry': [LineString(line) for line in dissolved]})
 
     def compute_geometry(self, bbox, filename=None):
         """
@@ -98,9 +112,7 @@ class OsmParser:
 
         roads = osm.get_network()
         if roads is not None:
-            roads = self.__dissolve(roads[["highway", "geometry"]])
-            self.multilinestrings = GeoDataFrame(roads
-                                                 .loc[roads.geometry.type == 'MultiLineString']).rename(
-                columns={'highway': 'tag'})
+            self.multilinestrings = self.__dissolve(
+                roads[["highway", "geometry"]])
 
         self.tag_value.eval(self.polygons, self.multilinestrings, "tag")
