@@ -77,10 +77,8 @@ class Pruner(OsmParser):
         if linestring is None:
             return None
         coordinates = mapping(linestring)['coordinates']
-        points = [pair[0] for pair in coordinates]
-        points.append(coordinates[-1][1])
-        return tuple(tuple(point) for point in points) if epsilon is None or epsilon == 0 else \
-            tuple(tuple(point) for point in rdp(points, epsilon=epsilon))
+        return coordinates if epsilon is None or epsilon == 0 else \
+            tuple(tuple(point) for point in rdp(coordinates, epsilon=epsilon))
 
     def prune_geometry(self, epsilon_polygon=None, epsilon_polyline=None, bbox_comp=15, *, remove_inner=False):
         """
@@ -125,7 +123,7 @@ class Pruner(OsmParser):
 
         # remove equal polygons
         self.__remove_equal_polygons()
-        self.polygons = self.polygons.reset_index().drop(columns='index')
+        self.polygons = self.polygons.reset_index(drop=True)
 
         # remove polygons which are inner for other polygons
         if remove_inner:
@@ -144,7 +142,7 @@ class Pruner(OsmParser):
             self.multilinestrings.geometry.apply(self.__compare_bbox, args=[
                                                  bbox_comp, self.bbox_size])
         self.multilinestrings = DataFrame(self.multilinestrings[self.multilinestrings['geometry'].notna()]
-                                          .reset_index().drop(columns='index'))
+                                          .reset_index(drop=True))
 
         # shapely.geometry.MultiLineString to tuple of points and simplify
         self.multilinestrings.geometry = self.multilinestrings.geometry.apply(self.__linestring_coords,
