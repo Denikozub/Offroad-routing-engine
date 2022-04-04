@@ -70,7 +70,7 @@ Dependency warning: you may additionally need to pip install cykhash==1.0.2, rtr
 
 <span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
 <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;../maps/kozlovo.osm.pbf&quot;</span>
-<span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">36.2</span><span class="p">,</span> <span class="mf">56.5</span><span class="p">,</span> <span class="mf">36.7</span><span class="p">,</span> <span class="mf">56.7</span><span class="p">]</span>
+<span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">36.2</span><span class="p">,</span> <span class="mf">56.61</span><span class="p">,</span> <span class="mf">36.4</span><span class="p">,</span> <span class="mf">56.67</span><span class="p">]</span>
 <span class="n">vgraph</span><span class="o">.</span><span class="n">compute_geometry</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -86,8 +86,8 @@ If not specified, optimal parameters will be computed by the algorithm:</p>
                       <span class="n">bbox_comp</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Computed data can also be saved in .h5 file to skip data processing the next time:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">save_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.h5&quot;</span><span class="p">)</span>
+<p>Computed data can also be saved in .npy file to skip data processing the next time:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">save_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -97,7 +97,7 @@ If not specified, optimal parameters will be computed by the algorithm:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">VisibilityGraph</span>
 
 <span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.h5&quot;</span><span class="p">)</span>
+<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Visibility graph can be built and visualized using osmnx:</p>
@@ -129,10 +129,10 @@ This feature is used for pathfinding without graph building:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">VisibilityGraph</span><span class="p">,</span> <span class="n">AStar</span>
 
 <span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.h5&quot;</span><span class="p">)</span>
+<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
 
 <span class="n">pathfinder</span> <span class="o">=</span> <span class="n">AStar</span><span class="p">(</span><span class="n">vgraph</span><span class="p">)</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">pathfinder</span><span class="o">.</span><span class="n">find</span><span class="p">((</span><span class="mf">34.02</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">),</span> <span class="p">(</span><span class="mf">34.12</span><span class="p">,</span> <span class="mf">59.09</span><span class="p">),</span> <span class="n">default_weight</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">heuristic_multiplier</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">pathfinder</span><span class="o">.</span><span class="n">find</span><span class="p">((</span><span class="mf">34.02</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">),</span> <span class="p">(</span><span class="mf">34.12</span><span class="p">,</span> <span class="mf">59.09</span><span class="p">),</span> <span class="n">default_surface</span><span class="o">=</span><span class="s1">&#39;grass&#39;</span><span class="p">,</span> <span class="n">heuristic_multiplier</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Path can be viewed in coordinate format:</p>
@@ -284,20 +284,21 @@ Computed geometry can be used for graph building and pathfinding.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="offroad_routing.AStar.find">
-<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.find" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.find" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find route from point start to point goal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>start</strong> (<em>TPoint</em>) – start point</p></li>
 <li><p><strong>goal</strong> (<em>TPoint</em>) – goal point</p></li>
-<li><p><strong>default_weight</strong> (<em>int</em>) – default weight for unfilled areas</p></li>
-<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic</p></li>
+<li><p><strong>default_surface</strong> (<em>str</em>) – default surface for unfilled areas (choose prevailing surface)</p></li>
+<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic (<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)</p></li>
 </ul>
 </dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>offroad_routing.pathfinding.path.Path</p>
+</dd>
 </dl>
-<p>(<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)
-:rtype: offroad_routing.pathfinding.path.Path</p>
 </dd></dl>
 
 </dd></dl>

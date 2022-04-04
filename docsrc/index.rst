@@ -40,7 +40,7 @@ If the map is downloaded, you can specify the filename and parse it::
 
 	vgraph = VisibilityGraph()
 	filename = "../maps/kozlovo.osm.pbf"
-	bbox = [36.2, 56.5, 36.7, 56.7]
+	bbox = [36.2, 56.61, 36.4, 56.67]
 	vgraph.compute_geometry(bbox=bbox, filename=filename)
 
 
@@ -58,9 +58,9 @@ If not specified, optimal parameters will be computed by the algorithm::
 			      bbox_comp=10)
 
 
-Computed data can also be saved in .h5 file to skip data processing the next time::
+Computed data can also be saved in .npy file to skip data processing the next time::
 
-	vgraph.save_geometry("../maps/user_area.h5")
+	vgraph.save_geometry("../maps/user_area.npy")
 
 
 Building visibility graph
@@ -71,7 +71,7 @@ Loading precomputed data::
 	from offroad_routing import VisibilityGraph
 
 	vgraph = VisibilityGraph()
-	vgraph.load_geometry("../maps/user_area.h5")
+	vgraph.load_geometry("../maps/user_area.npy")
 
 
 Visibility graph can be built and visualized using osmnx::
@@ -105,10 +105,10 @@ Astar algorithm can be used to find paths between points on the map::
 	from offroad_routing import VisibilityGraph, AStar
 
 	vgraph = VisibilityGraph()
-	vgraph.load_geometry("../maps/user_area.h5")
+	vgraph.load_geometry("../maps/user_area.npy")
 
 	pathfinder = AStar(vgraph)
-	path = pathfinder.find((34.02, 59.01), (34.12, 59.09), default_weight=10, heuristic_multiplier=10)
+	path = pathfinder.find((34.02, 59.01), (34.12, 59.09), default_surface='grass', heuristic_multiplier=10)
 
 
 Path can be viewed in coordinate format::

@@ -92,7 +92,7 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
             return None
     else:
         point_to_start = localize_convex(
-            point, polygon, angles, reverse_angle=True)
+            point, polygon, angles, True)
 
         # ray polygon[0], point does not intersect polygon
         if point_to_start[1] is not None:

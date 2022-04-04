@@ -2,6 +2,7 @@ from typing import TypeVar
 
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import point_distance
+from offroad_routing.osm_data.tag_value import polygon_values
 from offroad_routing.pathfinding.path import Path
 from offroad_routing.pathfinding.priority_queue import PriorityQueue
 from offroad_routing.visibility.visibility_graph import VisibilityGraph
@@ -28,17 +29,20 @@ class AStar:
     def __heuristic(node: TPoint, goal: TPoint, heuristic_multiplier: int) -> float:
         return point_distance(node, goal) * heuristic_multiplier
 
-    def find(self, start, goal, default_weight=10, heuristic_multiplier=10):
+    def find(self, start, goal, default_surface="grass", heuristic_multiplier=10):
         """
         Find route from point start to point goal.
 
         :param TPoint start: start point
         :param TPoint goal: goal point
-        :param int default_weight: default weight for unfilled areas
-        :param int heuristic_multiplier: multiplier to weight heuristic
-        (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
+        :param str default_surface: default surface for unfilled areas (choose prevailing surface)
+        :param int heuristic_multiplier: multiplier to weight heuristic (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
         :rtype: offroad_routing.pathfinding.path.Path
         """
+
+        if default_surface not in polygon_values.keys():
+            raise ValueError("Unknown default surface value")
+        default_weight = polygon_values[default_surface]
 
         # PointData format
         start_data = (start, None, None, None, None)
@@ -47,7 +51,7 @@ class AStar:
         # vgraph nodes incident to goal point (defined by object and position in the object)
         goal_neighbours = self.__vgraph.incident_vertices(goal_data)
         if len(goal_neighbours) == 0:
-            raise Exception("Goal point has no neighbours on the graph")
+            raise RuntimeError("Goal point has no neighbours on the graph")
         goal_data = (goal, None, None, None, goal_neighbours[0][4])
         goal_neighbours = [(i[1], i[2], i[3]) for i in goal_neighbours]
 

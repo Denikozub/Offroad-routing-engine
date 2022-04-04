@@ -56,7 +56,7 @@ def check_segment_intersection(a0: TPoint, b0: TPoint, c0: TPoint, d0: TPoint) -
         turn(c0, d0, a0) * turn(c0, d0, b0) < 0
 
 
-def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint, *,
+def check_ray_segment_intersection(p: TPoint, b: TPoint, q: TPoint, d: TPoint,
                                    end_intersection: bool = False) -> bool:
     """
     Ray ab intersects line segment cd.
