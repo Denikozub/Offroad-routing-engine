@@ -11,6 +11,6 @@ class TestAstar(unittest.TestCase):
         vgraph.load_geometry("../maps/user_area.npy")
         pathfinder = AStar(vgraph)
         path = pathfinder.find(
-            (34.02, 59.01), (34.12, 59.09), default_weight=10, heuristic_multiplier=10)
+            (34.02, 59.01), (34.12, 59.09), default_surface='grass', heuristic_multiplier=10)
         track = GpxTrack(path)
         track.visualize()

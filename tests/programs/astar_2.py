@@ -1,6 +1,8 @@
 import timeit
 
-from offroad_routing import VisibilityGraph, AStar, GpxTrack
+from offroad_routing import AStar
+from offroad_routing import GpxTrack
+from offroad_routing import VisibilityGraph
 
 
 def main():
@@ -10,7 +12,8 @@ def main():
     start = timeit.default_timer()
 
     pathfinder = AStar(vgraph)
-    path = pathfinder.find((36.21, 56.51), (36.5, 56.69), default_weight=10, heuristic_multiplier=10)
+    path = pathfinder.find((36.21, 56.62), (36.39, 56.66),
+                           default_surface='grass', heuristic_multiplier=10)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)
