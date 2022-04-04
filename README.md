@@ -10,7 +10,8 @@ by Denis Kozub
 - _Hierarchical approach_ for graph building
 - No projected crs, works in any part of the world
 - Open source OpenStreetMap data (see [OSM data explanation](https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/OSM_data.ipynb))
-- Downloading OMS maps at runtime
+- OMS maps download at runtime
+- Road network graph geometry dissolve
 - Saving and loading precomputed map data
 - Multiprocessing and visualization tools support
 
