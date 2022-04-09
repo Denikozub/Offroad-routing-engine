@@ -12,8 +12,6 @@ linestring_values = {'tertiary': 1, 'unclassified': 5, 'track': 5, 'road': 1, 'p
 
 
 class TagValue:
-    def __init__(self):
-        pass
 
     @staticmethod
     def eval_polygons(dataset, column: str) -> None:
@@ -23,4 +21,4 @@ class TagValue:
     @staticmethod
     def eval_lines(dataset, column: str) -> None:
         dataset[column] = dataset[column].apply(
-            lambda x: [linestring_values[x]])
+            lambda x: linestring_values[x])

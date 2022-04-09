@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 from os import path
 from re import findall
+from typing import Tuple
 
 import networkx as nx
 import requests
@@ -20,13 +21,20 @@ from pyrosm import get_data
 from shapely.geometry import box
 from shapely.geometry import LineString
 from shapely.geometry import mapping
+from shapely.geometry import Polygon
+from shapely.geometry.base import BaseGeometry
 
 
 class Geometry:
-    tag_value = TagValue()
+    """
+    Class for retrieving, storing and processing OSM geometry data.
+    """
+
+    __slots__ = ("polygons", "edges", "nodes", "tag_value")
 
     def __init__(self):
         self.polygons = self.edges = self.nodes = None
+        self.tag_value = TagValue()
 
     @classmethod
     def load(cls, package_name, directory='.'):
@@ -243,7 +251,7 @@ class Geometry:
         self.edges, self.nodes = edges, nodes
 
     @staticmethod
-    def __compare_bbox(obj, bbox_comp, bbox_size):
+    def __compare_bbox(obj: BaseGeometry, bbox_comp: float, bbox_size: Tuple[float, float]) -> BaseGeometry:
         if bbox_comp is not None:
             bounds = obj.bounds
             bounds_size = (bounds[2] - bounds[0], bounds[3] - bounds[1])
@@ -301,7 +309,7 @@ class Geometry:
         }
 
     @staticmethod
-    def __remove_inner_polygons(polygons):
+    def __remove_inner_polygons(polygons: DataFrame):
         polygon_count = polygons.shape[0]
         for i in range(polygon_count):
             polygon = polygons.loc[i, "geometry"]
@@ -323,7 +331,7 @@ class Geometry:
         polygons.reset_index(drop=True, inplace=True)
 
     @staticmethod
-    def __polygon_coords(polygon):
+    def __polygon_coords(polygon: Polygon):
         coordinates = mapping(polygon)['coordinates']
         polygons = list()
         for polygon in coordinates:

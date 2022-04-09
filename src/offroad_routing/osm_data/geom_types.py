@@ -28,3 +28,13 @@ TPolygonData = NewType('TPolygonRec', List[TPolygonRec])
 TSegmentData = NewType('TSegmentData', List[TSegmentRec])
 PointData = NewType(
     'PointData', Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
+
+"""
+0. point coordinates (lon, lat)
+1. number of object where point belongs
+2. number of point in object
+3. object is polygon (True) or polyline (False)
+4. surface weight
+
+Node of the graph is unambiguously set either by its coordinates or by its position in an object.
+"""

@@ -9,7 +9,7 @@ from shapely.geometry import MultiLineString
 from shapely.geometry import Polygon
 
 
-def compare_polygon(p1, p2):
+def compare_polygon(p1: Polygon, p2: Polygon):
     if p1.exterior == p2.exterior:
         return True
     p1_xy = p1.exterior.coords.xy
@@ -19,7 +19,7 @@ def compare_polygon(p1, p2):
         np.all(np.flip(p2_xy[1]) == p1_xy[1])
 
 
-def remove_equal_polygons(polygons):
+def remove_equal_polygons(polygons: GeoDataFrame):
     to_delete = list()
     for i, p1 in enumerate(polygons.geometry):
         for j, p2 in enumerate(polygons.geometry):

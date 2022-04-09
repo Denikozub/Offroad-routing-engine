@@ -1,5 +1,4 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import TypeVar
 
 from networkx import MultiGraph
 from offroad_routing.geometry.ch_localization import localize_convex
@@ -7,39 +6,24 @@ from offroad_routing.geometry.inner_edges import find_inner_edges
 from offroad_routing.geometry.supporting_line import find_restriction_pair
 from offroad_routing.geometry.supporting_line import find_supporting_line
 from offroad_routing.geometry.supporting_pair import find_supporting_pair
-from offroad_routing.osm_data.geometry_saver import GeometrySaver
+from offroad_routing.osm_data.geom_types import TPolygonData
+from offroad_routing.osm_data.geom_types import TSegmentData
 from offroad_routing.visibility.segment_visibility import SegmentVisibility
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-TPoint = TypeVar("TPoint")
-"""
-Tuple[float, float] - point coordinates in format (lon, lat).
-"""
-PointData = TypeVar("PointData")
-"""
-Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
 
-0. point coordinates (lon, lat)
-1. number of object where point belongs
-2. number of point in object
-3. object is polygon (True) or polyline (False)
-4. surface weight
-
-Node of the graph is unambiguously set either by its coordinates or by its position in an object.
-"""
-
-
-class VisibilityGraph(GeometrySaver):
+class VisibilityGraph:
     """
-    Input: .osm.pbf map file including required area. It can be predownloaded (eg planet.osm) or downloaded in runtime.
-    To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
-    forming geographical objects on the map. They are used as obstacles for visibility graph.
-    VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.
-    Optionally, it prunes geometry to achieve hierarchical approach to speed up computations.
-    Computed and pruned data can be saved into a file to avoid repeating computations.
-    Computed geometry can be used for graph building and pathfinding.
+    Class for building and utilizing visibility graphs.
+    Polygons and polylines are used as obstacles on the plane.
     """
+
+    __slots__ = ("polygons", "linestrings")
+
+    def __init__(self, polygons: TPolygonData, linestrings: TSegmentData):
+        self.polygons = polygons
+        self.linestrings = linestrings
 
     def incident_vertices(self, point_data, inside_percent=1):
         """
@@ -111,28 +95,19 @@ class VisibilityGraph(GeometrySaver):
                     return list()
                 visible_vertices.add_line(line)
 
-        # loop over all linestrings
-        for i, linestring in enumerate(self.multilinestrings["geometry"]):
-            weight = self.multilinestrings["tag"][i][0]
-            linestring_point_count = len(linestring)
+        # loop over all segments
+        for i, linestring in enumerate(self.linestrings):
+            weight = linestring["tag"]
+            geometry = linestring["geometry"]
 
-            # if a point is a part of a current linestring
+            # if a point is a part of a current segment
             if not is_polygon and i == obj_number:
-                if point_number > 0:
-                    previous = point_number - 1
-                    edges_inside.append(
-                        (linestring[previous], i, previous, False, weight))
-                elif point_number + 1 < linestring_point_count:
-                    following = point_number + 1
-                    edges_inside.append(
-                        (linestring[following], i, following, False, weight))
-
+                neighbour = (point_number + 1) % 2
+                edges_inside.append(
+                    (geometry[neighbour], i, neighbour, False, weight))
             else:
-                # add whole linestring
-                line = list()
-                for j in range(linestring_point_count):
-                    line.append((linestring[j], i, j, False, 0))
-                visible_vertices.add_line(line)
+                visible_vertices.add_pair(
+                    ((geometry[0], i, 0, False, 0), (geometry[1], i, 1, False, 0)))
 
         # building visibility graph of segments
         visible_edges = visible_vertices.get_edges_sweepline(point)
@@ -141,11 +116,13 @@ class VisibilityGraph(GeometrySaver):
 
     def __process_points_of_objects(self, is_polygon, graph, inside_percent, multiprocessing) -> None:
         max_poly_len = 10000  # for graph indexing
-        objects = self.polygons if is_polygon else self.multilinestrings
+        objects = self.polygons if is_polygon else self.linestrings
         futures = list()
         with ProcessPoolExecutor() as executor:
-            for i, obj in enumerate(objects["geometry"]):
-                for j, point in enumerate(obj[0][:-1] if is_polygon else obj):
+            for i, obj in enumerate(objects):
+                geometry = obj["geometry"]
+                for j, point in enumerate(geometry[0][:-1] if is_polygon else geometry):
+
                     # adding a vertex in networkx graph
                     px, py = point
                     point_index = i * max_poly_len + \
@@ -171,19 +148,18 @@ class VisibilityGraph(GeometrySaver):
                 graph.add_node(vertex_index, x=vx, y=vy)
                 graph.add_edge(point_index, vertex_index)
 
-    def build_graph(self, inside_percent=0.4, multiprocessing=True, crs='EPSG:4326'):
+    def build_graph(self, inside_percent=0.4, multiprocessing=True):
         """
         Compute visibility graph for a set of polygons and polylines.
 
         :param float inside_percent: (from 0 to 1) - controls the number of inner polygon edges
         :param bool multiprocessing: speed up computation for dense areas using multiprocessing
-        :param str crs: coordinate reference system
         :rtype: networkx.MultiGraph
         """
         if inside_percent < 0 or inside_percent > 1:
             raise ValueError("inside_percent should be from 1 to 0")
 
-        graph = MultiGraph(crs=crs)
+        graph = MultiGraph(crs='EPSG:4326')
         self.__process_points_of_objects(
             True, graph, inside_percent, multiprocessing)
         self.__process_points_of_objects(

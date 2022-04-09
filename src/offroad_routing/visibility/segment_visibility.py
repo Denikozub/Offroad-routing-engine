@@ -3,17 +3,14 @@ from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
-from typing import TypeVar
 
 from offroad_routing.geometry.algorithms import check_ray_segment_intersection
 from offroad_routing.geometry.algorithms import check_segment_intersection
 from offroad_routing.geometry.algorithms import point_in_angle
 from offroad_routing.geometry.algorithms import polar_angle
 from offroad_routing.geometry.algorithms import turn
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
-PointData = TypeVar("PointData")
+from offroad_routing.osm_data.geom_types import PointData
+from offroad_routing.osm_data.geom_types import TPoint
 
 
 class SegmentVisibility:
@@ -130,10 +127,10 @@ class SegmentVisibility:
         return list(visible_edges.values())
 
     """
-    Angle approximation Denis Kozub O(n) algorithm
+    Angle approximation O(n) algorithm
     - only parameter is view_angle=1, it shows the calculation error
     - angle_count = math.floor(360 / view_angle) is the number of angles the surface is divided into
-    - crosses = [None for angle in range(angle_count)] is an array to store minimal distances to points for each angle
+    - crosses = [None] * angle_count is an array to store minimal distances to points for each angle
     - when adding a segment (pair of points) for each segment point calculate its angle in degrees from point
     - for each of 2 angles fill the corresponding element of crosses with distance to the point
     - for each angle between 2 found angles (between means < pi)
@@ -141,5 +138,4 @@ class SegmentVisibility:
     - when returning visible edges check each element of crosses for None and for laying inside restriction angle
     First problem is that distances have to be calculated using projected crs
     Second problem is that O(n) constant is high (filling each in-between angle may mean up to 180 operations)
-    All in all, this part of graph building is not bottle neck, so it will not be implemented soon
     """
