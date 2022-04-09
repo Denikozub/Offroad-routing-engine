@@ -1,16 +1,14 @@
 from typing import Optional
 from typing import Tuple
-from typing import TypeVar
 
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import turn
 from offroad_routing.geometry.ch_localization import localize_convex
+from offroad_routing.geometry.geom_types import PointData
+from offroad_routing.geometry.geom_types import TAngles
+from offroad_routing.geometry.geom_types import TPoint
+from offroad_routing.geometry.geom_types import TPolygon
 
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-TAngles = TypeVar("TAngles")  # Tuple[float, ...]
-# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
-PointData = TypeVar("PointData")
 
 """
 All algorithms work with quality of convex polygon in respect to a point:

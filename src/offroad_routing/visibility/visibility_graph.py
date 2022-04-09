@@ -2,13 +2,13 @@ from concurrent.futures import ProcessPoolExecutor
 
 from networkx import MultiGraph
 from offroad_routing.geometry.ch_localization import localize_convex
-from offroad_routing.geometry.inner_edges import find_inner_edges
-from offroad_routing.geometry.supporting_line import find_restriction_pair
-from offroad_routing.geometry.supporting_line import find_supporting_line
-from offroad_routing.geometry.supporting_pair import find_supporting_pair
-from offroad_routing.osm_data.geom_types import TPolygonData
-from offroad_routing.osm_data.geom_types import TSegmentData
+from offroad_routing.geometry.geom_types import TPolygonData
+from offroad_routing.geometry.geom_types import TSegmentData
+from offroad_routing.visibility.inner_edges import find_inner_edges
 from offroad_routing.visibility.segment_visibility import SegmentVisibility
+from offroad_routing.visibility.supporting_line import find_restriction_pair
+from offroad_routing.visibility.supporting_line import find_supporting_line
+from offroad_routing.visibility.supporting_pair import find_supporting_pair
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 

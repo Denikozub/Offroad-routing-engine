@@ -10,7 +10,7 @@ import requests
 from geopandas import clip
 from geopandas import read_file
 from offroad_routing.geometry.algorithms import compare_points
-from offroad_routing.geometry.convex_hull import build_convex_hull
+from offroad_routing.osm_data.convex_hull import build_convex_hull
 from offroad_routing.osm_data.osm_parser import parse_pbf
 from offroad_routing.osm_data.osm_parser import parse_xml
 from offroad_routing.surface.tag_value import TagValue

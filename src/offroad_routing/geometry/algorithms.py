@@ -1,7 +1,6 @@
 from math import atan2
 from math import fabs
 from math import pi
-from typing import TypeVar
 
 from numpy import arctan2
 from numpy import cos
@@ -9,8 +8,7 @@ from numpy import radians
 from numpy import round
 from numpy import sin
 from numpy import sqrt
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
+from offroad_routing.geometry.geom_types import TPoint
 
 
 def point_distance(a: TPoint, b: TPoint) -> float:

@@ -1,12 +1,12 @@
-from typing import TypeVar, Tuple, Optional
+from typing import Optional
+from typing import Tuple
 
+from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.algorithms import polar_angle
+from offroad_routing.geometry.algorithms import turn
+from offroad_routing.geometry.geom_types import TAngles
+from offroad_routing.geometry.geom_types import TPolygon
 from scipy.spatial import ConvexHull
-
-from offroad_routing.geometry.algorithms import polar_angle, compare_points, turn
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-TAngles = TypeVar("TAngles")  # Tuple[float, ...]
 
 
 def check_polygon_direction(polygon: TPolygon) -> TPolygon:
@@ -35,7 +35,7 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
     assert compare_points(polygon[0], polygon[-1])
 
     if polygon_size == 2:
-        return polygon, tuple([i for i in range(len(polygon) - 1)]), None
+        return polygon, tuple(i for i in range(len(polygon) - 1)), None
 
     if polygon_size == 3:
         polygon = check_polygon_direction(polygon)
@@ -43,14 +43,14 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
         angles = [polar_angle(starting_point, vertex) for vertex in polygon]
         angles.pop(0)
         angles.pop()
-        return polygon, tuple([i for i in range(len(polygon) - 1)]), tuple(angles)
+        return polygon, tuple(i for i in range(len(polygon) - 1)), tuple(angles)
 
     ch = ConvexHull(polygon)
     vertices = list(ch.vertices)
     vertices.append(vertices[0])
     points = ch.points[vertices]
     points = check_polygon_direction(points)
-    points = tuple([tuple(point) for point in points])
+    points = tuple(tuple(point) for point in points)
     vertices.pop()
 
     return points, tuple(vertices), calculate_angles(points)

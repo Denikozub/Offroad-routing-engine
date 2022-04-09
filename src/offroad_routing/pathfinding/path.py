@@ -1,9 +1,6 @@
-from typing import TypeVar
-
 from offroad_routing.geometry.algorithms import compare_points
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPath = TypeVar("TPath")  # List[TPoint]
+from offroad_routing.geometry.geom_types import TPath
+from offroad_routing.geometry.geom_types import TPoint
 
 
 class Path:

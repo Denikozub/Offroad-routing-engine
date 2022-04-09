@@ -1,16 +1,13 @@
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import TypeVar
 
 from offroad_routing.geometry.algorithms import check_ray_segment_intersection
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import turn
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
-PointData = TypeVar("PointData")
+from offroad_routing.geometry.geom_types import PointData
+from offroad_routing.geometry.geom_types import TPoint
+from offroad_routing.geometry.geom_types import TPolygon
 
 
 def find_supporting_pair_brute(point, polygon, polygon_size, point_number):

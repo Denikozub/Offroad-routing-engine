@@ -9,8 +9,8 @@ from offroad_routing.geometry.algorithms import check_segment_intersection
 from offroad_routing.geometry.algorithms import point_in_angle
 from offroad_routing.geometry.algorithms import polar_angle
 from offroad_routing.geometry.algorithms import turn
-from offroad_routing.osm_data.geom_types import PointData
-from offroad_routing.osm_data.geom_types import TPoint
+from offroad_routing.geometry.geom_types import PointData
+from offroad_routing.geometry.geom_types import TPoint
 
 
 class SegmentVisibility:

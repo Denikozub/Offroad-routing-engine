@@ -9,6 +9,7 @@ TPolygon = NewType('TPolygon', Tuple[TPoint, ...])
 TMultiPolygon = NewType('TMultiPolygon', Tuple[TPolygon, ...])
 TSegment = NewType('TSegment', Tuple[TPoint, TPoint])
 TAngles = NewType('TAngles', Tuple[float, ...])
+TPath = NewType('TPath', List[TPoint])
 
 
 class TPolygonRec(TypedDict):

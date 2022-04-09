@@ -1,15 +1,16 @@
 from math import fabs
-from typing import Optional, Sequence, TypeVar, List
+from typing import List
+from typing import Optional
+from typing import Sequence
 
 from numpy import arange
 from numpy.random import choice
-from shapely.geometry import Polygon, LineString
-
 from offroad_routing.geometry.algorithms import compare_points
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-PointData = TypeVar("PointData")  # Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
+from offroad_routing.geometry.geom_types import PointData
+from offroad_routing.geometry.geom_types import TPoint
+from offroad_routing.geometry.geom_types import TPolygon
+from shapely.geometry import LineString
+from shapely.geometry import Polygon
 
 
 def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequence[TPolygon],
@@ -41,17 +42,20 @@ def find_inner_edges(point: TPoint, point_number: Optional[int], polygon: Sequen
         for i in range(polygon_size):
             if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
                 if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
-                    edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
+                    edges_inside.append(
+                        (polygon[0][i], polygon_number, i, True, weight))
         return edges_inside
 
     for i in range(polygon_size):
         if i == point_number:
             continue
         if fabs(i - point_number) in [1, polygon_size - 1]:
-            edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
+            edges_inside.append(
+                (polygon[0][i], polygon_number, i, True, weight))
             continue
         if Polygon(polygon[0]).contains(LineString([point, polygon[0][i]])):
             if inside_percent == 1 or choice(arange(0, 2), p=[1 - inside_percent, inside_percent]) == 1:
-                edges_inside.append((polygon[0][i], polygon_number, i, True, weight))
+                edges_inside.append(
+                    (polygon[0][i], polygon_number, i, True, weight))
 
     return edges_inside

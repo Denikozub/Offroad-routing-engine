@@ -1,15 +1,10 @@
-from typing import TypeVar
-
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import point_distance
-from offroad_routing.osm_data.tag_value import polygon_values
+from offroad_routing.geometry.geom_types import TPoint
 from offroad_routing.pathfinding.path import Path
 from offroad_routing.pathfinding.priority_queue import PriorityQueue
+from offroad_routing.surface.tag_value import polygon_values
 from offroad_routing.visibility.visibility_graph import VisibilityGraph
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
-PointData = TypeVar("PointData")
 
 
 class AStar:
@@ -19,7 +14,7 @@ class AStar:
 
     __slots__ = ("__vgraph",)
 
-    def __init__(self, vgraph: VisibilityGraph):
+    def __init__(self, vgraph):
         """
         :param VisibilityGraph vgraph: visibility graph with computed geometry
         """

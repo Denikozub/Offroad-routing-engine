@@ -1,6 +1,7 @@
 import unittest
 
-from offroad_routing.geometry.supporting_line import find_supporting_line, find_restriction_pair
+from offroad_routing.visibility.supporting_line import find_restriction_pair
+from offroad_routing.visibility.supporting_line import find_supporting_line
 
 polygon = ((-1, 0), (2, 3), (4, 1), (5, 2), (6, 0), (5, 5), (2, 5), (-1, 0))
 point1 = (2, 1)

@@ -1,7 +1,8 @@
 import unittest
 
-from offroad_routing.geometry.supporting_pair import find_supporting_pair, find_supporting_pair_semiplanes
-from offroad_routing.geometry.convex_hull import build_convex_hull
+from offroad_routing.osm_data.convex_hull import build_convex_hull
+from offroad_routing.visibility.supporting_pair import find_supporting_pair
+from offroad_routing.visibility.supporting_pair import find_supporting_pair_semiplanes
 
 polygon1 = ((0, 1), (2, 0), (4, 0), (6, 2), (0, 1))
 polygon1, _, angles1 = build_convex_hull(polygon1)
@@ -20,11 +21,14 @@ class TestSupportingPair(unittest.TestCase):
         self.assertIn(pair2[0][0], ((4, 0), (6, 2)))
         self.assertIn(pair2[1][0], ((4, 0), (6, 2)))
         self.assertIs(find_supporting_pair((4, 1), polygon1, 0, angles1), None)
-        self.assertIs(find_supporting_pair((4, 0.5), polygon1, 0, angles1), None)
+        self.assertIs(find_supporting_pair(
+            (4, 0.5), polygon1, 0, angles1), None)
         self.assertIs(find_supporting_pair((3, 1), polygon1, 0, angles1), None)
-        self.assertIs(find_supporting_pair((3, 0.5), polygon1, 0, angles1), None)
+        self.assertIs(find_supporting_pair(
+            (3, 0.5), polygon1, 0, angles1), None)
         self.assertIs(find_supporting_pair((2, 1), polygon1, 0, angles1), None)
-        self.assertIs(find_supporting_pair((2, 0.5), polygon1, 0, angles1), None)
+        self.assertIs(find_supporting_pair(
+            (2, 0.5), polygon1, 0, angles1), None)
         self.assertIs(find_supporting_pair((1, 1), polygon1, 0, angles1), None)
 
     def test_polygon2(self):
@@ -36,11 +40,13 @@ class TestSupportingPair(unittest.TestCase):
         self.assertIn(pair2[1][0], ((2, 0), (6, 2)))
         self.assertIs(find_supporting_pair((3, 1), polygon2, 0, angles2), None)
         self.assertIs(find_supporting_pair((2, 1), polygon2, 0, angles2), None)
-        self.assertIs(find_supporting_pair((2.5, 1), polygon2, 0, angles2), None)
+        self.assertIs(find_supporting_pair(
+            (2.5, 1), polygon2, 0, angles2), None)
         self.assertIs(find_supporting_pair((1, 1), polygon2, 0, angles2), None)
 
     def test_special(self):
-        pair = find_supporting_pair((0, 0), ((-1, 0), (1, 0), (-1, 0)), 0, None)
+        pair = find_supporting_pair(
+            (0, 0), ((-1, 0), (1, 0), (-1, 0)), 0, None)
         self.assertIn(pair[0][0], ((-1, 0), (1, 0)))
         self.assertIn(pair[1][0], ((-1, 0), (1, 0)))
 
@@ -52,7 +58,8 @@ class TestSupportingPair(unittest.TestCase):
         with self.assertRaises(Exception):
             find_supporting_pair((0, 0), ((0, 0), (1, 1), (2, 2)), 0, None)
         with self.assertRaises(Exception):
-            find_supporting_pair((0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), 0, None)
+            find_supporting_pair(
+                (0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), 0, None)
 
 
 class TestSupportingPairSemiplanes(unittest.TestCase):
@@ -64,7 +71,8 @@ class TestSupportingPairSemiplanes(unittest.TestCase):
         self.assertIn(pair1[1][0], ((0, 1), (6, 2)))
         self.assertIn(pair2[0][0], ((4, 0), (6, 2)))
         self.assertIn(pair2[1][0], ((4, 0), (6, 2)))
-        self.assertIs(find_supporting_pair_semiplanes((4, 1), polygon1, 0), None)
+        self.assertIs(find_supporting_pair_semiplanes(
+            (4, 1), polygon1, 0), None)
 
     def test_polygon2(self):
         pair1 = find_supporting_pair_semiplanes(point1, polygon2, 0)
@@ -73,10 +81,12 @@ class TestSupportingPairSemiplanes(unittest.TestCase):
         self.assertIn(pair1[1][0], ((0, 1), (6, 2)))
         self.assertIn(pair2[0][0], ((2, 0), (6, 2)))
         self.assertIn(pair2[1][0], ((2, 0), (6, 2)))
-        self.assertIs(find_supporting_pair_semiplanes((4, 1), polygon2, 0), None)
+        self.assertIs(find_supporting_pair_semiplanes(
+            (4, 1), polygon2, 0), None)
 
     def test_special(self):
-        pair = find_supporting_pair_semiplanes((0, 0), ((-1, 0), (1, 0), (-1, 0)), 0)
+        pair = find_supporting_pair_semiplanes(
+            (0, 0), ((-1, 0), (1, 0), (-1, 0)), 0)
         self.assertIn(pair[0][0], ((-1, 0), (1, 0)))
         self.assertIn(pair[1][0], ((-1, 0), (1, 0)))
 
@@ -86,7 +96,8 @@ class TestSupportingPairSemiplanes(unittest.TestCase):
         with self.assertRaises(Exception):
             find_supporting_pair_semiplanes((0, 0), ((0, 0), (0, 0)), 0)
         with self.assertRaises(Exception):
-            find_supporting_pair_semiplanes((0, 0), ((0, 0), (1, 1), (2, 2)), 0)
+            find_supporting_pair_semiplanes(
+                (0, 0), ((0, 0), (1, 1), (2, 2)), 0)
 
 
 if __name__ == '__main__':
