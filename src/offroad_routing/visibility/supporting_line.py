@@ -5,7 +5,6 @@ from typing import Tuple
 from offroad_routing.geometry.algorithms import check_ray_segment_intersection
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import turn
-from offroad_routing.geometry.geom_types import PointData
 from offroad_routing.geometry.geom_types import TPoint
 from offroad_routing.geometry.geom_types import TPolygon
 
@@ -56,14 +55,13 @@ def find_restriction_pair(point: TPoint, polygon: TPolygon, point_number: int) -
     return polygon[point1], polygon[point2]
 
 
-def find_supporting_line(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[List[PointData]]:
+def find_supporting_line(point: TPoint, polygon: TPolygon) -> Optional[List[int]]:
     """
         Find pair of supporting points from point (not a part of polygon) to polygon in squared time.
 
         :param point: visibility point (x, y)
         :param polygon: convex, given counter-clockwise, first and last points must be equal
-        :param polygon_number: sequence number of polygon for PointData
-        :return: list of PointData of points connecting supporting points or None if unable to find
+        :return: list of indices of supporting points or None if unable to find
     """
 
     polygon_size = len(polygon) - 1
@@ -79,10 +77,10 @@ def find_supporting_line(point: TPoint, polygon: TPolygon, polygon_number: int) 
     line = list()
     if point2 - point1 > (polygon_size - 1) / 2:
         for i in range(point2, polygon_size):
-            line.append((polygon[i], polygon_number, i, True, 0))
+            line.append(i % polygon_size)
         for i in range(0, point1 + 1):
-            line.append((polygon[i], polygon_number, i, True, 0))
+            line.append(i % polygon_size)
     else:
         for i in range(point1, point2 + 1):
-            line.append((polygon[i], polygon_number, i, True, 0))
+            line.append(i % polygon_size)
     return line

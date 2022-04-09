@@ -85,14 +85,19 @@ class VisibilityGraph:
             # if a point not inside convex hull
             elif not localize_convex(point, polygon["convex_hull"], polygon["angles"])[0]:
                 pair = find_supporting_pair(
-                    point, polygon["convex_hull"], i, polygon["angles"])
+                    point, polygon["convex_hull"], polygon["angles"])
+                if pair is not None:
+                    pair = [polygon["convex_hull_points"][k] for k in pair]
+                    pair = [(polygon["geometry"][0][k], i, k, True)
+                            for k in pair]
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon
             else:
-                line = find_supporting_line(point, polygon["geometry"][0], i)
+                line = find_supporting_line(point, polygon["geometry"][0])
                 if line is None:
                     return list()
+                line = [(polygon["geometry"][0][k], i, k, True) for k in line]
                 visible_vertices.add_line(line)
 
         # loop over all segments
@@ -126,7 +131,7 @@ class VisibilityGraph:
                     # adding a vertex in networkx graph
                     px, py = point
                     point_index = i * max_poly_len + \
-                        j if is_polygon else (i + 0.5) * max_poly_len + j
+                        j if is_polygon else int((i + 0.5) * max_poly_len + j)
                     graph.add_node(point_index, x=px, y=py)
 
                     # getting incident vertices
@@ -144,7 +149,7 @@ class VisibilityGraph:
             for vertex in vertices:
                 vx, vy = vertex[0]
                 vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
-                    else (vertex[1] + 0.5) * max_poly_len + vertex[2]
+                    else int((vertex[1] + 0.5) * max_poly_len + vertex[2])
                 graph.add_node(vertex_index, x=vx, y=vy)
                 graph.add_edge(point_index, vertex_index)
 
@@ -162,6 +167,6 @@ class VisibilityGraph:
         graph = MultiGraph(crs='EPSG:4326')
         self.__process_points_of_objects(
             True, graph, inside_percent, multiprocessing)
-        self.__process_points_of_objects(
-            False, graph, inside_percent, multiprocessing)
+        # self.__process_points_of_objects(
+        #     False, graph, inside_percent, multiprocessing)
         return graph

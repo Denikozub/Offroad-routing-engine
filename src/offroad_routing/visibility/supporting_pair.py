@@ -4,7 +4,6 @@ from typing import Tuple
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import turn
 from offroad_routing.geometry.ch_localization import localize_convex
-from offroad_routing.geometry.geom_types import PointData
 from offroad_routing.geometry.geom_types import TAngles
 from offroad_routing.geometry.geom_types import TPoint
 from offroad_routing.geometry.geom_types import TPolygon
@@ -56,23 +55,22 @@ def find_supporting_point(point: TPoint, polygon: TPolygon, low: int, high: int,
     return None
 
 
-def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
-                         angles: Optional[TAngles]) -> Optional[Tuple[PointData, PointData]]:
+def find_supporting_pair(point: TPoint, polygon: TPolygon, angles: Optional[TAngles]) \
+        -> Optional[Tuple[int, int]]:
     """
         Find pair of supporting points from point to polygon in log time (binary search).
 
         :param point: visibility point (x, y)
         :param polygon: convex, given counter-clockwise, first and last points must be equal
-        :param polygon_number: sequence number of polygon for PointData
         :param angles: tuple of polar angles from #0 point of polygon to all others except itself
-        :return: pair of PointData of supporting points or None if unable to find
+        :return: pair of indices of supporting points or None if unable to find
     """
 
     polygon_size = len(polygon) - 1
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
     if polygon_size <= 3:
-        return find_supporting_pair_semiplanes(point, polygon, polygon_number)
+        return find_supporting_pair_semiplanes(point, polygon)
     assert turn(polygon[0], polygon[1], polygon[2]) >= 0
     assert len(angles) == polygon_size - 1
 
@@ -111,24 +109,23 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, polygon_number: int,
             if index2 is None:
                 return None
 
-    return (polygon[index1], polygon_number, index1, True, 0), (polygon[index2], polygon_number, index2, True, 0)
+    return index1 % polygon_size, index2 % polygon_size
 
 
-def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon, polygon_number: int) -> Optional[tuple]:
+def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon) -> Optional[Tuple[int, int]]:
     """
         Find pair of supporting points from point to polygon in linear line.
 
         :param point: visibility point (x, y)
         :param polygon: convex, first and last points must be equal
-        :param polygon_number: sequence number of polygon for PointData
-        :return: pair of PointData of supporting points or None if unable to find
+        :return: pair of indices of supporting points or None if unable to find
     """
 
     polygon_size = len(polygon) - 1
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
     if polygon_size == 2:
-        return (polygon[0], polygon_number, 0, True, 0), (polygon[1], polygon_number, 1, True, 0)
+        return 0, 1
 
     semiplanes = [1] * polygon_size
     count = 0
@@ -146,4 +143,4 @@ def find_supporting_pair_semiplanes(point: TPoint, polygon: TPolygon, polygon_nu
     start = semiplanes.index(1) if semiplanes[0] == 0 else semiplanes.index(0)
     end = (len(semiplanes) - semiplanes[::-1].index(1)) % polygon_size if semiplanes[0] == 0 else \
         (len(semiplanes) - semiplanes[::-1].index(0)) % polygon_size
-    return (polygon[start], polygon_number, start, True, 0), (polygon[end], polygon_number, end, True, 0)
+    return start % polygon_size, end % polygon_size
