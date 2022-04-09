@@ -222,3 +222,50 @@ class Geometry:
             return geometry
 
         self.edges, self.nodes = edges, nodes
+
+    @staticmethod
+    def __compare_bbox(obj, bbox_comp, bbox_size):
+        if bbox_comp is not None:
+            bounds = obj.bounds
+            bounds_size = (bounds[2] - bounds[0], bounds[3] - bounds[1])
+            if bounds_size[0] == 0 or bounds_size[1] == 0:
+                return None
+            if bbox_size[0] / bounds_size[0] >= bbox_comp and bbox_size[1] / bounds_size[1] >= bbox_comp:
+                return None
+        return obj
+
+    def simplify_polygons(self, bbox_comp=15, epsilon=None, inplace=False):
+        """
+        Simplify polygons by removing small objects (comparing bbox_comp)
+        and running Ramer-Douglas-Peucker (RDP) with epsilon parameter.
+
+        :param float bbox_comp: scale polygon comparison parameter (to size of map bbox)
+        :param Optional[float] epsilon: RPD simplification parameter. If None, computed automatically
+        :param bool inplace: change initial geometry
+        :return: None if inplace else new geometry object
+        :rtype: Optional[Geometry]
+        """
+
+        assert bbox_comp > 0 and (epsilon is None or epsilon >= 0)
+        polygons = deepcopy(self.polygons)
+
+        bounds = polygons.geometry.bounds
+        bbox_size = (bounds.maxx.max() - bounds.minx.min(),
+                     bounds.maxy.max() - bounds.miny.min())
+
+        if epsilon is None:
+            epsilon = (bbox_size[0] ** 2 + bbox_size[1]
+                       ** 2) ** 0.5 / bbox_comp / 5
+
+        polygons.geometry = polygons.geometry.apply(
+            self.__compare_bbox, args=[bbox_comp, bbox_size])
+        polygons.geometry = polygons.geometry.simplify(
+            epsilon, preserve_topology=True)
+
+        if not inplace:
+            geometry = Geometry()
+            geometry.polygons, geometry.edges, geometry.nodes = polygons, deepcopy(
+                self.edges), deepcopy(self.nodes)
+            return geometry
+
+        self.polygons = polygons
