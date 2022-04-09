@@ -8,6 +8,8 @@ import networkx as nx
 import requests
 from geopandas import clip
 from geopandas import read_file
+from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.convex_hull import build_convex_hull
 from offroad_routing.osm_data.osm_parser import parse_pbf
 from offroad_routing.osm_data.osm_parser import parse_xml
 from offroad_routing.surface.tag_value import TagValue
@@ -17,6 +19,7 @@ from pandas import merge
 from pyrosm import get_data
 from shapely.geometry import box
 from shapely.geometry import LineString
+from shapely.geometry import mapping
 
 
 class Geometry:
@@ -121,7 +124,8 @@ class Geometry:
         assert len(bbox) == 4
 
         mask = box(*bbox)
-        polygons = clip(self.polygons, mask, keep_geom_type=True)
+        polygons = clip(self.polygons, mask,
+                        keep_geom_type=True).reset_index(drop=True)
         edges = self.edges.iloc[clip(
             self.edges, mask, keep_geom_type=True).index].reset_index(drop=True)
         nodes = {k: v for k, v in self.nodes.items() if k in (
@@ -171,7 +175,7 @@ class Geometry:
         mst = DataFrame(nx.minimum_spanning_tree(G).edges, columns=['u', 'v'])
         edges = concat([merge(self.edges, mst, how='inner', left_on=['u', 'v'], right_on=['u', 'v']),
                         merge(self.edges, mst, how='inner', left_on=[
-                              'u', 'v'], right_on=['v', 'u'])
+                            'u', 'v'], right_on=['v', 'u'])
                        .drop(columns=['u_x', 'v_x'])
                        .rename(columns={'u_y': 'u', 'v_y': 'v'})]).reset_index(drop=True)
 
@@ -226,7 +230,7 @@ class Geometry:
         :rtype: Optional[Geometry]
         """
 
-        edges = self.edges[self.edges.tag.isin(types)]
+        edges = self.edges[self.edges.tag.isin(types)].reset_index(drop=True)
         nodes = {k: v for k, v in self.nodes.items() if k in (
             set(edges.u) | set(edges.v))}
 
@@ -274,7 +278,7 @@ class Geometry:
 
         polygons.geometry = polygons.geometry.apply(
             self.__compare_bbox, args=[bbox_comp, bbox_size])
-        polygons = polygons[polygons.geometry.notna()]
+        polygons = polygons[polygons.geometry.notna()].reset_index(drop=True)
         polygons.geometry = polygons.geometry.simplify(
             epsilon, preserve_topology=True)
 
@@ -296,8 +300,52 @@ class Geometry:
             'road_tags': set(self.edges.tag)
         }
 
-    # self.tag_value.eval_polygons(self.polygons, "tag")
-    # self.tag_value.eval_lines(self.edges, "tag")
-    # remove_inner
-    # tuple coords
-    # CH and angles
+    @staticmethod
+    def __remove_inner_polygons(polygons):
+        polygon_count = polygons.shape[0]
+        for i in range(polygon_count):
+            polygon = polygons.loc[i, "geometry"]
+            for j in range(1, len(polygon)):
+                point = polygon[j][0]
+                for k in range(i + 1, polygon_count):
+                    if polygons.loc[k, "geometry"] is None:
+                        if k == polygon_count - 1:
+                            polygons.loc[i, "tag"].append(None)
+                        continue
+                    new_point = polygons.loc[k, "geometry"][0][0]
+                    if compare_points(point, new_point):
+                        polygons.loc[i, "tag"].append(
+                            polygons.loc[k, "tag"])
+                        polygons.loc[k, "geometry"] = None
+                    elif k == polygon_count - 1:
+                        polygons.loc[i, "tag"].append(None)
+        polygons.drop(polygons[polygons.geometry.isna()].index, inplace=True)
+        polygons.reset_index(drop=True, inplace=True)
+
+    @staticmethod
+    def __polygon_coords(polygon):
+        coordinates = mapping(polygon)['coordinates']
+        polygons = list()
+        for polygon in coordinates:
+            polygons.append(tuple(tuple(point) for point in polygon))
+        return tuple(polygons) if len(polygons[0]) >= 3 else None
+
+    def export(self, remove_inner=False):
+        polygons = DataFrame(self.polygons[["tag"]])
+        self.tag_value.eval_polygons(polygons, "tag")
+        polygons['geometry'] = self.polygons.geometry.apply(
+            self.__polygon_coords)
+        polygons = polygons[polygons['geometry'].notna(
+        )].reset_index().drop(columns='index')
+        if remove_inner:
+            self.__remove_inner_polygons(polygons)
+        if polygons.shape[0] > 0:
+            polygons = polygons.join(DataFrame(polygons.geometry)
+                                     .apply(lambda x: build_convex_hull(x[0][0]), axis=1, result_type='expand')
+                                     .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
+
+        linestrings = DataFrame(self.edges[["tag"]])
+        self.tag_value.eval_lines(linestrings, "tag")
+        linestrings['geometry'] = self.edges.apply(
+            lambda x: (self.nodes[x.u], self.nodes[x.v]), axis=1)
+        return polygons.to_dict('records'), linestrings.to_dict('records')
