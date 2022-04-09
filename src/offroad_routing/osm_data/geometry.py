@@ -40,8 +40,6 @@ class Geometry:
         geometry.edges = read_file(filepath + ".gpkg", layer='edges')
         with open(filepath + ".json") as f:
             geometry.nodes = json.load(f)
-        cls.tag_value.eval_polygons(geometry.polygons, "tag")
-        cls.tag_value.eval_lines(geometry.edges, "tag")
         return geometry
 
     @classmethod
@@ -67,14 +65,10 @@ class Geometry:
                 root = ET.parse(filename)
                 geometry.polygons, geometry.edges, geometry.nodes = parse_xml(
                     root)
-                cls.tag_value.eval_polygons(geometry.polygons, "tag")
-                cls.tag_value.eval_lines(geometry.edges, "tag")
                 return geometry.cut_bbox(bbox)
             if filename[-8:] == '.osm.pbf':
                 geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(
                     filename, bbox)
-                cls.tag_value.eval_polygons(geometry.polygons, "tag")
-                cls.tag_value.eval_lines(geometry.edges, "tag")
                 return geometry
             raise ValueError("Only .xml and .osm.pbf files supported")
 
@@ -82,8 +76,6 @@ class Geometry:
             filepath = get_data(query, directory=directory)
             geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(
                 filepath, bbox)
-            cls.tag_value.eval_polygons(geometry.polygons, "tag")
-            cls.tag_value.eval_lines(geometry.edges, "tag")
             return geometry
 
         r = requests.get('http://www.overpass-api.de/api/xapi_meta?*[bbox=' +
@@ -93,9 +85,7 @@ class Geometry:
             f.write(r.text)
         root = ET.fromstring(r.text)
         geometry.polygons, geometry.edges, geometry.nodes = parse_xml(root)
-        cls.tag_value.eval_polygons(geometry.polygons, "tag")
-        cls.tag_value.eval_lines(geometry.edges, "tag")
-        return geometry.cut_bbox(bbox)
+        return geometry
 
     def save(self, package_name, directory='.'):
         """
@@ -105,7 +95,7 @@ class Geometry:
         :param str directory: saved geometry package directory
         """
 
-        if len(findall(r"[#%&{}\\<>*?/ $!'\":@]", "ffa?aev")) > 0:
+        if len(findall(r"[#%&{}\\<>*?/ $!'\":@]", package_name)) > 0:
             raise ValueError("Wrong package name")
 
         filepath = path.join(directory, package_name)
@@ -151,7 +141,7 @@ class Geometry:
         :rtype: folium.folium.Map
         """
 
-        return concat([self.polygons.geometry, self.edges.geometry]).explore()
+        return concat([self.polygons[['tag', 'geometry']], self.edges[['tag', 'geometry']]]).explore()
 
     def to_networkx(self):
         """
@@ -162,7 +152,8 @@ class Geometry:
 
         G = nx.Graph()
         for _, row in self.edges.iterrows():
-            G.add_edge(self.nodes[row.u], self.nodes[row.v], weight=row.length)
+            G.add_edge(self.nodes[row.u],
+                       self.nodes[row.v], weight=row['length'])
         return G
 
     def minimum_spanning_tree(self, inplace=False):
@@ -174,7 +165,9 @@ class Geometry:
         :rtype: Optional[Geometry]
         """
 
-        G = self.to_networkx()
+        G = nx.Graph()
+        for _, row in self.edges.iterrows():
+            G.add_edge(row.u, row.v, weight=row['length'])
         mst = DataFrame(nx.minimum_spanning_tree(G).edges, columns=['u', 'v'])
         edges = concat([merge(self.edges, mst, how='inner', left_on=['u', 'v'], right_on=['u', 'v']),
                         merge(self.edges, mst, how='inner', left_on=[
@@ -206,7 +199,7 @@ class Geometry:
             row = edges.loc[i]
             if row.u == row.v:
                 edges.drop(i, inplace=True)
-            elif row.length < threshold:
+            elif row['length'] < threshold:
                 edges.u.replace(row.v, row.u, inplace=True)
                 edges.v.replace(row.v, row.u, inplace=True)
                 edges.drop(i, inplace=True)
@@ -214,6 +207,28 @@ class Geometry:
         edges.reset_index(drop=True, inplace=True)
         edges.geometry = edges.apply(
             lambda x: LineString((nodes[x.u], nodes[x.v])), axis=1)
+
+        if not inplace:
+            geometry = Geometry()
+            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(
+                self.polygons), edges, nodes
+            return geometry
+
+        self.edges, self.nodes = edges, nodes
+
+    def select_road_type(self, types, inplace=False):
+        """
+        Select specific OSM road surface types.
+
+        :param Set[str] types: set of road surface OSM types to leave
+        :param bool inplace: change initial geometry
+        :return: None if inplace else new geometry object
+        :rtype: Optional[Geometry]
+        """
+
+        edges = self.edges[self.edges.tag.isin(types)]
+        nodes = {k: v for k, v in self.nodes.items() if k in (
+            set(edges.u) | set(edges.v))}
 
         if not inplace:
             geometry = Geometry()
@@ -259,6 +274,7 @@ class Geometry:
 
         polygons.geometry = polygons.geometry.apply(
             self.__compare_bbox, args=[bbox_comp, bbox_size])
+        polygons = polygons[polygons.geometry.notna()]
         polygons.geometry = polygons.geometry.simplify(
             epsilon, preserve_topology=True)
 
@@ -269,3 +285,19 @@ class Geometry:
             return geometry
 
         self.polygons = polygons
+
+    def stats(self):
+        return {
+            'number_of_polygons': self.polygons.shape[0],
+            'number_of_edges': self.edges.shape[0],
+            'number_of_nodes': len(self.nodes),
+            'road_length_km': self.edges['length'].sum() / 1000,
+            'polygon_tags': set(self.polygons.tag),
+            'road_tags': set(self.edges.tag)
+        }
+
+    # self.tag_value.eval_polygons(self.polygons, "tag")
+    # self.tag_value.eval_lines(self.edges, "tag")
+    # remove_inner
+    # tuple coords
+    # CH and angles

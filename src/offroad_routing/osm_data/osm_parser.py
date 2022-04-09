@@ -1,3 +1,4 @@
+import numpy as np
 from geopandas import GeoDataFrame
 from offroad_routing.geometry.algorithms import point_distance
 from pandas import concat
@@ -6,6 +7,26 @@ from pyrosm import OSM
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import Polygon
+
+
+def compare_polygon(p1, p2):
+    if p1.exterior == p2.exterior:
+        return True
+    p1_xy = p1.exterior.coords.xy
+    p2_xy = p2.exterior.coords.xy
+    return len(p1_xy[0]) == len(p2_xy[0]) and \
+        np.all(np.flip(p2_xy[0]) == p1_xy[0]) and \
+        np.all(np.flip(p2_xy[1]) == p1_xy[1])
+
+
+def remove_equal_polygons(polygons):
+    to_delete = list()
+    for i, p1 in enumerate(polygons.geometry):
+        for j, p2 in enumerate(polygons.geometry):
+            if (i != j) and compare_polygon(p1, p2) and (i not in to_delete) and (j not in to_delete):
+                to_delete.append(j)
+    polygons.drop(to_delete, inplace=True)
+    polygons.reset_index(drop=True, inplace=True)
 
 
 def parse_pbf(filename, bbox):
@@ -51,8 +72,10 @@ def parse_pbf(filename, bbox):
         nodes = DataFrame(nodes[["id", "geometry"]])
         nodes.geometry = nodes.geometry.apply(lambda x: (x.x, x.y))
         nodes = nodes.set_index('id').to_dict()['geometry']
-        edges = edges[["geometry", "u", "v", "length"]]
+        edges = edges[["highway", "geometry", "u", "v", "length"]].rename(columns={
+                                                                          "highway": "tag"})
 
+    remove_equal_polygons(polygons)
     return polygons, edges, nodes
 
 
@@ -82,14 +105,14 @@ def parse_xml(root):
                     tag = part.attrib['v']
             if way[0] == way[-1]:
                 geometry = Polygon([nodes[pt]
-                                   for pt in way if pt in nodes.keys()])
+                                    for pt in way if pt in nodes.keys()])
                 if tag is None:
                     ways[child.attrib['id']] = geometry
                 else:
                     polygons.append((tag, geometry))
             else:
                 geometry = LineString([nodes[pt]
-                                      for pt in way if pt in nodes.keys()])
+                                       for pt in way if pt in nodes.keys()])
                 if tag is None:
                     ways[child.attrib['id']] = geometry
                 else:
@@ -120,7 +143,8 @@ def parse_xml(root):
                 if not geometry.is_empty:
                     polygons.append((tag, geometry))
 
-    polygons = GeoDataFrame(polygons, columns=['tag', 'geometry'])
+    polygons = GeoDataFrame(
+        polygons, columns=['tag', 'geometry'], crs='epsg:4326')
     roads = DataFrame(roads, columns=['tag', 'geometry'])
     roads.geometry = roads.geometry.apply(
         lambda x: [[x[i], x[i + 1]] for i in range(len(x) - 1)])
@@ -134,4 +158,5 @@ def parse_xml(root):
     nodes = {k: v for k, v in nodes.items() if k in (
         set(roads.u) | set(roads.v))}
 
+    remove_equal_polygons(polygons)
     return polygons, roads, nodes
