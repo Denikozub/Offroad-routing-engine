@@ -331,6 +331,14 @@ class Geometry:
         return tuple(polygons) if len(polygons[0]) >= 3 else None
 
     def export(self, remove_inner=False):
+        """
+        Export geometry data to polygon and linestring records.
+
+        :param bool remove_inner: remove polygons which are inner for other polygons
+        :return: polygon and linestring records
+        :rtype: Tuple[TPolygonData, TSegmentData]
+        """
+
         polygons = DataFrame(self.polygons[["tag"]])
         self.tag_value.eval_polygons(polygons, "tag")
         polygons['geometry'] = self.polygons.geometry.apply(
