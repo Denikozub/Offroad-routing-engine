@@ -149,11 +149,12 @@ class Geometry:
 
         self.polygons, self.edges, self.nodes = polygons, edges, nodes
 
-    def plot(self, type=None):
+    def plot(self, type=None, **kwargs):
         """
         Build folium map of all geometry data.
 
         :param Optional[str] type: type of geometry to plot: {'polygons', 'roads', None}
+        :param kwargs: additional gpd.GeoDataFrame.explore() parameters
         :rtype: folium.folium.Map
         """
 
@@ -161,10 +162,10 @@ class Geometry:
             raise ValueError("Wrong geometry type")
 
         if type == 'polygons':
-            return self.polygons.explore()
+            return self.polygons.explore(**kwargs)
         if type == 'roads':
-            return self.edges.explore()
-        return concat([self.polygons[['tag', 'geometry']], self.edges[['tag', 'geometry']]]).explore()
+            return self.edges.explore(**kwargs)
+        return concat([self.polygons[['tag', 'geometry']], self.edges[['tag', 'geometry']]]).explore(**kwargs)
 
     def to_networkx(self):
         """
@@ -317,6 +318,7 @@ class Geometry:
 
         self.polygons = polygons
 
+    @property
     def stats(self):
         return {
             'number_of_polygons': self.polygons.shape[0],
@@ -379,7 +381,7 @@ class Geometry:
 
     def export(self, *, remove_inner=False):
         """
-        Export geometry data to polygon and linestring records.
+        Export geometry data to polygon and linestring records. Duplicate polygons removed.
 
         :param bool remove_inner: remove polygons which are inner for other polygons
         :return: polygon and linestring records
