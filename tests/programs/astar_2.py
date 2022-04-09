@@ -1,13 +1,14 @@
 import timeit
 
 from offroad_routing import AStar
+from offroad_routing import Geometry
 from offroad_routing import GpxTrack
 from offroad_routing import VisibilityGraph
 
 
 def main():
-    vgraph = VisibilityGraph()
-    vgraph.load_geometry("../maps/kozlovo.npy")
+    geom = Geometry.load('kozlovo', '../maps')
+    vgraph = VisibilityGraph(*geom.export(remove_inner=True))
 
     start = timeit.default_timer()
 

@@ -1,4 +1,3 @@
-import numpy as np
 from geopandas import GeoDataFrame
 from offroad_routing.geometry.algorithms import point_distance
 from pandas import concat
@@ -7,26 +6,6 @@ from pyrosm import OSM
 from shapely.geometry import LineString
 from shapely.geometry import MultiLineString
 from shapely.geometry import Polygon
-
-
-def compare_polygon(p1: Polygon, p2: Polygon):
-    if p1.exterior == p2.exterior:
-        return True
-    p1_xy = p1.exterior.coords.xy
-    p2_xy = p2.exterior.coords.xy
-    return len(p1_xy[0]) == len(p2_xy[0]) and \
-        np.all(np.flip(p2_xy[0]) == p1_xy[0]) and \
-        np.all(np.flip(p2_xy[1]) == p1_xy[1])
-
-
-def remove_equal_polygons(polygons: GeoDataFrame):
-    to_delete = list()
-    for i, p1 in enumerate(polygons.geometry):
-        for j, p2 in enumerate(polygons.geometry):
-            if (i != j) and compare_polygon(p1, p2) and (i not in to_delete) and (j not in to_delete):
-                to_delete.append(j)
-    polygons.drop(to_delete, inplace=True)
-    polygons.reset_index(drop=True, inplace=True)
 
 
 def parse_pbf(filename, bbox):
@@ -75,7 +54,7 @@ def parse_pbf(filename, bbox):
         edges = edges[["highway", "geometry", "u", "v", "length"]].rename(columns={
                                                                           "highway": "tag"})
 
-    remove_equal_polygons(polygons)
+    polygons.crs = 'epsg:4326'
     return polygons, edges, nodes
 
 
@@ -158,5 +137,4 @@ def parse_xml(root):
     nodes = {k: v for k, v in nodes.items() if k in (
         set(roads.u) | set(roads.v))}
 
-    remove_equal_polygons(polygons)
     return polygons, roads, nodes

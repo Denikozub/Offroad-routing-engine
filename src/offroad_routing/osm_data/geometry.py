@@ -6,8 +6,10 @@ from re import findall
 from typing import Tuple
 
 import networkx as nx
+import numpy as np
 import requests
 from geopandas import clip
+from geopandas import GeoDataFrame
 from geopandas import read_file
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.osm_data.convex_hull import build_convex_hull
@@ -50,7 +52,8 @@ class Geometry:
         geometry.polygons = read_file(filepath + ".gpkg", layer='polygons')
         geometry.edges = read_file(filepath + ".gpkg", layer='edges')
         with open(filepath + ".json") as f:
-            geometry.nodes = json.load(f)
+            geometry.nodes = {int(k): tuple(v)
+                              for k, v in json.load(f).items()}
         return geometry
 
     @classmethod
@@ -106,7 +109,7 @@ class Geometry:
         :param str directory: saved geometry package directory
         """
 
-        if len(findall(r"[#%&{}\\<>*?/ $!'\":@]", package_name)) > 0:
+        if len(findall(r"[#%&{}<>*?/ $!'\":@]", package_name)) > 0:
             raise ValueError("Wrong package name")
 
         filepath = path.join(directory, package_name)
@@ -117,7 +120,7 @@ class Geometry:
         with open(filepath + ".json", 'w') as f:
             json.dump(self.nodes, f)
 
-    def cut_bbox(self, bbox, inplace=False):
+    def cut_bbox(self, bbox, *, inplace=False):
         """
         Clip geometry strictly inside bounding box. If bbox is None, nothing is changed.
 
@@ -146,13 +149,21 @@ class Geometry:
 
         self.polygons, self.edges, self.nodes = polygons, edges, nodes
 
-    def plot(self):
+    def plot(self, type=None):
         """
         Build folium map of all geometry data.
 
+        :param Optional[str] type: type of geometry to plot: {'polygons', 'roads', None}
         :rtype: folium.folium.Map
         """
 
+        if type not in {'polygons', 'roads', None}:
+            raise ValueError("Wrong geometry type")
+
+        if type == 'polygons':
+            return self.polygons.explore()
+        if type == 'roads':
+            return self.edges.explore()
         return concat([self.polygons[['tag', 'geometry']], self.edges[['tag', 'geometry']]]).explore()
 
     def to_networkx(self):
@@ -168,7 +179,7 @@ class Geometry:
                        self.nodes[row.v], weight=row['length'])
         return G
 
-    def minimum_spanning_tree(self, inplace=False):
+    def minimum_spanning_tree(self, *, inplace=False):
         """
         Build minimum spanning tree of road graph.
 
@@ -195,7 +206,7 @@ class Geometry:
 
         self.edges = edges
 
-    def simplify_roads(self, threshold, inplace=False):
+    def simplify_roads(self, threshold, *, inplace=False):
         """
         Simplify road network by contracting edges shorted than threshold.
 
@@ -228,17 +239,25 @@ class Geometry:
 
         self.edges, self.nodes = edges, nodes
 
-    def select_road_type(self, types, inplace=False):
+    def select_road_type(self, types, *, exclude=False, inplace=False):
         """
         Select specific OSM road surface types.
 
         :param Set[str] types: set of road surface OSM types to leave
+        :param bool exclude: exclude specified surface types
         :param bool inplace: change initial geometry
         :return: None if inplace else new geometry object
         :rtype: Optional[Geometry]
         """
 
-        edges = self.edges[self.edges.tag.isin(types)].reset_index(drop=True)
+        assert isinstance(types, (list, tuple, set))
+
+        if not exclude:
+            edges = self.edges[self.edges.tag.isin(
+                types)].reset_index(drop=True)
+        else:
+            edges = self.edges[~self.edges.tag.isin(
+                types)].reset_index(drop=True)
         nodes = {k: v for k, v in self.nodes.items() if k in (
             set(edges.u) | set(edges.v))}
 
@@ -261,7 +280,7 @@ class Geometry:
                 return None
         return obj
 
-    def simplify_polygons(self, bbox_comp=15, epsilon=None, inplace=False):
+    def simplify_polygons(self, bbox_comp=15, epsilon=None, *, inplace=False):
         """
         Simplify polygons by removing small objects (comparing bbox_comp)
         and running Ramer-Douglas-Peucker (RDP) with epsilon parameter.
@@ -285,7 +304,7 @@ class Geometry:
                        ** 2) ** 0.5 / bbox_comp / 5
 
         polygons.geometry = polygons.geometry.apply(
-            self.__compare_bbox, args=[bbox_comp, bbox_size])
+            Geometry.__compare_bbox, args=[bbox_comp, bbox_size])
         polygons = polygons[polygons.geometry.notna()].reset_index(drop=True)
         polygons.geometry = polygons.geometry.simplify(
             epsilon, preserve_topology=True)
@@ -338,7 +357,27 @@ class Geometry:
             polygons.append(tuple(tuple(point) for point in polygon))
         return tuple(polygons) if len(polygons[0]) >= 3 else None
 
-    def export(self, remove_inner=False):
+    @staticmethod
+    def __compare_polygon(p1: Polygon, p2: Polygon):
+        if p1.exterior == p2.exterior:
+            return True
+        p1_xy = p1.exterior.coords.xy
+        p2_xy = p2.exterior.coords.xy
+        return len(p1_xy[0]) == len(p2_xy[0]) and \
+            np.all(np.flip(p2_xy[0]) == p1_xy[0]) and \
+            np.all(np.flip(p2_xy[1]) == p1_xy[1])
+
+    @staticmethod
+    def __remove_equal_polygons(polygons: GeoDataFrame):
+        to_delete = list()
+        for i, p1 in enumerate(polygons.geometry):
+            for j, p2 in enumerate(polygons.geometry):
+                if (i != j) and Geometry.__compare_polygon(p1, p2) and (i not in to_delete) and (j not in to_delete):
+                    to_delete.append(j)
+        polygons.drop(to_delete, inplace=True)
+        polygons.reset_index(drop=True, inplace=True)
+
+    def export(self, *, remove_inner=False):
         """
         Export geometry data to polygon and linestring records.
 
@@ -347,14 +386,15 @@ class Geometry:
         :rtype: Tuple[TPolygonData, TSegmentData]
         """
 
-        polygons = DataFrame(self.polygons[["tag"]])
+        polygons = DataFrame(self.polygons[["tag", "geometry"]])
         self.tag_value.eval_polygons(polygons, "tag")
+        Geometry.__remove_equal_polygons(polygons)
         polygons['geometry'] = self.polygons.geometry.apply(
-            self.__polygon_coords)
+            Geometry.__polygon_coords)
         polygons = polygons[polygons['geometry'].notna(
         )].reset_index().drop(columns='index')
         if remove_inner:
-            self.__remove_inner_polygons(polygons)
+            Geometry.__remove_inner_polygons(polygons)
         if polygons.shape[0] > 0:
             polygons = polygons.join(DataFrame(polygons.geometry)
                                      .apply(lambda x: build_convex_hull(x[0][0]), axis=1, result_type='expand')
