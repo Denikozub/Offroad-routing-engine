@@ -58,16 +58,17 @@ def parse_pbf(filename, bbox):
     return polygons, edges, nodes
 
 
-def parse_xml(root):
+def parse_xml(root, features=('landuse', 'natural', 'highway')):
     """
     Parse .xml OSM file, return data about features natural, landuse and highway.
 
     :param ET.Element root: xml root
+    :param Tuple[str, ...] features: feature tags to be parsed
     :return: polygons, road edges, road nodes
     :rtype: Tuple[GeoDataFrame, GeoDataFrame, Dict[int, TPoint]]
     """
 
-    features = {'landuse', 'natural', 'highway'}
+    features = set(features)
     nodes, ways, roads, polygons = dict(), dict(), list(), list()
     for child in root:
 
