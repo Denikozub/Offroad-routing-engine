@@ -1,6 +1,7 @@
 import unittest
 
-from offroad_routing.geometry.supporting_line import find_supporting_line, find_restriction_pair
+from offroad_routing.visibility.supporting_line import find_restriction_pair
+from offroad_routing.visibility.supporting_line import find_supporting_line
 
 polygon = ((-1, 0), (2, 3), (4, 1), (5, 2), (6, 0), (5, 5), (2, 5), (-1, 0))
 point1 = (2, 1)
@@ -12,38 +13,38 @@ point4 = (3, 3)
 class TestSupportingLine(unittest.TestCase):
 
     def test_point_1(self):
-        line = find_supporting_line(point1, polygon, 0)
+        line = find_supporting_line(point1, polygon)
         self.assertEqual(len(line), 4)
-        self.assertIn(line[0][0], {(-1, 0), (6, 0)})
-        self.assertIn(line[1][0], {(2, 5), (5, 5)})
-        self.assertIn(line[2][0], {(2, 5), (5, 5)})
-        self.assertIn(line[3][0], {(-1, 0), (6, 0)})
+        self.assertIn(line[0], {0, 4})
+        self.assertIn(line[1], {6, 5})
+        self.assertIn(line[2], {6, 5})
+        self.assertIn(line[3], {0, 4})
 
     def test_point_2(self):
-        line = find_supporting_line(point2, polygon, 0)
+        line = find_supporting_line(point2, polygon)
         self.assertEqual(len(line), 3)
-        self.assertIn(line[0][0], {(-1, 0), (4, 1)})
-        self.assertEqual(line[1][0], (2, 3))
-        self.assertIn(line[2][0], {(-1, 0), (4, 1)})
+        self.assertIn(line[0], {0, 2})
+        self.assertEqual(line[1], 1)
+        self.assertIn(line[2], {0, 2})
 
     def test_point_3(self):
-        line = find_supporting_line(point3, polygon, 0)
+        line = find_supporting_line(point3, polygon)
         self.assertEqual(len(line), 4)
-        self.assertIn(line[0][0], {(-1, 0), (6, 0)})
-        self.assertIn(line[1][0], {(2, 5), (5, 5)})
-        self.assertIn(line[2][0], {(2, 5), (5, 5)})
-        self.assertIn(line[3][0], {(-1, 0), (6, 0)})
+        self.assertIn(line[0], {0, 4})
+        self.assertIn(line[1], {5, 6})
+        self.assertIn(line[2], {5, 6})
+        self.assertIn(line[3], {0, 4})
 
     def test_point_4(self):
-        self.assertIs(find_supporting_line(point4, polygon, 0), None)
+        self.assertIs(find_supporting_line(point4, polygon), None)
 
     def test_exception(self):
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0),), 0)
+            find_supporting_line((0, 0), ((0, 0),))
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0), (0, 0)), 0)
+            find_supporting_line((0, 0), ((0, 0), (0, 0)))
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0), (1, 1), (2, 2)), 0)
+            find_supporting_line((0, 0), ((0, 0), (1, 1), (2, 2)))
 
 
 class TestRestrictionPair(unittest.TestCase):
@@ -73,11 +74,11 @@ class TestRestrictionPair(unittest.TestCase):
 
     def test_exception(self):
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0),), 0)
+            find_restriction_pair((0, 0), ((0, 0),), 0)
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0), (0, 0)), 0)
+            find_restriction_pair((0, 0), ((0, 0), (0, 0)), 0)
         with self.assertRaises(Exception):
-            find_supporting_line((0, 0), ((0, 0), (1, 1), (2, 2)), 0)
+            find_restriction_pair((0, 0), ((0, 0), (1, 1), (2, 2)), 0)
 
 
 if __name__ == '__main__':

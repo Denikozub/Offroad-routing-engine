@@ -1,14 +1,15 @@
 import unittest
 
 from offroad_routing.geometry.ch_localization import *
-from offroad_routing.geometry.convex_hull import build_convex_hull
+from offroad_routing.osm_data.convex_hull import build_convex_hull
 
 
 polygon1 = ((0, 0), (1, -1), (3, -1), (6, 1), (5, 3), (1, 3), (0, 0))
 polygon1, _, angles1 = build_convex_hull(polygon1)
 polygon2 = ((-1, -1), (6, -1), (6, 6), (-1, -1))
 polygon2, _, angles2 = build_convex_hull(polygon2)
-points_in = ((2, 1), (5, 1), (1, 0), (2, 0), (3, 0), (4, 0), (3, 1), (4, 1), (3, 2), (4, 2), (5, 2))
+points_in = ((2, 1), (5, 1), (1, 0), (2, 0), (3, 0),
+             (4, 0), (3, 1), (4, 1), (3, 2), (4, 2), (5, 2))
 points_out = ((-1, 2), (3, 4), (5, -5), (10, -1), (-5, -5))
 points_on = ((2, -1), (3, 3))
 
@@ -64,7 +65,8 @@ class TestLocalizeConvex(unittest.TestCase):
         with self.assertRaises(Exception):
             localize_convex((0, 0), ((0, 0), (1, 1), (2, 2)), None)
         with self.assertRaises(Exception):
-            localize_convex((0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), None)
+            localize_convex(
+                (0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), None)
 
 
 if __name__ == '__main__':
