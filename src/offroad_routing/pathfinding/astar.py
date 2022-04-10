@@ -94,7 +94,7 @@ class AStar:
 
         :param TPoint start: start point
         :param TPoint goal: goal point
-        :param int heuristic_multiplier: multiplier to weight heuristic
+        :param int heuristic_multiplier: multiplier to weight heuristic \
         (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
         :rtype: offroad_routing.pathfinding.path.Path
         """
