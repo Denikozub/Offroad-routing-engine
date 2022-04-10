@@ -1,5 +1,4 @@
 from networkx import astar_path
-from networkx import get_node_attributes
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import point_distance
 from offroad_routing.geometry.geom_types import TPoint

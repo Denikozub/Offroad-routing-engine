@@ -29,92 +29,108 @@ You can follow by running the code in `IPython notebook <https://github.com/Deni
 Processing and pruning data
 +++++++++++++++++++++++++++
 
-There are two ways you can obtain OSM data in osm.pbf format:
+More information available at `Geometry`_ documentation.
 
-- Download it yourself: `parts of the world <https://download.geofabrik.de/>`_, `cities <https://download.bbbike.org/osm/bbbike/>`_, `adjustable area <https://extract.bbbike.org/>`_ (via mail), `adjustable area <https://export.hotosm.org/en/v3/>`_ (online), `planet <https://planet.maps.mail.ru/pbf/>`_
-- Let the program download it for you
+There are several ways to obtain OSM data:
 
-If the map is downloaded, you can specify the filename and parse it::
+- specify .xml (.osm) file to be parsed
+- specify .osm.pbf file to be parsed (resources: `parts of the world <https://download.geofabrik.de/>`_, `cities <https://download.bbbike.org/osm/bbbike/>`_, `adjustable area <https://extract.bbbike.org/>`_ (via mail), `adjustable area <https://export.hotosm.org/en/v3/>`_ (online), `planet <https://planet.maps.mail.ru/pbf/>`_)
+- specify bounding box for map data to be dowloaded and parsed
+- specify `region / city / country <https://pyrosm.readthedocs.io/en/latest/basics.html#protobuf-file-what-is-it-and-how-to-get-one>`_ query for map data to be downloaded and parsed
 
-	from offroad_routing import VisibilityGraph
+::
 
-	vgraph = VisibilityGraph()
-	filename = "../maps/kozlovo.osm.pbf"
-	bbox = [36.2, 56.61, 36.4, 56.67]
-	vgraph.compute_geometry(bbox=bbox, filename=filename)
+	import warnings
+	warnings.filterwarnings("ignore")
 
+::
 
-Or, alternatively, you can only specify the bounding box, and the map will be downloaded automatically (`curl <https://curl.se/>`_ & `osmosis <https://wiki.openstreetmap.org/wiki/Osmosis>`_ required)::
+	from offroad_routing import Geometry
 
+	filename = "../maps/user_area.osm.pbf"
 	bbox = [34, 59, 34.2, 59.1]
-	vgraph.compute_geometry(bbox=bbox)
+	geom = Geometry.parse(filename=filename, bbox=bbox)
 
+Geometry data can be explored and visualized using folium, which allows multiple maps to be combined in one layer::
 
-Parsed data can be pruned with chosen or default parameters.
-If not specified, optimal parameters will be computed by the algorithm::
+	print(geom.stats)
+	geom.plot()
 
-	vgraph.prune_geometry(epsilon_polygon=0.003,
-		 	      epsilon_polyline=0.001,
-			      bbox_comp=10)
+Geometry can be cut to a bounding box, if needed::
 
+	geom.cut_bbox([34.01, 59.01, 34.19, 59.09])
 
-Computed data can also be saved in .npy file to skip data processing the next time::
+Road network geometry can be simplified and visualized separately. Available options:
 
-	vgraph.save_geometry("../maps/user_area.npy")
+- remove small edges using edge contraction
+- build minimum spanning tree
+- select specific road surface types
+
+::
+
+	geom.select_road_type({'path'}, exclude=True, inplace=True)
+	geom.minimum_spanning_tree(inplace=True)
+	geom.simplify_roads(200, inplace=True)
+	geom.plot('roads')
+
+Polygon geometry can also be simplified and visualized separately, small polygons will be removed::
+
+	geom.simplify_polygons(15, inplace=True)
+	geom.plot('polygons')
+
+Geometry can be saved to file and loaded afterwards using Geometry.load()::
+
+	geom.save('new_map', '../maps')
 
 
 Building visibility graph
 +++++++++++++++++++++++++
 
-Loading precomputed data::
+More information available at `VisibilityGraph`_ documentation.
+
+VisibilityGraph uses special geometry representation for maximum speed, so processed geometry needs to be exported::
 
 	from offroad_routing import VisibilityGraph
 
-	vgraph = VisibilityGraph()
-	vgraph.load_geometry("../maps/user_area.npy")
+	geom = Geometry.load('user_area', '../maps')
+	vgraph = VisibilityGraph(*geom.export())
 
+Even though vgraph can be used to find routes without pre-building whole graph,
+visibility graph can be fully built and saved to memory for further use::
 
-Visibility graph can be built and visualized using osmnx::
+	vgraph.build(inside_percent=1, multiprocessing=False)
+	print(vgraph.stats)
+
+Visibility graph can also be visualised using folium::
+
+	vgraph.plot()
+
+Pre-built graph can be exported to networkx.MultiGraph and used for further analysis::
 
 	import osmnx as ox
 
-	G = vgraph.build_graph(inside_percent=0, multiprocessing=False)
+	G = vgraph.graph
 	ox.plot_graph(G)
 
-
-VisibilityGraph may also be used to find incident edges for a single point.
-This feature is used for pathfinding without graph building::
-
-	import matplotlib.pyplot as plt
-	import mplleaflet
-
-	start = ((34.02, 59.01), None, None, None, None)
-	incidents = vgraph.incident_vertices(start)
-
-	fig = plt.figure()
-	plt.scatter(start[0][0], start[0][1], color='r')
-	for p in incidents:
-		plt.scatter(p[0][0], p[0][1], color='b')
-	mplleaflet.display(fig=fig)
 
 Pathfinding and visualization
 +++++++++++++++++++++++++++++
 
-Astar algorithm can be used to find paths between points on the map::
+More information available at `AStar`_ documentation.
+
+If vgraph.build() had been run, pre-built graph is used for pathfinding.
+Otherwise, incident vertices are computed at runtime, which allows to explore less graph nodes (in combination with A*)::
 
 	from offroad_routing import VisibilityGraph, AStar
 
-	vgraph = VisibilityGraph()
-	vgraph.load_geometry("../maps/user_area.npy")
-
 	pathfinder = AStar(vgraph)
-	path = pathfinder.find((34.02, 59.01), (34.12, 59.09), default_surface='grass', heuristic_multiplier=10)
-
+	path = pathfinder.find((34.02, 59.01), (34.12, 59.09), heuristic_multiplier=10)
 
 Path can be viewed in coordinate format::
 
 	print(path.path())
 
+More information available at `GpxTrack`_ documentation.
 
 However, specialized tools can be used to save and visualize the path.
 The following code saves the path to a gpx file and generates a link to view it online::
@@ -125,8 +141,11 @@ The following code saves the path to a gpx file and generates a link to view it 
 	track.write_file("track.gpx")
 	track.visualize()
 
-
 You can check the route `here <https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5IiwgInAiOiBbeyJuIjogIlN0YXJ0IiwgImx0IjogNTkuMDEsICJsbiI6IDM0LjAyfSwgeyJuIjogIkdvYWwiLCAibHQiOiA1OS4wOSwgImxuIjogMzQuMTJ9XSwgInQiOiBbW1s1OS4wMSwgMzQuMDJdLCBbNTkuMDA3NzI1NSwgMzQuMDEyMDA2M10sIFs1OS4wMDI3NDk4LCAzNC4wMDY1MTM5XSwgWzU5LjAwMDE5NSwgMzQuMDA4MDM1N10sIFs1OS4wMDE1NTg5LCAzNC4wMzA4NDMyXSwgWzU5LjAwMDI3ODcsIDM0LjA0MTcxOV0sIFs1OS4wMDAzNzc2LCAzNC4wNDk3MTU2XSwgWzU5LjAwNjc2NDEsIDM0LjA2MzMzNjFdLCBbNTkuMDA5NzI2MywgMzQuMDY0NTAxMl0sIFs1OS4wMTExMDE4LCAzNC4wNzA5MjAzXSwgWzU5LjAxOTExNjcsIDM0LjA5Nzk1NzZdLCBbNTkuMDE4MjgyOCwgMzQuMTA1MTg4OF0sIFs1OS4wMjM0ODk5LCAzNC4xMTgxNjY5XSwgWzU5LjA0ODE3MDMsIDM0LjE0Mzg1NjldLCBbNTkuMDcwNjk4NSwgMzQuMTQzMDg0NF0sIFs1OS4wNzc1NDY3LCAzNC4xMzM4NzkxXSwgWzU5LjA4MjI2OTEsIDM0LjExNDU5MjRdLCBbNTkuMDg2NDQxNiwgMzQuMTIxNDY4M10sIFs1OS4wOSwgMzQuMTJdXV19XQ==>`_.
+
+Path can also be visualized using folium and combibed with other maps::
+
+	track.plot()
 
 
 Documentation

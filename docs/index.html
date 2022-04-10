@@ -60,85 +60,100 @@ Dependency warning: you may additionally need to pip install cykhash==1.0.2, rtr
 <p>You can follow by running the code in <a class="reference external" href="https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/usage.ipynb">IPython notebook</a>.</p>
 <section id="processing-and-pruning-data">
 <h3>Processing and pruning data<a class="headerlink" href="#processing-and-pruning-data" title="Permalink to this headline">¶</a></h3>
-<p>There are two ways you can obtain OSM data in osm.pbf format:</p>
+<p>More information available at <a class="reference internal" href="#geometry">Geometry</a> documentation.</p>
+<p>There are several ways to obtain OSM data:</p>
 <ul class="simple">
-<li><p>Download it yourself: <a class="reference external" href="https://download.geofabrik.de/">parts of the world</a>, <a class="reference external" href="https://download.bbbike.org/osm/bbbike/">cities</a>, <a class="reference external" href="https://extract.bbbike.org/">adjustable area</a> (via mail), <a class="reference external" href="https://export.hotosm.org/en/v3/">adjustable area</a> (online), <a class="reference external" href="https://planet.maps.mail.ru/pbf/">planet</a></p></li>
-<li><p>Let the program download it for you</p></li>
+<li><p>specify .xml (.osm) file to be parsed</p></li>
+<li><p>specify .osm.pbf file to be parsed (resources: <a class="reference external" href="https://download.geofabrik.de/">parts of the world</a>, <a class="reference external" href="https://download.bbbike.org/osm/bbbike/">cities</a>, <a class="reference external" href="https://extract.bbbike.org/">adjustable area</a> (via mail), <a class="reference external" href="https://export.hotosm.org/en/v3/">adjustable area</a> (online), <a class="reference external" href="https://planet.maps.mail.ru/pbf/">planet</a>)</p></li>
+<li><p>specify bounding box for map data to be dowloaded and parsed</p></li>
+<li><p>specify <a class="reference external" href="https://pyrosm.readthedocs.io/en/latest/basics.html#protobuf-file-what-is-it-and-how-to-get-one">region / city / country</a> query for map data to be downloaded and parsed</p></li>
 </ul>
-<p>If the map is downloaded, you can specify the filename and parse it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">VisibilityGraph</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">Geometry</span>
 
-<span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
-<span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;../maps/kozlovo.osm.pbf&quot;</span>
-<span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">36.2</span><span class="p">,</span> <span class="mf">56.61</span><span class="p">,</span> <span class="mf">36.4</span><span class="p">,</span> <span class="mf">56.67</span><span class="p">]</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">compute_geometry</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;../maps/user_area.osm.pbf&quot;</span>
+<span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">34</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mf">34.2</span><span class="p">,</span> <span class="mf">59.1</span><span class="p">]</span>
+<span class="n">geom</span> <span class="o">=</span> <span class="n">Geometry</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Or, alternatively, you can only specify the bounding box, and the map will be downloaded automatically (<a class="reference external" href="https://curl.se/">curl</a> &amp; <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Osmosis">osmosis</a> required):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">34</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mf">34.2</span><span class="p">,</span> <span class="mf">59.1</span><span class="p">]</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">compute_geometry</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">)</span>
+<p>Geometry data can be explored and visualized using folium, which allows multiple maps to be combined in one layer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Parsed data can be pruned with chosen or default parameters.
-If not specified, optimal parameters will be computed by the algorithm:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">prune_geometry</span><span class="p">(</span><span class="n">epsilon_polygon</span><span class="o">=</span><span class="mf">0.003</span><span class="p">,</span>
-                      <span class="n">epsilon_polyline</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-                      <span class="n">bbox_comp</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<p>Geometry can be cut to a bounding box, if needed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geom</span><span class="o">.</span><span class="n">cut_bbox</span><span class="p">([</span><span class="mf">34.01</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">,</span> <span class="mf">34.19</span><span class="p">,</span> <span class="mf">59.09</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Computed data can also be saved in .npy file to skip data processing the next time:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">save_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
+<p>Road network geometry can be simplified and visualized separately. Available options:</p>
+<ul class="simple">
+<li><p>remove small edges using edge contraction</p></li>
+<li><p>build minimum spanning tree</p></li>
+<li><p>select specific road surface types</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geom</span><span class="o">.</span><span class="n">select_road_type</span><span class="p">({</span><span class="s1">&#39;path&#39;</span><span class="p">},</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">simplify_roads</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;roads&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Polygon geometry can also be simplified and visualized separately, small polygons will be removed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geom</span><span class="o">.</span><span class="n">simplify_polygons</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;polygons&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Geometry can be saved to file and loaded afterwards using Geometry.load():</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geom</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;new_map&#39;</span><span class="p">,</span> <span class="s1">&#39;../maps&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="building-visibility-graph">
 <h3>Building visibility graph<a class="headerlink" href="#building-visibility-graph" title="Permalink to this headline">¶</a></h3>
-<p>Loading precomputed data:</p>
+<p>More information available at <a class="reference internal" href="#visibilitygraph">VisibilityGraph</a> documentation.</p>
+<p>VisibilityGraph uses special geometry representation for maximum speed, so processed geometry needs to be exported:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">VisibilityGraph</span>
 
-<span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
+<span class="n">geom</span> <span class="o">=</span> <span class="n">Geometry</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;user_area&#39;</span><span class="p">,</span> <span class="s1">&#39;../maps&#39;</span><span class="p">)</span>
+<span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">(</span><span class="o">*</span><span class="n">geom</span><span class="o">.</span><span class="n">export</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>Visibility graph can be built and visualized using osmnx:</p>
+<p>Even though vgraph can be used to find routes without pre-building whole graph,
+visibility graph can be fully built and saved to memory for further use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">inside_percent</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">multiprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">vgraph</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Visibility graph can also be visualised using folium:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vgraph</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Pre-built graph can be exported to networkx.MultiGraph and used for further analysis:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">osmnx</span> <span class="k">as</span> <span class="nn">ox</span>
 
-<span class="n">G</span> <span class="o">=</span> <span class="n">vgraph</span><span class="o">.</span><span class="n">build_graph</span><span class="p">(</span><span class="n">inside_percent</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">multiprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">vgraph</span><span class="o">.</span><span class="n">graph</span>
 <span class="n">ox</span><span class="o">.</span><span class="n">plot_graph</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>VisibilityGraph may also be used to find incident edges for a single point.
-This feature is used for pathfinding without graph building:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">mplleaflet</span>
-
-<span class="n">start</span> <span class="o">=</span> <span class="p">((</span><span class="mf">34.02</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<span class="n">incidents</span> <span class="o">=</span> <span class="n">vgraph</span><span class="o">.</span><span class="n">incident_vertices</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">incidents</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
-<span class="n">mplleaflet</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="pathfinding-and-visualization">
 <h3>Pathfinding and visualization<a class="headerlink" href="#pathfinding-and-visualization" title="Permalink to this headline">¶</a></h3>
-<p>Astar algorithm can be used to find paths between points on the map:</p>
+<p>More information available at <a class="reference internal" href="#astar">AStar</a> documentation.</p>
+<p>If vgraph.build() had been run, pre-built graph is used for pathfinding.
+Otherwise, incident vertices are computed at runtime, which allows to explore less graph nodes (in combination with A*):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">VisibilityGraph</span><span class="p">,</span> <span class="n">AStar</span>
 
-<span class="n">vgraph</span> <span class="o">=</span> <span class="n">VisibilityGraph</span><span class="p">()</span>
-<span class="n">vgraph</span><span class="o">.</span><span class="n">load_geometry</span><span class="p">(</span><span class="s2">&quot;../maps/user_area.npy&quot;</span><span class="p">)</span>
-
 <span class="n">pathfinder</span> <span class="o">=</span> <span class="n">AStar</span><span class="p">(</span><span class="n">vgraph</span><span class="p">)</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">pathfinder</span><span class="o">.</span><span class="n">find</span><span class="p">((</span><span class="mf">34.02</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">),</span> <span class="p">(</span><span class="mf">34.12</span><span class="p">,</span> <span class="mf">59.09</span><span class="p">),</span> <span class="n">default_surface</span><span class="o">=</span><span class="s1">&#39;grass&#39;</span><span class="p">,</span> <span class="n">heuristic_multiplier</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">pathfinder</span><span class="o">.</span><span class="n">find</span><span class="p">((</span><span class="mf">34.02</span><span class="p">,</span> <span class="mf">59.01</span><span class="p">),</span> <span class="p">(</span><span class="mf">34.12</span><span class="p">,</span> <span class="mf">59.09</span><span class="p">),</span> <span class="n">heuristic_multiplier</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Path can be viewed in coordinate format:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">())</span>
 </pre></div>
 </div>
+<p>More information available at <a class="reference internal" href="#gpxtrack">GpxTrack</a> documentation.</p>
 <p>However, specialized tools can be used to save and visualize the path.
 The following code saves the path to a gpx file and generates a link to view it online:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">offroad_routing</span> <span class="kn">import</span> <span class="n">GpxTrack</span>
@@ -149,6 +164,10 @@ The following code saves the path to a gpx file and generates a link to view it 
 </pre></div>
 </div>
 <p>You can check the route <a class="reference external" href="https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5IiwgInAiOiBbeyJuIjogIlN0YXJ0IiwgImx0IjogNTkuMDEsICJsbiI6IDM0LjAyfSwgeyJuIjogIkdvYWwiLCAibHQiOiA1OS4wOSwgImxuIjogMzQuMTJ9XSwgInQiOiBbW1s1OS4wMSwgMzQuMDJdLCBbNTkuMDA3NzI1NSwgMzQuMDEyMDA2M10sIFs1OS4wMDI3NDk4LCAzNC4wMDY1MTM5XSwgWzU5LjAwMDE5NSwgMzQuMDA4MDM1N10sIFs1OS4wMDE1NTg5LCAzNC4wMzA4NDMyXSwgWzU5LjAwMDI3ODcsIDM0LjA0MTcxOV0sIFs1OS4wMDAzNzc2LCAzNC4wNDk3MTU2XSwgWzU5LjAwNjc2NDEsIDM0LjA2MzMzNjFdLCBbNTkuMDA5NzI2MywgMzQuMDY0NTAxMl0sIFs1OS4wMTExMDE4LCAzNC4wNzA5MjAzXSwgWzU5LjAxOTExNjcsIDM0LjA5Nzk1NzZdLCBbNTkuMDE4MjgyOCwgMzQuMTA1MTg4OF0sIFs1OS4wMjM0ODk5LCAzNC4xMTgxNjY5XSwgWzU5LjA0ODE3MDMsIDM0LjE0Mzg1NjldLCBbNTkuMDcwNjk4NSwgMzQuMTQzMDg0NF0sIFs1OS4wNzc1NDY3LCAzNC4xMzM4NzkxXSwgWzU5LjA4MjI2OTEsIDM0LjExNDU5MjRdLCBbNTkuMDg2NDQxNiwgMzQuMTIxNDY4M10sIFs1OS4wOSwgMzQuMTJdXV19XQ==">here</a>.</p>
+<p>Path can also be visualized using folium and combibed with other maps:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">track</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="documentation">

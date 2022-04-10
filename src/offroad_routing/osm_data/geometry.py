@@ -173,7 +173,7 @@ class Geometry:
         """
         Build networkx weighted graph of road network. Weight measured in meters.
 
-        :rtype: nx.Graph
+        :rtype: networkx.Graph
         """
 
         G = nx.Graph()
