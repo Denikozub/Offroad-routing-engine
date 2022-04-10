@@ -49,7 +49,7 @@ class GpxTrack:
         """
         assert filename[-4:] == ".gpx"
         file = open(filename, 'w')
-        self.__write_head(file)
+        GpxTrack.__write_head(file)
         self.__write_start_goal(file)
         self.__write_track(file)
         print('</gpx>', file=file)
@@ -66,3 +66,8 @@ class GpxTrack:
         base = base64.encodebytes(
             bytes(xml, 'utf-8')).decode("utf-8").replace("\n", "")
         print("Go to website: https://nakarte.me/#nktj=%s" % base)
+
+    def plot(self, **kwargs):
+        if 'color' not in kwargs.keys():
+            kwargs['color'] = 'red'
+        return self.__path.to_gpd().explore(**kwargs)

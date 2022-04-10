@@ -14,7 +14,7 @@ def main():
 
     pathfinder = AStar(vgraph)
     path = pathfinder.find((34.02, 59.01), (34.12, 59.09),
-                           default_surface='grass', heuristic_multiplier=10)
+                           heuristic_multiplier=10)
 
     stop = timeit.default_timer()
     print('Time: ', stop - start)
@@ -22,6 +22,7 @@ def main():
     track = GpxTrack(path)
     # track.write_file("track.gpx")
     track.visualize()
+    # track.plot()
 
 
 if __name__ == "__main__":

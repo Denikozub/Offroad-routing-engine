@@ -7,13 +7,14 @@ from offroad_routing import VisibilityGraph
 
 
 def main():
-    geom = Geometry.load('kozlovo', '../maps')
+    geom = Geometry.load('user_area', '../maps')
     vgraph = VisibilityGraph(*geom.export(remove_inner=True))
+    vgraph.build(inside_percent=1, multiprocessing=False)
 
     start = timeit.default_timer()
 
     pathfinder = AStar(vgraph)
-    path = pathfinder.find((36.21, 56.62), (36.39, 56.66),
+    path = pathfinder.find((34.02, 59.01), (34.12, 59.09),
                            heuristic_multiplier=10)
 
     stop = timeit.default_timer()

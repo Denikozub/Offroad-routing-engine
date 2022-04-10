@@ -4,6 +4,7 @@ from networkx import MultiGraph
 from offroad_routing.geometry.ch_localization import localize_convex
 from offroad_routing.geometry.geom_types import TPolygonData
 from offroad_routing.geometry.geom_types import TSegmentData
+from offroad_routing.surface.tag_value import polygon_values
 from offroad_routing.visibility.inner_edges import find_inner_edges
 from offroad_routing.visibility.segment_visibility import SegmentVisibility
 from offroad_routing.visibility.supporting_line import find_restriction_pair
@@ -20,11 +21,20 @@ class VisibilityGraph:
     Polygons and polylines are used as obstacles on the plane.
     """
 
-    __slots__ = ("polygons", "linestrings", "__graph")
+    __slots__ = ("polygons", "linestrings", "__graph", "default_weight")
 
-    def __init__(self, polygons: TPolygonData, linestrings: TSegmentData):
+    def __init__(self, polygons, linestrings, default_surface="grass"):
+        """
+        :param TSegmentData linestrings: road segment records
+        :param TPolygonData polygons: polygon records
+        :param str default_surface: default surface for unfilled areas (choose prevailing surface)
+        """
+
         self.polygons = polygons
         self.linestrings = linestrings
+        if default_surface not in polygon_values.keys():
+            raise ValueError("Unknown default surface value")
+        self.default_weight = polygon_values[default_surface]
         self.__graph = MultiGraph(crs='EPSG:4326')
 
     @property
@@ -94,7 +104,7 @@ class VisibilityGraph:
                     point, polygon["convex_hull"], polygon["angles"])
                 if pair is not None:
                     pair = [polygon["convex_hull_points"][k] for k in pair]
-                    pair = [(polygon["geometry"][0][k], i, k, True, 0)
+                    pair = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
                             for k in pair]
                 visible_vertices.add_pair(pair)
 
@@ -103,7 +113,7 @@ class VisibilityGraph:
                 line = find_supporting_line(point, polygon["geometry"][0])
                 if line is None:
                     return list()
-                line = [(polygon["geometry"][0][k], i, k, True, 0)
+                line = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
                         for k in line]
                 visible_vertices.add_line(line)
 
@@ -119,7 +129,7 @@ class VisibilityGraph:
                     (geometry[neighbour], i, neighbour, False, weight))
             else:
                 visible_vertices.add_pair(
-                    ((geometry[0], i, 0, False, 0), (geometry[1], i, 1, False, 0)))
+                    ((geometry[0], i, 0, False, 0), (geometry[1], i, 1, False, self.default_weight)))
 
         # building visibility graph of segments
         visible_edges = visible_vertices.get_edges_sweepline(point)
@@ -158,7 +168,8 @@ class VisibilityGraph:
                 vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
                     else int((vertex[1] + 0.5) * max_poly_len + vertex[2])
                 self.__graph.add_node(vertex_index, x=vx, y=vy)
-                self.__graph.add_edge(point_index, vertex_index)
+                self.__graph.add_edge(
+                    point_index, vertex_index, weight=vertex[4])
 
     def build(self, inside_percent=0.4, multiprocessing=True):
         """

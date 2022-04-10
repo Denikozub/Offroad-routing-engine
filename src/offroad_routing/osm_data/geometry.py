@@ -45,6 +45,7 @@ class Geometry:
 
         :param str package_name: saved geometry package name
         :param str directory: saved geometry package directory
+        :rtype: Geometry
         """
 
         geometry = cls()
@@ -66,6 +67,7 @@ class Geometry:
         :param str query: dataset available at Geofabrik or BBBike
         :param Optional[Sequence[float]] bbox: area to be parsed in format (min_lon, min_lat, max_lon, max_lat)
         :param str directory: directory for downloaded maps to be saved
+        :rtype: Geometry
         """
 
         if filename is None and query is None and bbox is None:
