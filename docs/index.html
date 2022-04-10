@@ -40,7 +40,7 @@
 
   <section id="offroad-routing-engine">
 <h1>Offroad Routing Engine<a class="headerlink" href="#offroad-routing-engine" title="Permalink to this headline">¶</a></h1>
-<p>This module is made for downloading and parsing OSM maps, pathfinding and visibility graph building using hierarchical approach, saving and visualizing results.
+<p>This module is made for downloading, parsing and processing OSM maps, pathfinding and visibility graph building using hierarchical approach, saving and visualizing results.
 Main goal was to fully optimize geometry algorithms and achieve lowest computational time possible. Low-level data transfer approach has been used and
 a unique algorithm, created specifically for off-road routing, has been implemented. See <a class="reference external" href="https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/algorithm.pdf">algorithm explanation</a>.</p>
 <figure class="align-center">
@@ -153,73 +153,234 @@ The following code saves the path to a gpx file and generates a link to view it 
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<section id="geometry">
+<h3>Geometry<a class="headerlink" href="#geometry" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p><a class="reference internal" href="#geometry-types">Geometry types</a></p>
+</div></blockquote>
+<dl class="py class">
+<dt class="sig sig-object py" id="offroad_routing.Geometry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">offroad_routing.</span></span><span class="sig-name descname"><span class="pre">Geometry</span></span><a class="headerlink" href="#offroad_routing.Geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for retrieving, storing and processing OSM geometry data.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.parse">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse data to get OSM data. Bounding box will always be used if specified.
+Either one of parameters should be set. If filename is not None, query is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – .osm.pbf or .xml OSM file</p></li>
+<li><p><strong>query</strong> (<em>str</em>) – dataset available at Geofabrik or BBBike</p></li>
+<li><p><strong>bbox</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>]</em>) – area to be parsed in format (min_lon, min_lat, max_lon, max_lat)</p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – directory for downloaded maps to be saved</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load saved geometry from json &amp; geopackage files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package_name</strong> (<em>str</em>) – saved geometry package name</p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – saved geometry package directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save computed geometry to json &amp; geopackage files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package_name</strong> (<em>str</em>) – name for created files to share</p></li>
+<li><p><strong>directory</strong> (<em>str</em>) – saved geometry package directory</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build folium map of all geometry data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – type of geometry to plot: {‘polygons’, ‘roads’, None}</p></li>
+<li><p><strong>kwargs</strong> – additional gpd.GeoDataFrame.explore() parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>folium.folium.Map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.cut_bbox">
+<span class="sig-name descname"><span class="pre">cut_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.cut_bbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clip geometry strictly inside bounding box. If bbox is None, nothing is changed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox</strong> (<em>Optional</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>]</em>) – bounding box in format (min_lon, min_lat, max_lon, max_lat)</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – change initial geometry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if inplace else new geometry object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.minimum_spanning_tree">
+<span class="sig-name descname"><span class="pre">minimum_spanning_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.minimum_spanning_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build minimum spanning tree of road graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inplace</strong> (<em>bool</em>) – change initial geometry</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if inplace else new geometry object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.simplify_roads">
+<span class="sig-name descname"><span class="pre">simplify_roads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.simplify_roads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplify road network by contracting edges shorted than threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>threshold</strong> (<em>float</em>) – edge contraction threshold in meters</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – change initial geometry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if inplace else new geometry object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.select_road_type">
+<span class="sig-name descname"><span class="pre">select_road_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">types</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.select_road_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select specific OSM road surface types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>types</strong> (<em>Set</em><em>[</em><em>str</em><em>]</em>) – set of road surface OSM types to leave</p></li>
+<li><p><strong>exclude</strong> (<em>bool</em>) – exclude specified surface types</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – change initial geometry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if inplace else new geometry object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.simplify_polygons">
+<span class="sig-name descname"><span class="pre">simplify_polygons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.simplify_polygons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplify polygons by removing small objects (comparing bbox_comp)
+and running Ramer-Douglas-Peucker (RDP) with epsilon parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_comp</strong> (<em>float</em>) – scale polygon comparison parameter (to size of map bbox)</p></li>
+<li><p><strong>epsilon</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – RPD simplification parameter. If None, computed automatically</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – change initial geometry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if inplace else new geometry object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="#offroad_routing.Geometry" title="offroad_routing.Geometry">Geometry</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.to_networkx">
+<span class="sig-name descname"><span class="pre">to_networkx</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.to_networkx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build networkx weighted graph of road network. Weight measured in meters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>networkx.Graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.Geometry.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_inner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.Geometry.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export geometry data to polygon and linestring records. Duplicate polygons removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>remove_inner</strong> (<em>bool</em>) – remove polygons which are inner for other polygons</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>polygon and linestring records</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[TPolygonData, TSegmentData]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="visibilitygraph">
 <h3>VisibilityGraph<a class="headerlink" href="#visibilitygraph" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p><a class="reference internal" href="#geometry-types">Geometry types</a></p>
+</div></blockquote>
 <dl class="py class">
 <dt class="sig sig-object py" id="offroad_routing.VisibilityGraph">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">offroad_routing.</span></span><span class="sig-name descname"><span class="pre">VisibilityGraph</span></span><a class="headerlink" href="#offroad_routing.VisibilityGraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Input: .osm.pbf map file including required area. It can be predownloaded (eg planet.osm) or downloaded in runtime.
-To parse map file VisibilityGraph.compute_geometry() is used. It retrieves information about polygons and polylines
-forming geographical objects on the map. They are used as obstacles for visibility graph.
-VisibilityGraph.prune_geometry() is required to convert retrieved data to computational-faster data representation.
-Optionally, it prunes geometry to achieve hierarchical approach to speed up computations.
-Computed and pruned data can be saved into a file to avoid repeating computations.
-Computed geometry can be used for graph building and pathfinding.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">offroad_routing.</span></span><span class="sig-name descname"><span class="pre">VisibilityGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linestrings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grass'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for building and utilizing visibility graphs.
+Polygons and polylines are used as obstacles on the plane.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.compute_geometry">
-<span class="sig-name descname"><span class="pre">compute_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.compute_geometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse OSM file (area in bbox) to retrieve information about geometry.</p>
-<dl class="field-list simple">
+<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linestrings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grass'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bbox</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>) – area to be parsed in format (min_lon, min_lat, max_lon, max_lat)</p></li>
-<li><p><strong>filename</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – map file in .osm.pbf format or None (map will be downloaded)</p></li>
+<li><p><strong>linestrings</strong> (<em>TSegmentData</em>) – road segment records</p></li>
+<li><p><strong>polygons</strong> (<em>TPolygonData</em>) – polygon records</p></li>
+<li><p><strong>default_surface</strong> (<em>str</em>) – default surface for unfilled areas (choose prevailing surface)</p></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.prune_geometry">
-<span class="sig-name descname"><span class="pre">prune_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon_polygon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon_polyline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_inner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.prune_geometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform retrieved map data:</p>
-<ol class="arabic simple">
-<li><p>Transform geometry to tuple of points.</p></li>
-<li><p>Run Ramer-Douglas-Peucker (RDP) to geometry.</p></li>
-<li><p>Get rid of small objects with bbox_comp parameter.</p></li>
-<li><p>Add data about convex hull for polygons.</p></li>
-</ol>
-<p>Default RDP parameters will be computed for the given area to provide best performance.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>epsilon_polygon</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – RDP parameter for polygons</p></li>
-<li><p><strong>epsilon_polyline</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – RDP parameter for polylines</p></li>
-<li><p><strong>bbox_comp</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – scale polygon comparison parameter (to size of map bbox)</p></li>
-<li><p><strong>remove_inner</strong> (<em>bool</em>) – remove inner polygons for other polygons</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.save_geometry">
-<span class="sig-name descname"><span class="pre">save_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.save_geometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save computed geometry to .npy binary file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> – .npy filename to be created.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.load_geometry">
-<span class="sig-name descname"><span class="pre">load_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.load_geometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load saved geometry from .npy file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> – .npy filename with saved geometry.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -227,7 +388,7 @@ Computed geometry can be used for graph building and pathfinding.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.incident_vertices">
 <span class="sig-name descname"><span class="pre">incident_vertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inside_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.incident_vertices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find all incident vertices in visibility graph for given point.</p>
+<dd><p>Find all incident vertices in visibility graph for given point, computes without building graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -244,21 +405,30 @@ Computed geometry can be used for graph building and pathfinding.</p>
 </dl>
 </dd></dl>
 
-<p><a class="reference internal" href="#pointdata-explanation">PointData Explanation</a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.build_graph">
-<span class="sig-name descname"><span class="pre">build_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inside_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocessing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EPSG:4326'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute visibility graph for a set of polygons and polylines.</p>
+<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inside_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocessing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute visibility graph for a set of polygons and polylines and store it in memory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>inside_percent</strong> (<em>float</em>) – (from 0 to 1) - controls the number of inner polygon edges</p></li>
 <li><p><strong>multiprocessing</strong> (<em>bool</em>) – speed up computation for dense areas using multiprocessing</p></li>
-<li><p><strong>crs</strong> (<em>str</em>) – coordinate reference system</p></li>
 </ul>
 </dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="offroad_routing.VisibilityGraph.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.VisibilityGraph.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build folium map of computed graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – additional ox.folium.plot_graph_folium() parameters</p>
+</dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>networkx.MultiGraph</p>
+<dd class="field-even"><p>folium.folium.Map</p>
 </dd>
 </dl>
 </dd></dl>
@@ -270,11 +440,11 @@ Computed geometry can be used for graph building and pathfinding.</p>
 <h3>AStar<a class="headerlink" href="#astar" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="offroad_routing.AStar">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">offroad_routing.</span></span><span class="sig-name descname"><span class="pre">AStar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vgraph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#offroad_routing.VisibilityGraph" title="offroad_routing.visibility.visibility_graph.VisibilityGraph"><span class="pre">offroad_routing.visibility.visibility_graph.VisibilityGraph</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">offroad_routing.</span></span><span class="sig-name descname"><span class="pre">AStar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vgraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find off-road routes using A* algorithm and visibility graph.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="offroad_routing.AStar.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vgraph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#offroad_routing.VisibilityGraph" title="offroad_routing.visibility.visibility_graph.VisibilityGraph"><span class="pre">offroad_routing.visibility.visibility_graph.VisibilityGraph</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vgraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>vgraph</strong> (<a class="reference internal" href="#offroad_routing.VisibilityGraph" title="offroad_routing.VisibilityGraph"><em>VisibilityGraph</em></a>) – visibility graph with computed geometry</p>
@@ -284,15 +454,14 @@ Computed geometry can be used for graph building and pathfinding.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="offroad_routing.AStar.find">
-<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.find" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#offroad_routing.AStar.find" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find route from point start to point goal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>start</strong> (<em>TPoint</em>) – start point</p></li>
 <li><p><strong>goal</strong> (<em>TPoint</em>) – goal point</p></li>
-<li><p><strong>default_surface</strong> (<em>str</em>) – default surface for unfilled areas (choose prevailing surface)</p></li>
-<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic (<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)</p></li>
+<li><p><strong>heuristic_multiplier</strong> (<em>int</em>) – multiplier to weight heuristic         (<a class="reference external" href="http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale">http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale</a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -340,22 +509,62 @@ Computed geometry can be used for graph building and pathfinding.</p>
 </dd></dl>
 
 </section>
-<section id="pointdata-explanation">
-<h3>PointData Explanation<a class="headerlink" href="#pointdata-explanation" title="Permalink to this headline">¶</a></h3>
+<section id="geometry-types">
+<h3>Geometry types<a class="headerlink" href="#geometry-types" title="Permalink to this headline">¶</a></h3>
 <p>In order to speed up computation, low-level data transfer approach is used.
 Data about points, polylines and polygons is transferred using tuples instead of structures.</p>
 <dl class="py data">
-<dt class="sig sig-object py" id="offroad_routing.visibility.visibility_graph.TPoint">
-<span class="sig-prename descclassname"><span class="pre">offroad_routing.visibility.visibility_graph.</span></span><span class="sig-name descname"><span class="pre">TPoint</span></span><a class="headerlink" href="#offroad_routing.visibility.visibility_graph.TPoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tuple[float, float] - point coordinates in format (lon, lat).</p>
-<p>alias of TypeVar(‘TPoint’)</p>
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TPoint">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TPoint</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="offroad_routing.visibility.visibility_graph.PointData">
-<span class="sig-prename descclassname"><span class="pre">offroad_routing.visibility.visibility_graph.</span></span><span class="sig-name descname"><span class="pre">PointData</span></span><a class="headerlink" href="#offroad_routing.visibility.visibility_graph.PointData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])</p>
-<ol class="arabic simple" start="0">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TPolygon">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TPolygon</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<a class="reference internal" href="#offroad_routing.geometry.geom_types.TPoint" title="offroad_routing.geometry.geom_types.TPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPoint</span></code></a>, …]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TMultiPolygon">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TMultiPolygon</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TMultiPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<a class="reference internal" href="#offroad_routing.geometry.geom_types.TPolygon" title="offroad_routing.geometry.geom_types.TPolygon"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPolygon</span></code></a>, …]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TSegment">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TSegment</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TSegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<a class="reference internal" href="#offroad_routing.geometry.geom_types.TPoint" title="offroad_routing.geometry.geom_types.TPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPoint</span></code></a>, <a class="reference internal" href="#offroad_routing.geometry.geom_types.TPoint" title="offroad_routing.geometry.geom_types.TPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPoint</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TAngles">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TAngles</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TAngles" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, …]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TPath">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TPath</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#offroad_routing.geometry.geom_types.TPoint" title="offroad_routing.geometry.geom_types.TPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPoint</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TPolygonData">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TPolygonData</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TPolygonData" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">offroad_routing.geometry.geom_types.TPolygonRec</span></code>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.TSegmentData">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">TSegmentData</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.TSegmentData" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">offroad_routing.geometry.geom_types.TSegmentRec</span></code>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="offroad_routing.geometry.geom_types.PointData">
+<span class="sig-prename descclassname"><span class="pre">offroad_routing.geometry.geom_types.</span></span><span class="sig-name descname"><span class="pre">PointData</span></span><a class="headerlink" href="#offroad_routing.geometry.geom_types.PointData" title="Permalink to this definition">¶</a></dt>
+<dd><ol class="arabic simple" start="0">
 <li><p>point coordinates (lon, lat)</p></li>
 <li><p>number of object where point belongs</p></li>
 <li><p>number of point in object</p></li>
@@ -363,7 +572,7 @@ Data about points, polylines and polygons is transferred using tuples instead of
 <li><p>surface weight</p></li>
 </ol>
 <p>Node of the graph is unambiguously set either by its coordinates or by its position in an object.</p>
-<p>alias of TypeVar(‘PointData’)</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<a class="reference internal" href="#offroad_routing.geometry.geom_types.TPoint" title="offroad_routing.geometry.geom_types.TPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">TPoint</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</p>
 </dd></dl>
 
 <div class="toctree-wrapper compound">
@@ -399,10 +608,11 @@ Data about points, polylines and polygons is transferred using tuples instead of
 </ul>
 </li>
 <li><a class="reference internal" href="#documentation">Documentation</a><ul>
+<li><a class="reference internal" href="#geometry">Geometry</a></li>
 <li><a class="reference internal" href="#visibilitygraph">VisibilityGraph</a></li>
 <li><a class="reference internal" href="#astar">AStar</a></li>
 <li><a class="reference internal" href="#gpxtrack">GpxTrack</a></li>
-<li><a class="reference internal" href="#pointdata-explanation">PointData Explanation</a></li>
+<li><a class="reference internal" href="#geometry-types">Geometry types</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>

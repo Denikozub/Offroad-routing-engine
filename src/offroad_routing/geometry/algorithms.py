@@ -1,7 +1,6 @@
 from math import atan2
 from math import fabs
 from math import pi
-from typing import TypeVar
 
 from numpy import arctan2
 from numpy import cos
@@ -9,8 +8,7 @@ from numpy import radians
 from numpy import round
 from numpy import sin
 from numpy import sqrt
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
+from offroad_routing.geometry.geom_types import TPoint
 
 
 def point_distance(a: TPoint, b: TPoint) -> float:
@@ -24,7 +22,7 @@ def point_distance(a: TPoint, b: TPoint) -> float:
     delta_lambda = radians(lon2 - lon1)
     a = sin(delta_phi / 2) ** 2 + cos(phi1) * \
         cos(phi2) * sin(delta_lambda / 2) ** 2
-    return round(6371 * (2 * arctan2(sqrt(a), sqrt(1 - a))), 2)
+    return round(6371 * (2 * arctan2(sqrt(a), sqrt(1 - a))), 4)
 
 
 def cross_product(p: TPoint, q: TPoint) -> float:

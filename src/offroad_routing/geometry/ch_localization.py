@@ -1,15 +1,13 @@
 from math import pi
 from typing import Optional
 from typing import Tuple
-from typing import TypeVar
 
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import polar_angle
 from offroad_routing.geometry.algorithms import turn
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-TPolygon = TypeVar("TPolygon")  # Tuple[TPoint, ...]
-TAngles = TypeVar("TAngles")  # Tuple[float, ...]
+from offroad_routing.geometry.geom_types import TAngles
+from offroad_routing.geometry.geom_types import TPoint
+from offroad_routing.geometry.geom_types import TPolygon
 
 
 def localize_convex_linear(point: TPoint, polygon: TPolygon) -> bool:

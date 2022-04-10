@@ -1,7 +1,7 @@
 Offroad Routing Engine
 **********************
 
-This module is made for downloading and parsing OSM maps, pathfinding and visibility graph building using hierarchical approach, saving and visualizing results.
+This module is made for downloading, parsing and processing OSM maps, pathfinding and visibility graph building using hierarchical approach, saving and visualizing results.
 Main goal was to fully optimize geometry algorithms and achieve lowest computational time possible. Low-level data transfer approach has been used and
 a unique algorithm, created specifically for off-road routing, has been implemented. See `algorithm explanation <https://github.com/Denikozub/Offroad-routing-engine/blob/main/docs/algorithm.pdf>`_.
 
@@ -132,21 +132,37 @@ You can check the route `here <https://nakarte.me/#nktj=W3sibiI6ICIyMDIxLTA5LTE5
 Documentation
 =============
 
+Geometry
++++++++++++++++
+
+	`Geometry types`_
+
+.. autoclass:: offroad_routing.Geometry
+
+	.. automethod:: offroad_routing.Geometry.parse
+	.. automethod:: offroad_routing.Geometry.load
+	.. automethod:: offroad_routing.Geometry.save
+	.. automethod:: offroad_routing.Geometry.plot
+	.. automethod:: offroad_routing.Geometry.cut_bbox
+	.. automethod:: offroad_routing.Geometry.minimum_spanning_tree
+	.. automethod:: offroad_routing.Geometry.simplify_roads
+	.. automethod:: offroad_routing.Geometry.select_road_type
+	.. automethod:: offroad_routing.Geometry.simplify_polygons
+	.. automethod:: offroad_routing.Geometry.to_networkx
+	.. automethod:: offroad_routing.Geometry.export
+
 
 VisibilityGraph
 +++++++++++++++
 
+	`Geometry types`_
+
 .. autoclass:: offroad_routing.VisibilityGraph
 
-	.. automethod:: offroad_routing.VisibilityGraph.compute_geometry
-	.. automethod:: offroad_routing.VisibilityGraph.prune_geometry
-	.. automethod:: offroad_routing.VisibilityGraph.save_geometry
-	.. automethod:: offroad_routing.VisibilityGraph.load_geometry
+	.. automethod:: offroad_routing.VisibilityGraph.__init__
 	.. automethod:: offroad_routing.VisibilityGraph.incident_vertices
-
-	`PointData Explanation`_
-
-	.. automethod:: offroad_routing.VisibilityGraph.build_graph
+	.. automethod:: offroad_routing.VisibilityGraph.build
+	.. automethod:: offroad_routing.VisibilityGraph.plot
 
 
 AStar
@@ -165,14 +181,21 @@ GpxTrack
 	:special-members: __init__
 
 
-PointData Explanation
+Geometry types
 +++++++++++++++++++++
 
 In order to speed up computation, low-level data transfer approach is used.
 Data about points, polylines and polygons is transferred using tuples instead of structures.
 
-.. autodata:: offroad_routing.visibility.visibility_graph.TPoint
-.. autodata:: offroad_routing.visibility.visibility_graph.PointData
+.. autodata:: offroad_routing.geometry.geom_types.TPoint
+.. autodata:: offroad_routing.geometry.geom_types.TPolygon
+.. autodata:: offroad_routing.geometry.geom_types.TMultiPolygon
+.. autodata:: offroad_routing.geometry.geom_types.TSegment
+.. autodata:: offroad_routing.geometry.geom_types.TAngles
+.. autodata:: offroad_routing.geometry.geom_types.TPath
+.. autodata:: offroad_routing.geometry.geom_types.TPolygonData
+.. autodata:: offroad_routing.geometry.geom_types.TSegmentData
+.. autodata:: offroad_routing.geometry.geom_types.PointData
 
 
 .. toctree::

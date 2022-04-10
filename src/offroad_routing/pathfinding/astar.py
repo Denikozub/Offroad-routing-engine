@@ -1,15 +1,12 @@
-from typing import TypeVar
-
+from networkx import astar_path
+from networkx import get_node_attributes
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.algorithms import point_distance
-from offroad_routing.osm_data.tag_value import polygon_values
+from offroad_routing.geometry.geom_types import TPoint
 from offroad_routing.pathfinding.path import Path
 from offroad_routing.pathfinding.priority_queue import PriorityQueue
 from offroad_routing.visibility.visibility_graph import VisibilityGraph
-
-TPoint = TypeVar("TPoint")  # Tuple[float, float]
-# Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]]
-PointData = TypeVar("PointData")
+from osmnx import get_nearest_node
 
 
 class AStar:
@@ -19,7 +16,7 @@ class AStar:
 
     __slots__ = ("__vgraph",)
 
-    def __init__(self, vgraph: VisibilityGraph):
+    def __init__(self, vgraph):
         """
         :param VisibilityGraph vgraph: visibility graph with computed geometry
         """
@@ -29,21 +26,7 @@ class AStar:
     def __heuristic(node: TPoint, goal: TPoint, heuristic_multiplier: int) -> float:
         return point_distance(node, goal) * heuristic_multiplier
 
-    def find(self, start, goal, default_surface="grass", heuristic_multiplier=10):
-        """
-        Find route from point start to point goal.
-
-        :param TPoint start: start point
-        :param TPoint goal: goal point
-        :param str default_surface: default surface for unfilled areas (choose prevailing surface)
-        :param int heuristic_multiplier: multiplier to weight heuristic (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
-        :rtype: offroad_routing.pathfinding.path.Path
-        """
-
-        if default_surface not in polygon_values.keys():
-            raise ValueError("Unknown default surface value")
-        default_weight = polygon_values[default_surface]
-
+    def __find_notbuilt(self, start, goal, heuristic_multiplier):
         # PointData format
         start_data = (start, None, None, None, None)
         goal_data = (goal, None, None, None, None)
@@ -78,8 +61,7 @@ class AStar:
                 neighbours.insert(0, goal_data)
 
             for neighbour in neighbours:
-                neighbour_point = neighbour[0]
-                neighbour_weight = neighbour[4] if neighbour[4] > 0 else default_weight
+                neighbour_point, neighbour_weight = neighbour[0], neighbour[4]
                 new_cost = cost_so_far[current_point] + point_distance(current_point,
                                                                        neighbour_point) * neighbour_weight
 
@@ -87,9 +69,36 @@ class AStar:
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:
                     cost_so_far[neighbour_point] = new_cost
                     priority = new_cost + \
-                        self.__heuristic(goal, neighbour_point,
-                                         heuristic_multiplier)
+                        AStar.__heuristic(
+                            goal, neighbour_point, heuristic_multiplier)
                     frontier.put(neighbour, priority)
                     came_from[neighbour_point] = current_point
 
-        return Path(came_from, start, goal)
+        return Path.retrace(came_from, start, goal)
+
+    def __node_coordinates(self, node):
+        coords = self.__vgraph.graph.nodes[node]
+        return coords['x'], coords['y']
+
+    def __find_prebuilt(self, start, goal):
+        source_node = get_nearest_node(
+            self.__vgraph.graph, (start[1], start[0]))
+        target_node = get_nearest_node(self.__vgraph.graph, (goal[1], goal[0]))
+        path = astar_path(self.__vgraph.graph, source_node,
+                          target_node, weight='weight')
+        return Path([self.__node_coordinates(node) for node in path], start, goal)
+
+    def find(self, start, goal, heuristic_multiplier=10):
+        """
+        Find route from point start to point goal.
+
+        :param TPoint start: start point
+        :param TPoint goal: goal point
+        :param int heuristic_multiplier: multiplier to weight heuristic \
+        (http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html#scale)
+        :rtype: offroad_routing.pathfinding.path.Path
+        """
+
+        prebuilt = self.__vgraph.stats['number_of_edges'] > 0
+        return self.__find_notbuilt(start, goal, heuristic_multiplier) \
+            if not prebuilt else self.__find_prebuilt(start, goal)
