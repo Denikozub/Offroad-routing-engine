@@ -6,7 +6,7 @@ polygon_values = {'wood': 20, 'wetland': 100, 'allotments': 10, 'peat_cutting': 
                   'basin': 1e5, 'construction': 1e5, 'farmyard': 20, 'farmland': 20,
                   'orchard': 20, 'logging': 1e5, 'flowerbed': 20, 'quarry': 50, 'military': 1e5,
                   'harbour': 1e5, 'reservoir': 1e5, 'cattlegrave': 1e5}
-linestring_values = {'tertiary': 1, 'unclassified': 5, 'track': 5, 'road': 1, 'path': 5, 'trunk': 1,
+linestring_values = {'tertiary': 1, 'unclassified': 3, 'track': 3, 'road': 1, 'path': 3, 'trunk': 1,
                      'secondary': 1, 'residential': 1, 'service': 1, 'footway': 1, 'steps': 1,
                      'pedestrian': 1, 'secondary_link': 1, 'tertiary_link': 1, 'bridleway': 1}
 

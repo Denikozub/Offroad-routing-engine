@@ -9,7 +9,6 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
-    -   id: pretty-format-json
     -   id: check-merge-conflict
     -   id: check-toml
     -   id: check-yaml
