@@ -6,11 +6,11 @@ from re import findall
 from typing import Tuple
 
 import networkx as nx
-import numpy as np
 import requests
 from geopandas import clip
-from geopandas import GeoDataFrame
 from geopandas import read_file
+from geopandas import sjoin
+from numpy import isnan
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.osm_data.convex_hull import build_convex_hull
 from offroad_routing.osm_data.osm_parser import parse_pbf
@@ -362,24 +362,15 @@ class Geometry:
         return tuple(polygons) if len(polygons[0]) >= 3 else None
 
     @staticmethod
-    def __compare_polygon(p1: Polygon, p2: Polygon):
-        if p1.exterior == p2.exterior:
-            return True
-        p1_xy = p1.exterior.coords.xy
-        p2_xy = p2.exterior.coords.xy
-        return len(p1_xy[0]) == len(p2_xy[0]) and \
-            np.all(np.flip(p2_xy[0]) == p1_xy[0]) and \
-            np.all(np.flip(p2_xy[1]) == p1_xy[1])
-
-    @staticmethod
-    def __remove_equal_polygons(polygons: GeoDataFrame):
-        to_delete = list()
-        for i, p1 in enumerate(polygons.geometry):
-            for j, p2 in enumerate(polygons.geometry):
-                if (i != j) and Geometry.__compare_polygon(p1, p2) and (i not in to_delete) and (j not in to_delete):
-                    to_delete.append(j)
-        polygons.drop(to_delete, inplace=True)
-        polygons.reset_index(drop=True, inplace=True)
+    def __remove_overlay(polygons):
+        polygon_count = polygons.shape[0]
+        for i in range(polygon_count):
+            poly = polygons.loc[i, "geometry"]
+            for j in range(i + 1, polygon_count):
+                diff = polygons.loc[j, "geometry"] - poly
+                polygons.loc[j, "geometry"] = diff if isinstance(diff, Polygon) \
+                    else max(diff.geoms, key=lambda x: x.area)
+        polygons.drop(polygons[polygons.is_empty].index, inplace=True)
 
     def export(self, *, remove_inner=False):
         """
@@ -390,11 +381,12 @@ class Geometry:
         :rtype: Tuple[TPolygonData, TSegmentData]
         """
 
-        polygons = DataFrame(self.polygons[["tag", "geometry"]])
+        polygons = deepcopy(self.polygons[["tag", "geometry"]])
+        polygons.geometry = polygons.geometry.apply(Polygon.buffer, args=[0])
+        Geometry.__remove_overlay(polygons)
+        polygons = DataFrame(polygons)
         self.tag_value.eval_polygons(polygons, "tag")
-        Geometry.__remove_equal_polygons(polygons)
-        polygons['geometry'] = self.polygons.geometry.apply(
-            Geometry.__polygon_coords)
+        polygons.geometry = polygons.geometry.apply(Geometry.__polygon_coords)
         polygons = polygons[polygons['geometry'].notna(
         )].reset_index().drop(columns='index')
         if remove_inner:
@@ -405,7 +397,10 @@ class Geometry:
                                      .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         linestrings = DataFrame(self.edges[["tag"]])
+        linestrings.loc[sjoin(self.edges, self.polygons,
+                              predicate='covered_by').index, 'inside'] = True
+        linestrings = linestrings.fillna(False)
         self.tag_value.eval_lines(linestrings, "tag")
         linestrings['geometry'] = self.edges.apply(
-            lambda x: (self.nodes[x.u], self.nodes[x.v]), axis=1)
+            lambda x: (self.nodes[x.u], self.nodes[x.v]), axis=1) if self.edges.shape[0] > 0 else None
         return polygons.to_dict('records'), linestrings.to_dict('records')

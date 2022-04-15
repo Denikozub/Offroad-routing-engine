@@ -68,6 +68,10 @@ def find_supporting_line(point: TPoint, polygon: TPolygon) -> Optional[List[int]
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
 
+    for pi in polygon[1:]:
+        if compare_points(point, pi):
+            return None
+
     supporting_pair = find_supporting_pair_brute(
         point, polygon, polygon_size, None)
     if supporting_pair is None:

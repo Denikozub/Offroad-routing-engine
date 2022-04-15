@@ -1,6 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 
 from networkx import MultiGraph
+from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.geometry.ch_localization import localize_convex
 from offroad_routing.geometry.geom_types import TPolygonData
 from offroad_routing.geometry.geom_types import TSegmentData
@@ -54,20 +55,14 @@ class VisibilityGraph:
             raise ValueError("inside_percent should be from 1 to 0")
 
         point, obj_number, point_number, is_polygon = point_data[0:4]
+        is_unknown = obj_number is None or point_number is None or is_polygon is None
         visible_vertices = SegmentVisibility()
         edges_inside = list()
 
         for i, polygon in enumerate(self.polygons):
 
-            # if a point is not a part of an object
-            if obj_number is None or point_number is None or is_polygon is None:
-                if Polygon(polygon["geometry"][0]).contains(Point(point)):
-                    return find_inner_edges(point, None, polygon["geometry"], i, inside_percent, polygon["tag"][0])
-                else:
-                    continue
-
             # if a point is a part of a current polygon
-            if is_polygon and i == obj_number:
+            if not is_unknown and is_polygon and i == obj_number:
 
                 edges_inside = find_inner_edges(point, point_number, polygon["geometry"], i, inside_percent,
                                                 polygon["tag"][0])
@@ -112,6 +107,8 @@ class VisibilityGraph:
             else:
                 line = find_supporting_line(point, polygon["geometry"][0])
                 if line is None:
+                    if is_unknown:
+                        return find_inner_edges(point, None, polygon["geometry"], i, inside_percent, polygon["tag"][0])
                     return list()
                 line = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
                         for k in line]
@@ -122,14 +119,13 @@ class VisibilityGraph:
             weight = linestring["tag"]
             geometry = linestring["geometry"]
 
-            # if a point is a part of a current segment
-            if not is_polygon and i == obj_number:
-                neighbour = (point_number + 1) % 2
-                edges_inside.append(
-                    (geometry[neighbour], i, neighbour, False, weight))
-            else:
+            if is_polygon or is_unknown and not linestring["inside"]:
                 visible_vertices.add_pair(
                     ((geometry[0], i, 0, False, 0), (geometry[1], i, 1, False, self.default_weight)))
+            elif compare_points(point, geometry[0]):
+                edges_inside.append((geometry[1], i, 1, False, weight))
+            elif compare_points(point, geometry[1]):
+                edges_inside.append((geometry[0], i, 0, False, weight))
 
         # building visibility graph of segments
         visible_edges = visible_vertices.get_edges_sweepline(point)
