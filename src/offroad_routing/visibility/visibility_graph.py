@@ -12,8 +12,6 @@ from offroad_routing.visibility.supporting_line import find_restriction_pair
 from offroad_routing.visibility.supporting_line import find_supporting_line
 from offroad_routing.visibility.supporting_pair import find_supporting_pair
 from osmnx.folium import plot_graph_folium
-from shapely.geometry import Point
-from shapely.geometry import Polygon
 
 
 class VisibilityGraph:
