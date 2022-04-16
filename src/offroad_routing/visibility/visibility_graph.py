@@ -110,6 +110,9 @@ class VisibilityGraph:
                     if is_unknown:
                         return find_inner_edges(point, None, polygon["geometry"], i, inside_percent, polygon["tag"][0])
                     return list()
+                # polygons touching
+                if len(line) == 1:
+                    return [(point, i, line[0], True, 0)]
                 line = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
                         for k in line]
                 visible_vertices.add_line(line)
