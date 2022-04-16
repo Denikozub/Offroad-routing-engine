@@ -2,6 +2,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 from networkx import MultiGraph
 from offroad_routing.geometry.algorithms import compare_points
+from offroad_routing.geometry.algorithms import point_distance
 from offroad_routing.geometry.ch_localization import localize_convex
 from offroad_routing.geometry.geom_types import TPolygonData
 from offroad_routing.geometry.geom_types import TSegmentData
@@ -166,7 +167,7 @@ class VisibilityGraph:
                     else int((vertex[1] + 0.5) * max_poly_len + vertex[2])
                 self.__graph.add_node(vertex_index, x=vx, y=vy)
                 self.__graph.add_edge(
-                    point_index, vertex_index, weight=vertex[4])
+                    point_index, vertex_index, weight=vertex[4] * point_distance(point, vertex[0]))
 
     def build(self, inside_percent=0.4, multiprocessing=True):
         """
