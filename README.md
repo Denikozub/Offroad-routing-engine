@@ -18,5 +18,5 @@ by Denis Kozub
 Scope of application:
 - Extending functionality of other routing engines
 - Road and facilities design
-- Rescue and military operations planning
+- Rescue and operations planning
 - Route planning for hiking and tourism
