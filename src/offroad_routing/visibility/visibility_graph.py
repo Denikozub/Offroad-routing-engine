@@ -72,34 +72,25 @@ class VisibilityGraph:
 
                 # if a point is a part of convex hull
                 if point_number in polygon["convex_hull_points"]:
-                    position = polygon["convex_hull_points"].index(
-                        point_number)
-                    left = polygon["convex_hull_points"][(
-                        position - 1) % convex_hull_point_count]
-                    right = polygon["convex_hull_points"][(
-                        position + 1) % convex_hull_point_count]
-                    restriction_pair = (
-                        polygon["geometry"][0][left], polygon["geometry"][0][right])
-                    visible_vertices.set_restriction_angle(
-                        restriction_pair, point, reverse_angle=True)
+                    position = polygon["convex_hull_points"].index(point_number)
+                    left = polygon["convex_hull_points"][(position - 1) % convex_hull_point_count]
+                    right = polygon["convex_hull_points"][(position + 1) % convex_hull_point_count]
+                    restriction_pair = (polygon["geometry"][0][left], polygon["geometry"][0][right])
+                    visible_vertices.set_restriction_angle(restriction_pair, point, reverse_angle=True)
 
                 # if a point is strictly inside a convex hull and a part of polygon
                 else:
-                    restriction_pair = find_restriction_pair(
-                        point, polygon["geometry"][0], point_number)
+                    restriction_pair = find_restriction_pair(point, polygon["geometry"][0], point_number)
                     if restriction_pair is None:
                         return edges_inside
-                    visible_vertices.set_restriction_angle(
-                        restriction_pair, point, reverse_angle=False)
+                    visible_vertices.set_restriction_angle(restriction_pair, point, reverse_angle=False)
 
             # if a point not inside convex hull
             elif not localize_convex(point, polygon["convex_hull"], polygon["angles"])[0]:
-                pair = find_supporting_pair(
-                    point, polygon["convex_hull"], polygon["angles"])
+                pair = find_supporting_pair(point, polygon["convex_hull"], polygon["angles"])
                 if pair is not None:
                     pair = [polygon["convex_hull_points"][k] for k in pair]
-                    pair = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
-                            for k in pair]
+                    pair = [(polygon["geometry"][0][k], i, k, True, self.default_weight) for k in pair]
                 visible_vertices.add_pair(pair)
 
             # if a point is inside convex hull but not a part of polygon
@@ -112,8 +103,7 @@ class VisibilityGraph:
                 # polygons touching
                 if len(line) == 1:
                     return [(point, i, line[0], True, 0)]
-                line = [(polygon["geometry"][0][k], i, k, True, self.default_weight)
-                        for k in line]
+                line = [(polygon["geometry"][0][k], i, k, True, self.default_weight) for k in line]
                 visible_vertices.add_line(line)
 
         # loop over all segments
@@ -145,15 +135,13 @@ class VisibilityGraph:
 
                     # adding a vertex in networkx graph
                     px, py = point
-                    point_index = i * max_poly_len + \
-                        j if is_polygon else int((i + 0.5) * max_poly_len + j)
+                    point_index = i * max_poly_len + j if is_polygon else int((i + 0.5) * max_poly_len + j)
                     self.__graph.add_node(point_index, x=px, y=py)
 
                     # getting incident vertices
                     point_data = (point, i, j, is_polygon, None)
                     future = self.incident_vertices(point_data, inside_percent) if not multiprocessing else \
-                        executor.submit(self.incident_vertices,
-                                        point_data, inside_percent)
+                        executor.submit(self.incident_vertices, point_data, inside_percent)
                     futures.append((future, point, point_index))
 
         for future_data in futures:
@@ -166,8 +154,7 @@ class VisibilityGraph:
                 vertex_index = vertex[1] * max_poly_len + vertex[2] if vertex[3] \
                     else int((vertex[1] + 0.5) * max_poly_len + vertex[2])
                 self.__graph.add_node(vertex_index, x=vx, y=vy)
-                self.__graph.add_edge(
-                    point_index, vertex_index, weight=vertex[4] * point_distance(point, vertex[0]))
+                self.__graph.add_edge(point_index, vertex_index, weight=vertex[4] * point_distance(point, vertex[0]))
 
     def build(self, inside_percent=0.4, multiprocessing=True):
         """
@@ -180,8 +167,7 @@ class VisibilityGraph:
             raise ValueError("inside_percent should be from 1 to 0")
 
         self.__process_points_of_objects(True, inside_percent, multiprocessing)
-        self.__process_points_of_objects(
-            False, inside_percent, multiprocessing)
+        self.__process_points_of_objects(False, inside_percent, multiprocessing)
 
     def plot(self, **kwargs):
         """

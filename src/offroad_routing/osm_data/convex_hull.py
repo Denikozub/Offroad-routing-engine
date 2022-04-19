@@ -43,8 +43,7 @@ def build_convex_hull(polygon: TPolygon) -> Tuple[TPolygon, Tuple[int, ...], Opt
             polygon = tuple(reversed(polygon))
             vertices = list(reversed(vertices))
         starting_point = polygon[0]
-        angles = [polar_angle(starting_point, vertex)
-                  for vertex in polygon][1:-1]
+        angles = [polar_angle(starting_point, vertex) for vertex in polygon][1:-1]
         vertices.pop()
         return polygon, tuple(vertices), tuple(angles)
 

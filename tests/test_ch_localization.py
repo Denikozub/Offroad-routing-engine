@@ -65,8 +65,7 @@ class TestLocalizeConvex(unittest.TestCase):
         with self.assertRaises(Exception):
             localize_convex((0, 0), ((0, 0), (1, 1), (2, 2)), None)
         with self.assertRaises(Exception):
-            localize_convex(
-                (0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), None)
+            localize_convex((0, 0), ((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), None)
 
 
 if __name__ == '__main__':

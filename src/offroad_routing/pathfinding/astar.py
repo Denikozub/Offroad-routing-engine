@@ -54,8 +54,7 @@ class AStar:
             neighbours = self.__vgraph.incident_vertices(current)
 
             # if current is goal neighbour add it to neighbour list
-            goal_neighbour = (current[1], current[2],
-                              current[3]) in goal_neighbours
+            goal_neighbour = (current[1], current[2], current[3]) in goal_neighbours
             if goal_neighbour:
                 neighbours.insert(0, goal_data)
 
@@ -67,9 +66,7 @@ class AStar:
                 # neighbour not visited or shorter path found
                 if neighbour_point not in cost_so_far or new_cost < cost_so_far[neighbour_point]:
                     cost_so_far[neighbour_point] = new_cost
-                    priority = new_cost + \
-                        AStar.__heuristic(
-                            goal, neighbour_point, heuristic_multiplier)
+                    priority = new_cost + AStar.__heuristic(goal, neighbour_point, heuristic_multiplier)
                     frontier.put(neighbour, priority)
                     came_from[neighbour_point] = current_point
 
@@ -80,11 +77,9 @@ class AStar:
         return coords['x'], coords['y']
 
     def __find_prebuilt(self, start, goal):
-        source_node = get_nearest_node(
-            self.__vgraph.graph, (start[1], start[0]))
+        source_node = get_nearest_node(self.__vgraph.graph, (start[1], start[0]))
         target_node = get_nearest_node(self.__vgraph.graph, (goal[1], goal[0]))
-        path = astar_path(self.__vgraph.graph, source_node,
-                          target_node, weight='weight')
+        path = astar_path(self.__vgraph.graph, source_node, target_node, weight='weight')
         return Path([self.__node_coordinates(node) for node in path], start, goal)
 
     def find(self, start, goal, heuristic_multiplier=10):

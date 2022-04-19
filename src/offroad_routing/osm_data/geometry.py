@@ -10,7 +10,6 @@ import requests
 from geopandas import clip
 from geopandas import read_file
 from geopandas import sjoin
-from numpy import isnan
 from offroad_routing.geometry.algorithms import compare_points
 from offroad_routing.osm_data.convex_hull import build_convex_hull
 from offroad_routing.osm_data.osm_parser import parse_pbf
@@ -53,8 +52,7 @@ class Geometry:
         geometry.polygons = read_file(filepath + ".gpkg", layer='polygons')
         geometry.edges = read_file(filepath + ".gpkg", layer='edges')
         with open(filepath + ".json") as f:
-            geometry.nodes = {int(k): tuple(v)
-                              for k, v in json.load(f).items()}
+            geometry.nodes = {int(k): tuple(v) for k, v in json.load(f).items()}
         return geometry
 
     @classmethod
@@ -79,19 +77,16 @@ class Geometry:
         if filename is not None:
             if filename[-4:] == '.xml':
                 root = ET.parse(filename)
-                geometry.polygons, geometry.edges, geometry.nodes = parse_xml(
-                    root)
+                geometry.polygons, geometry.edges, geometry.nodes = parse_xml(root)
                 return geometry.cut_bbox(bbox)
             if filename[-8:] == '.osm.pbf':
-                geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(
-                    filename, bbox)
+                geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(filename, bbox)
                 return geometry
             raise ValueError("Only .xml and .osm.pbf files supported")
 
         if query is not None:
             filepath = get_data(query, directory=directory)
-            geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(
-                filepath, bbox)
+            geometry.polygons, geometry.edges, geometry.nodes = parse_pbf(filepath, bbox)
             return geometry
 
         r = requests.get('http://www.overpass-api.de/api/xapi_meta?*[bbox=' +
@@ -115,10 +110,8 @@ class Geometry:
             raise ValueError("Wrong package name")
 
         filepath = path.join(directory, package_name)
-        self.polygons.to_file(filepath + ".gpkg",
-                              layer='polygons', driver="GPKG")
-        self.edges.to_file(filepath + ".gpkg",
-                           layer='edges', driver="GPKG")
+        self.polygons.to_file(filepath + ".gpkg", layer='polygons', driver="GPKG")
+        self.edges.to_file(filepath + ".gpkg", layer='edges', driver="GPKG")
         with open(filepath + ".json", 'w') as f:
             json.dump(self.nodes, f)
 
@@ -137,12 +130,9 @@ class Geometry:
         assert len(bbox) == 4
 
         mask = box(*bbox)
-        polygons = clip(self.polygons, mask,
-                        keep_geom_type=True).reset_index(drop=True)
-        edges = self.edges.iloc[clip(
-            self.edges, mask, keep_geom_type=True).index].reset_index(drop=True)
-        nodes = {k: v for k, v in self.nodes.items() if k in (
-            set(edges.u) | set(edges.v))}
+        polygons = clip(self.polygons, mask, keep_geom_type=True).reset_index(drop=True)
+        edges = self.edges.iloc[clip(self.edges, mask, keep_geom_type=True).index].reset_index(drop=True)
+        nodes = {k: v for k, v in self.nodes.items() if k in (set(edges.u) | set(edges.v))}
 
         if not inplace:
             geometry = Geometry()
@@ -178,8 +168,7 @@ class Geometry:
 
         G = nx.Graph()
         for _, row in self.edges.iterrows():
-            G.add_edge(self.nodes[row.u],
-                       self.nodes[row.v], weight=row['length'])
+            G.add_edge(self.nodes[row.u], self.nodes[row.v], weight=row['length'])
         return G
 
     def minimum_spanning_tree(self, *, inplace=False):
@@ -196,15 +185,12 @@ class Geometry:
             G.add_edge(row.u, row.v, weight=row['length'])
         mst = DataFrame(nx.minimum_spanning_tree(G).edges, columns=['u', 'v'])
         edges = concat([merge(self.edges, mst, how='inner', left_on=['u', 'v'], right_on=['u', 'v']),
-                        merge(self.edges, mst, how='inner', left_on=[
-                            'u', 'v'], right_on=['v', 'u'])
-                       .drop(columns=['u_x', 'v_x'])
-                       .rename(columns={'u_y': 'u', 'v_y': 'v'})]).reset_index(drop=True)
+                        merge(self.edges, mst, how='inner', left_on=['u', 'v'], right_on=['v', 'u'])
+                       .drop(columns=['u_x', 'v_x']).rename(columns={'u_y': 'u', 'v_y': 'v'})]).reset_index(drop=True)
 
         if not inplace:
             geometry = Geometry()
-            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(
-                self.polygons), edges, deepcopy(self.nodes)
+            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(self.polygons), edges, deepcopy(self.nodes)
             return geometry
 
         self.edges = edges
@@ -231,13 +217,11 @@ class Geometry:
                 edges.drop(i, inplace=True)
                 nodes.pop(row.v, None)
         edges.reset_index(drop=True, inplace=True)
-        edges.geometry = edges.apply(
-            lambda x: LineString((nodes[x.u], nodes[x.v])), axis=1)
+        edges.geometry = edges.apply(lambda x: LineString((nodes[x.u], nodes[x.v])), axis=1)
 
         if not inplace:
             geometry = Geometry()
-            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(
-                self.polygons), edges, nodes
+            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(self.polygons), edges, nodes
             return geometry
 
         self.edges, self.nodes = edges, nodes
@@ -256,18 +240,14 @@ class Geometry:
         assert isinstance(types, (list, tuple, set))
 
         if not exclude:
-            edges = self.edges[self.edges.tag.isin(
-                types)].reset_index(drop=True)
+            edges = self.edges[self.edges.tag.isin(types)].reset_index(drop=True)
         else:
-            edges = self.edges[~self.edges.tag.isin(
-                types)].reset_index(drop=True)
-        nodes = {k: v for k, v in self.nodes.items() if k in (
-            set(edges.u) | set(edges.v))}
+            edges = self.edges[~self.edges.tag.isin(types)].reset_index(drop=True)
+        nodes = {k: v for k, v in self.nodes.items() if k in (set(edges.u) | set(edges.v))}
 
         if not inplace:
             geometry = Geometry()
-            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(
-                self.polygons), edges, nodes
+            geometry.polygons, geometry.edges, geometry.nodes = deepcopy(self.polygons), edges, nodes
             return geometry
 
         self.edges, self.nodes = edges, nodes
@@ -299,23 +279,18 @@ class Geometry:
         polygons = deepcopy(self.polygons)
 
         bounds = polygons.geometry.bounds
-        bbox_size = (bounds.maxx.max() - bounds.minx.min(),
-                     bounds.maxy.max() - bounds.miny.min())
+        bbox_size = (bounds.maxx.max() - bounds.minx.min(), bounds.maxy.max() - bounds.miny.min())
 
         if epsilon is None:
-            epsilon = (bbox_size[0] ** 2 + bbox_size[1]
-                       ** 2) ** 0.5 / bbox_comp / 5
+            epsilon = (bbox_size[0] ** 2 + bbox_size[1] ** 2) ** 0.5 / bbox_comp / 5
 
-        polygons.geometry = polygons.geometry.apply(
-            Geometry.__compare_bbox, args=[bbox_comp, bbox_size])
+        polygons.geometry = polygons.geometry.apply(Geometry.__compare_bbox, args=[bbox_comp, bbox_size])
         polygons = polygons[polygons.geometry.notna()].reset_index(drop=True)
-        polygons.geometry = polygons.geometry.simplify(
-            epsilon, preserve_topology=True)
+        polygons.geometry = polygons.geometry.simplify(epsilon, preserve_topology=True)
 
         if not inplace:
             geometry = Geometry()
-            geometry.polygons, geometry.edges, geometry.nodes = polygons, deepcopy(
-                self.edges), deepcopy(self.nodes)
+            geometry.polygons, geometry.edges, geometry.nodes = polygons, deepcopy(self.edges), deepcopy(self.nodes)
             return geometry
 
         self.polygons = polygons
@@ -345,8 +320,7 @@ class Geometry:
                         continue
                     new_point = polygons.loc[k, "geometry"][0][0]
                     if compare_points(point, new_point):
-                        polygons.loc[i, "tag"].append(
-                            polygons.loc[k, "tag"])
+                        polygons.loc[i, "tag"].append(polygons.loc[k, "tag"])
                         polygons.loc[k, "geometry"] = None
                     elif k == polygon_count - 1:
                         polygons.loc[i, "tag"].append(None)
@@ -387,8 +361,7 @@ class Geometry:
         polygons = DataFrame(polygons)
         self.tag_value.eval_polygons(polygons, "tag")
         polygons.geometry = polygons.geometry.apply(Geometry.__polygon_coords)
-        polygons = polygons[polygons['geometry'].notna(
-        )].reset_index().drop(columns='index')
+        polygons = polygons[polygons['geometry'].notna()].reset_index().drop(columns='index')
         if remove_inner:
             Geometry.__remove_inner_polygons(polygons)
         if polygons.shape[0] > 0:
@@ -397,8 +370,7 @@ class Geometry:
                                      .rename(columns={0: 'convex_hull', 1: 'convex_hull_points', 2: 'angles'}))
 
         linestrings = DataFrame(self.edges[["tag"]])
-        linestrings.loc[sjoin(self.edges, self.polygons,
-                              predicate='covered_by').index, 'inside'] = True
+        linestrings.loc[sjoin(self.edges, self.polygons, predicate='covered_by').index, 'inside'] = True
         linestrings = linestrings.fillna(False)
         self.tag_value.eval_lines(linestrings, "tag")
         linestrings['geometry'] = self.edges.apply(

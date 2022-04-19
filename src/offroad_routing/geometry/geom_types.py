@@ -27,9 +27,7 @@ class TSegmentRec(TypedDict):
 
 TPolygonData = NewType('TPolygonRec', List[TPolygonRec])
 TSegmentData = NewType('TSegmentData', List[TSegmentRec])
-PointData = NewType(
-    'PointData', Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
-
+PointData = NewType('PointData', Tuple[TPoint, Optional[int], Optional[int], Optional[bool], Optional[int]])
 """
 0. point coordinates (lon, lat)
 1. number of object where point belongs

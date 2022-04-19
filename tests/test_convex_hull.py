@@ -23,16 +23,13 @@ class TestConvexHull(unittest.TestCase):
         self.assertEqual(set(build_convex_hull(polygon1)[0]), set(polygon1))
         self.assertEqual(len(build_convex_hull(polygon1)[0]), len(polygon1))
         self.assertEqual(set(build_convex_hull(polygon1)[1]), {0, 1, 2})
-        self.assertEqual(
-            len(build_convex_hull(polygon1)[2]), len(polygon1) - 2)
+        self.assertEqual(len(build_convex_hull(polygon1)[2]), len(polygon1) - 2)
 
     def test_non_convex(self):
         self.assertNotEqual(set(build_convex_hull(polygon2)[0]), set(polygon2))
-        self.assertEqual(
-            len(build_convex_hull(polygon2)[0]), len(polygon2) - 2)
+        self.assertEqual(len(build_convex_hull(polygon2)[0]), len(polygon2) - 2)
         self.assertEqual(set(build_convex_hull(polygon2)[1]), {0, 2, 3, 5})
-        self.assertEqual(len(build_convex_hull(
-            polygon2)[2]), len(polygon2) - 2 - 2)
+        self.assertEqual(len(build_convex_hull(polygon2)[2]), len(polygon2) - 2 - 2)
 
     def test_exception(self):
         with self.assertRaises(Exception):

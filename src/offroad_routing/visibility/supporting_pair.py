@@ -78,26 +78,21 @@ def find_supporting_pair(point: TPoint, polygon: TPolygon, angles: Optional[TAng
 
     # ray polygon[0], point intersects polygon
     if start_to_point[1] is not None:
-        index1 = find_supporting_point(
-            point, polygon, 0, start_to_point[1], True)
+        index1 = find_supporting_point(point, polygon, 0, start_to_point[1], True)
         if index1 is None:
             return None
-        index2 = find_supporting_point(
-            point, polygon, start_to_point[1], polygon_size - 1, False)
+        index2 = find_supporting_point(point, polygon, start_to_point[1], polygon_size - 1, False)
         if index2 is None:
             return None
     else:
-        point_to_start = localize_convex(
-            point, polygon, angles, True)
+        point_to_start = localize_convex(point, polygon, angles, True)
 
         # ray polygon[0], point does not intersect polygon
         if point_to_start[1] is not None:
-            index1 = find_supporting_point(
-                point, polygon, 0, point_to_start[1], False)
+            index1 = find_supporting_point(point, polygon, 0, point_to_start[1], False)
             if index1 is None:
                 return None
-            index2 = find_supporting_point(
-                point, polygon, point_to_start[1], polygon_size - 1, True)
+            index2 = find_supporting_point(point, polygon, point_to_start[1], polygon_size - 1, True)
             if index2 is None:
                 return None
 

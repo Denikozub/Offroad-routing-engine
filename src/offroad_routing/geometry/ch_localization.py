@@ -54,8 +54,7 @@ def localize_convex(point: TPoint, polygon: TPolygon, angles: Optional[TAngles],
 
     if compare_points(point, polygon[0]):
         return True, None
-    point_angle = polar_angle(
-        point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
+    point_angle = polar_angle(point, polygon[0]) if reverse_angle else polar_angle(polygon[0], point)
 
     # point angle not between angles
     if angles[-1] < pi < angles[0]:

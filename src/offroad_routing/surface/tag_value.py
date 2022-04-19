@@ -15,10 +15,8 @@ class TagValue:
 
     @staticmethod
     def eval_polygons(dataset, column: str) -> None:
-        dataset[column] = dataset[column].apply(
-            lambda x: [polygon_values[x]])
+        dataset[column] = dataset[column].apply(lambda x: [polygon_values[x]])
 
     @staticmethod
     def eval_lines(dataset, column: str) -> None:
-        dataset[column] = dataset[column].apply(
-            lambda x: linestring_values[x])
+        dataset[column] = dataset[column].apply(lambda x: linestring_values[x])

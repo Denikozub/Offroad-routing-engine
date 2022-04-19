@@ -67,10 +67,8 @@ class SegmentVisibility:
                 if j == i:
                     continue
                 check_a, check_b = check_pair[0][0], check_pair[1][0]
-                a_is_visible = not a_in_angle and not check_segment_intersection(
-                    point, a_point, check_a, check_b)
-                b_is_visible = not b_in_angle and not check_segment_intersection(
-                    point, b_point, check_a, check_b)
+                a_is_visible = not a_in_angle and not check_segment_intersection(point, a_point, check_a, check_b)
+                b_is_visible = not b_in_angle and not check_segment_intersection(point, b_point, check_a, check_b)
                 if not a_is_visible and not b_is_visible:
                     break
 
@@ -108,13 +106,11 @@ class SegmentVisibility:
                     break
             else:
                 if self.__restriction_pair is None:
-                    visible_edges[str(p[0][1]) + str(p[0][2]) +
-                                  str(p[0][3] | 0)] = p[0]
+                    visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
                 else:
                     l_point, r_point = self.__restriction_pair
                     if point_in_angle(p[0][0], l_point, self.__restriction_point, r_point) != self.__reverse_angle:
-                        visible_edges[str(p[0][1]) + str(p[0]
-                                                         [2]) + str(p[0][3] | 0)] = p[0]
+                        visible_edges[str(p[0][1]) + str(p[0][2]) + str(p[0][3] | 0)] = p[0]
 
             # update intersected list
             index1 = str((p[0][1], p[0][2], p[0][3] | 0))

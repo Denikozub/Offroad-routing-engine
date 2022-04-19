@@ -47,8 +47,7 @@ def find_restriction_pair(point: TPoint, polygon: TPolygon, point_number: int) -
     assert polygon_size >= 2
     assert compare_points(polygon[0], polygon[-1])
 
-    supporting_pair = find_supporting_pair_brute(
-        point, polygon, polygon_size, point_number)
+    supporting_pair = find_supporting_pair_brute(point, polygon, polygon_size, point_number)
     if supporting_pair is None:
         return None
     point1, point2 = supporting_pair
@@ -72,8 +71,7 @@ def find_supporting_line(point: TPoint, polygon: TPolygon) -> Optional[List[int]
         if compare_points(point, pi):
             return [i]
 
-    supporting_pair = find_supporting_pair_brute(
-        point, polygon, polygon_size, None)
+    supporting_pair = find_supporting_pair_brute(point, polygon, polygon_size, None)
     if supporting_pair is None:
         return None
     point1, point2 = supporting_pair
