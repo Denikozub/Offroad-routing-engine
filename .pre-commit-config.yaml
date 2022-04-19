@@ -4,7 +4,9 @@ repos:
 -   repo: https://github.com/pre-commit/mirrors-autopep8
     rev: v1.5.7
     hooks:
-        - id: autopep8
+    -   id: autopep8
+        args:
+        -   --max-line-length=120
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
