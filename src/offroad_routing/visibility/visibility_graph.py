@@ -17,7 +17,7 @@ from osmnx.folium import plot_graph_folium
 
 class VisibilityGraph:
     """
-    Class for building and utilizing visibility graphs.
+    Class for building, utilizing visualizing and saving visibility graphs.
     Polygons and polylines are used as obstacles on the plane.
     """
 
